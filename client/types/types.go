@@ -25,6 +25,11 @@ type TTS struct {
 	VoiceSettings SynthesisOptions `json:"voice_settings,omitempty"` // Voice settings are applied only on the given TTS request.
 }
 
+var DefaultSynthesisOptions = SynthesisOptions{
+	Stability:       75,
+	SimilarityBoost: 75,
+}
+
 type SynthesisOptions struct {
 	Stability       float64 `json:"stability"`
 	SimilarityBoost float64 `json:"similarity_boost"`
