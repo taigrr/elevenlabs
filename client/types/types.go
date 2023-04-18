@@ -68,13 +68,13 @@ type FineTuningResponseModel struct {
 	VerificationAttemptsCount int32                              `json:"verification_attempts_count"`
 	SliceIds                  []string                           `json:"slice_ids"`
 }
-type GetHistoryResponseModel struct {
-	History []HistoryItemResponseModel `json:"history"`
+type GetHistoryResponse struct {
+	History []HistoryItemList `json:"history"`
 }
 type GetVoicesResponseModel struct {
 	Voices []VoiceResponseModel `json:"voices"`
 }
-type HistoryItemResponseModel struct {
+type HistoryItemList struct {
 	HistoryItemId            string                 `json:"history_item_id"`
 	RequestId                string                 `json:"request_id"`
 	VoiceId                  string                 `json:"voice_id"`
