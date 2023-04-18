@@ -9,8 +9,6 @@ type AddVoiceResponse struct {
 	VoiceID string `json:"voice_id"`
 }
 
-type AnyOfValidationErrorLocItems struct{}
-
 type HistoryPost struct {
 	HistoryItemIds []string `json:"history_item_ids"`
 }
@@ -23,11 +21,6 @@ type Voice struct {
 type TTS struct {
 	Text          string           `json:"text"`                     // The text that will get converted into speech. Currently only English text is supported.
 	VoiceSettings SynthesisOptions `json:"voice_settings,omitempty"` // Voice settings are applied only on the given TTS request.
-}
-
-var DefaultSynthesisOptions = SynthesisOptions{
-	Stability:       75,
-	SimilarityBoost: 75,
 }
 
 type SynthesisOptions struct {
@@ -51,7 +44,7 @@ type ExtendedSubscriptionResponseModel struct {
 	CanUseDelayedPaymentMethods    bool                    `json:"can_use_delayed_payment_methods"`
 	Currency                       string                  `json:"currency"`
 	Status                         string                  `json:"status"`
-	NextInvoice                    InvoiceResponseModel    `json:"next_invoice"`
+	NextInvoice                    Invoice                 `json:"next_invoice"`
 }
 type FeedbackResponseModel struct {
 	ThumbsUp        bool   `json:"thumbs_up"`
@@ -92,9 +85,6 @@ type HistoryItemList struct {
 	State                    string                 `json:"state"`
 	Settings                 *interface{}           `json:"settings"`
 	Feedback                 *FeedbackResponseModel `json:"feedback"`
-}
-type HttpValidationError struct {
-	Detail []ValidationError `json:"detail,omitempty"`
 }
 type Invoice struct {
 	AmountDueCents         int32 `json:"amount_due_cents"`
@@ -147,9 +137,9 @@ type UserResponseModel struct {
 	XiAPIKey     string       `json:"xi_api_key"`
 }
 type ValidationError struct {
-	Loc   []AnyOfValidationErrorLocItems `json:"loc"`
-	Msg   string                         `json:"msg"`
-	Type_ string                         `json:"type"`
+	Loc   any    `json:"loc"`
+	Msg   string `json:"msg"`
+	Type_ string `json:"type"`
 }
 
 func (ve ValidationError) Error() string {
