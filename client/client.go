@@ -1,5 +1,7 @@
 package client
 
+const apiEndpoint = "https://api.elevenlabs.io"
+
 type Client struct {
 	apiKey string
 }

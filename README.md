@@ -1,7 +1,7 @@
 # elevenlabs
 Unofficial [elevenlabs.io](https://beta.elevenlabs.io/) ([11.ai](11.ai)) voice synthesis client
 
-This library is not affiliated with, not associated with ElevenLabs in any way.
+This library is not affiliated with, nor associated with ElevenLabs in any way.
 
 ElevenLabs' official api documentation, upon which this client has been
 derived, [can be found here](https://api.elevenlabs.io/docs).
