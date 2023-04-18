@@ -2,65 +2,31 @@ package types
 
 import "os"
 
-type AddVoiceResponseModel struct {
-	VoiceId string `json:"voice_id"`
-}
-
-// Voice settings overriding stored setttings for the given voice. They are applied only on the given TTS request.
-type AllOfBodyTextToSpeechV1TextToSpeechVoiceIdPostVoiceSettings struct {
-	Stability       float64 `json:"stability"`
-	SimilarityBoost float64 `json:"similarity_boost"`
-}
-
-// Voice settings overriding stored setttings for the given voice. They are applied only on the given TTS request.
-type AllOfBodyTextToSpeechV1TextToSpeechVoiceIdStreamPostVoiceSettings struct {
-	Stability       float64 `json:"stability"`
-	SimilarityBoost float64 `json:"similarity_boost"`
+type AddVoiceResponse struct {
+	VoiceID string `json:"voice_id"`
 }
 
 type AnyOfValidationErrorLocItems struct{}
 
-type BodyAddVoiceV1VoicesAddPost struct {
-	// The name that identifies this voice. This will be displayed in the dropdown of the website.
-	Name string `json:"name"`
-	// One or more audio files to clone the voice from
-	Files []*os.File `json:"files"`
-	// How would you describe the voice?
-	Description string `json:"description,omitempty"`
-	// Serialized labels dictionary for the voice.
-	Labels string `json:"labels,omitempty"`
+type HistoryPost struct {
+	HistoryItemIds []string `json:"history_item_ids"`
+}
+type Voice struct {
+	Name        string     `json:"name"`                  // The name that identifies this voice. This will be displayed in the dropdown of the website.
+	Files       []*os.File `json:"files,omitempty"`       // Audio files to add to the voice
+	Description string     `json:"description,omitempty"` // How would you describe the voice?
+	Labels      string     `json:"labels,omitempty"`      // Serialized labels dictionary for the voice.
+}
+type TTS struct {
+	Text          string           `json:"text"`                     // The text that will get converted into speech. Currently only English text is supported.
+	VoiceSettings SynthesisOptions `json:"voice_settings,omitempty"` // Voice settings are applied only on the given TTS request.
 }
 
-type BodyDeleteHistoryItemsV1HistoryDeletePost struct {
-	// A list of history items to remove, you can get IDs of history items and other metadata using the GET https://api.elevenlabs.io/v1/history endpoint.
-	HistoryItemIds []string `json:"history_item_ids"`
+type SynthesisOptions struct {
+	Stability       float64 `json:"stability"`
+	SimilarityBoost float64 `json:"similarity_boost"`
 }
-type BodyDownloadHistoryItemsV1HistoryDownloadPost struct {
-	// A list of history items to download, you can get IDs of history items and other metadata using the GET https://api.elevenlabs.io/v1/history endpoint.
-	HistoryItemIds []string `json:"history_item_ids"`
-}
-type BodyEditVoiceV1VoicesVoiceIdEditPost struct {
-	// The name that identifies this voice. This will be displayed in the dropdown of the website.
-	Name string `json:"name"`
-	// Audio files to add to the voice
-	Files []*os.File `json:"files,omitempty"`
-	// How would you describe the voice?
-	Description string `json:"description,omitempty"`
-	// Serialized labels dictionary for the voice.
-	Labels string `json:"labels,omitempty"`
-}
-type BodyTextToSpeechV1TextToSpeechVoiceIdPost struct {
-	// The text that will get converted into speech. Currently only English text is supported.
-	Text string `json:"text"`
-	// Voice settings overriding stored setttings for the given voice. They are applied only on the given TTS request.
-	VoiceSettings *AllOfBodyTextToSpeechV1TextToSpeechVoiceIdPostVoiceSettings `json:"voice_settings,omitempty"`
-}
-type BodyTextToSpeechV1TextToSpeechVoiceIdStreamPost struct {
-	// The text that will get converted into speech. Currently only English text is supported.
-	Text string `json:"text"`
-	// Voice settings overriding stored setttings for the given voice. They are applied only on the given TTS request.
-	VoiceSettings *AllOfBodyTextToSpeechV1TextToSpeechVoiceIdStreamPostVoiceSettings `json:"voice_settings,omitempty"`
-}
+
 type ExtendedSubscriptionResponseModel struct {
 	Tier                           string                  `json:"tier"`
 	CharacterCount                 int32                   `json:"character_count"`
@@ -77,7 +43,7 @@ type ExtendedSubscriptionResponseModel struct {
 	CanUseDelayedPaymentMethods    bool                    `json:"can_use_delayed_payment_methods"`
 	Currency                       string                  `json:"currency"`
 	Status                         string                  `json:"status"`
-	NextInvoice                    *InvoiceResponseModel   `json:"next_invoice"`
+	NextInvoice                    InvoiceResponseModel    `json:"next_invoice"`
 }
 type FeedbackResponseModel struct {
 	ThumbsUp        bool   `json:"thumbs_up"`
@@ -90,7 +56,7 @@ type FeedbackResponseModel struct {
 	ReviewStatus    string `json:"review_status,omitempty"`
 }
 type FineTuningResponseModel struct {
-	ModelId                   string                             `json:"model_id"`
+	ModelID                   string                             `json:"model_id"`
 	IsAllowedToFineTune       bool                               `json:"is_allowed_to_fine_tune"`
 	FineTuningRequested       bool                               `json:"fine_tuning_requested"`
 	FinetuningState           string                             `json:"finetuning_state"`
@@ -122,7 +88,7 @@ type HistoryItemResponseModel struct {
 type HttpValidationError struct {
 	Detail []ValidationError `json:"detail,omitempty"`
 }
-type InvoiceResponseModel struct {
+type Invoice struct {
 	AmountDueCents         int32 `json:"amount_due_cents"`
 	NextPaymentAttemptUnix int32 `json:"next_payment_attempt_unix"`
 }
@@ -137,7 +103,7 @@ type RecordingResponseModel struct {
 	UploadDateUnix int32  `json:"upload_date_unix"`
 	Transcription  string `json:"transcription"`
 }
-type SampleResponseModel struct {
+type Sample struct {
 	SampleId  string `json:"sample_id"`
 	FileName  string `json:"file_name"`
 	MimeType  string `json:"mime_type"`
@@ -145,12 +111,7 @@ type SampleResponseModel struct {
 	Hash      string `json:"hash"`
 }
 
-// The settings for a specific voice.
-type Settings struct {
-	Stability       float64 `json:"stability"`
-	SimilarityBoost float64 `json:"similarity_boost"`
-}
-type SubscriptionResponseModel struct {
+type Subscription struct {
 	Tier                           string                  `json:"tier"`
 	CharacterCount                 int32                   `json:"character_count"`
 	CharacterLimit                 int32                   `json:"character_limit"`
@@ -173,9 +134,9 @@ type TtsModelResponseModel struct {
 	SupportedLanguage []LanguageResponseModel `json:"supported_language"`
 }
 type UserResponseModel struct {
-	Subscription *SubscriptionResponseModel `json:"subscription"`
-	IsNewUser    bool                       `json:"is_new_user"`
-	XiApiKey     string                     `json:"xi_api_key"`
+	Subscription Subscription `json:"subscription"`
+	IsNewUser    bool         `json:"is_new_user"`
+	XiAPIKey     string       `json:"xi_api_key"`
 }
 type ValidationError struct {
 	Loc   []AnyOfValidationErrorLocItems `json:"loc"`
@@ -191,18 +152,14 @@ type VerificationAttemptResponseModel struct {
 	Recording           *RecordingResponseModel `json:"recording"`
 }
 type VoiceResponseModel struct {
-	VoiceId           string                      `json:"voice_id"`
-	Name              string                      `json:"name"`
-	Samples           []SampleResponseModel       `json:"samples"`
-	Category          string                      `json:"category"`
-	FineTuning        *FineTuningResponseModel    `json:"fine_tuning"`
-	Labels            map[string]string           `json:"labels"`
-	Description       string                      `json:"description"`
-	PreviewUrl        string                      `json:"preview_url"`
-	AvailableForTiers []string                    `json:"available_for_tiers"`
-	Settings          *VoiceSettingsResponseModel `json:"settings"`
-}
-type VoiceSettingsResponseModel struct {
-	Stability       float64 `json:"stability"`
-	SimilarityBoost float64 `json:"similarity_boost"`
+	VoiceId           string                  `json:"voice_id"`
+	Name              string                  `json:"name"`
+	Samples           []Sample                `json:"samples"`
+	Category          string                  `json:"category"`
+	FineTuning        FineTuningResponseModel `json:"fine_tuning"`
+	Labels            map[string]string       `json:"labels"`
+	Description       string                  `json:"description"`
+	PreviewUrl        string                  `json:"preview_url"`
+	AvailableForTiers []string                `json:"available_for_tiers"`
+	Settings          SynthesisOptions        `json:"settings"`
 }

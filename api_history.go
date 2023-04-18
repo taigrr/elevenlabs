@@ -1,4 +1,3 @@
-
 /*
  * ElevenLabs API Documentation
  *
@@ -11,12 +10,14 @@ package swagger
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-	"fmt"
+
 	"github.com/antihax/optional"
+	"github.com/taigrr/elevenlabs/types"
 )
 
 // Linger please
@@ -24,7 +25,6 @@ var (
 	_ context.Context
 )
 
-type HistoryApiService service
 /*
 HistoryApiService Delete History Item
 Delete a history item by its ID
@@ -35,16 +35,12 @@ Delete a history item by its ID
 @return Object
 */
 
-type HistoryApiDeleteHistoryItemV1HistoryHistoryItemIdDeleteOpts struct {
-    XiApiKey optional.String
-}
-
 func (a *HistoryApiService) DeleteHistoryItemV1HistoryHistoryItemIdDelete(ctx context.Context, historyItemId string, localVarOptionals *HistoryApiDeleteHistoryItemV1HistoryHistoryItemIdDeleteOpts) (Object, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Delete")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Delete")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue Object
 	)
 
@@ -94,42 +90,43 @@ func (a *HistoryApiService) DeleteHistoryItemV1HistoryHistoryItemIdDelete(ctx co
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v Object
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		if localVarHttpResponse.StatusCode == 422 {
 			var v HttpValidationError
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
 	return localVarReturnValue, localVarHttpResponse, nil
 }
+
 /*
 HistoryApiService Delete History Items
 Delete a number of history items by their IDs.
@@ -141,15 +138,15 @@ Delete a number of history items by their IDs.
 */
 
 type HistoryApiDeleteHistoryItemsV1HistoryDeletePostOpts struct {
-    XiApiKey optional.String
+	XiApiKey optional.String
 }
 
 func (a *HistoryApiService) DeleteHistoryItemsV1HistoryDeletePost(ctx context.Context, body BodyDeleteHistoryItemsV1HistoryDeletePost, localVarOptionals *HistoryApiDeleteHistoryItemsV1HistoryDeletePostOpts) (Object, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Post")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
+		localVarHttpMethod  = strings.ToUpper("Post")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
 		localVarReturnValue Object
 	)
 
@@ -200,42 +197,43 @@ func (a *HistoryApiService) DeleteHistoryItemsV1HistoryDeletePost(ctx context.Co
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v Object
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		if localVarHttpResponse.StatusCode == 422 {
 			var v HttpValidationError
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
 
 	return localVarReturnValue, localVarHttpResponse, nil
 }
+
 /*
 HistoryApiService Download History Items
 Download one or more history items. If one history item ID is provided, we will return a single audio file. If more than one history item IDs are provided, we will provide the history items packed into a .zip file.
@@ -247,7 +245,7 @@ Download one or more history items. If one history item ID is provided, we will 
 */
 
 type HistoryApiDownloadHistoryItemsV1HistoryDownloadPostOpts struct {
-    XiApiKey optional.String
+	XiApiKey optional.String
 }
 
 func (a *HistoryApiService) DownloadHistoryItemsV1HistoryDownloadPost(ctx context.Context, body BodyDownloadHistoryItemsV1HistoryDownloadPost, localVarOptionals *HistoryApiDownloadHistoryItemsV1HistoryDownloadPostOpts) (*http.Response, error) {
@@ -256,7 +254,6 @@ func (a *HistoryApiService) DownloadHistoryItemsV1HistoryDownloadPost(ctx contex
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -304,27 +301,27 @@ func (a *HistoryApiService) DownloadHistoryItemsV1HistoryDownloadPost(ctx contex
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 422 {
 			var v HttpValidationError
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarHttpResponse, newErr
 		}
 		return localVarHttpResponse, newErr
 	}
 
 	return localVarHttpResponse, nil
 }
+
 /*
 HistoryApiService Get Audio From History Item
 Returns the audio of an history item.
@@ -336,7 +333,7 @@ Returns the audio of an history item.
 */
 
 type HistoryApiGetAudioFromHistoryItemV1HistoryHistoryItemIdAudioGetOpts struct {
-    XiApiKey optional.String
+	XiApiKey optional.String
 }
 
 func (a *HistoryApiService) GetAudioFromHistoryItemV1HistoryHistoryItemIdAudioGet(ctx context.Context, historyItemId string, localVarOptionals *HistoryApiGetAudioFromHistoryItemV1HistoryHistoryItemIdAudioGetOpts) (*http.Response, error) {
@@ -345,7 +342,6 @@ func (a *HistoryApiService) GetAudioFromHistoryItemV1HistoryHistoryItemIdAudioGe
 		localVarPostBody   interface{}
 		localVarFileName   string
 		localVarFileBytes  []byte
-		
 	)
 
 	// create path and map variables
@@ -392,27 +388,27 @@ func (a *HistoryApiService) GetAudioFromHistoryItemV1HistoryHistoryItemIdAudioGe
 		return localVarHttpResponse, err
 	}
 
-
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 422 {
 			var v HttpValidationError
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarHttpResponse, newErr
 		}
 		return localVarHttpResponse, newErr
 	}
 
 	return localVarHttpResponse, nil
 }
+
 /*
 HistoryApiService Get Generated Items
 Returns metadata about all your generated audio.
@@ -423,16 +419,16 @@ Returns metadata about all your generated audio.
 */
 
 type HistoryApiGetGeneratedItemsV1HistoryGetOpts struct {
-    XiApiKey optional.String
+	XiApiKey optional.String
 }
 
-func (a *HistoryApiService) GetGeneratedItemsV1HistoryGet(ctx context.Context, localVarOptionals *HistoryApiGetGeneratedItemsV1HistoryGetOpts) (GetHistoryResponseModel, *http.Response, error) {
+func GetGeneratedItemsV1HistoryGet(ctx context.Context, localVarOptionals *HistoryApiGetGeneratedItemsV1HistoryGetOpts) (types.GetHistoryResponseModel, *http.Response, error) {
 	var (
-		localVarHttpMethod = strings.ToUpper("Get")
-		localVarPostBody   interface{}
-		localVarFileName   string
-		localVarFileBytes  []byte
-		localVarReturnValue GetHistoryResponseModel
+		localVarHttpMethod  = strings.ToUpper("Get")
+		localVarPostBody    interface{}
+		localVarFileName    string
+		localVarFileBytes   []byte
+		localVarReturnValue types.GetHistoryResponseModel
 	)
 
 	// create path and map variables
@@ -480,36 +476,36 @@ func (a *HistoryApiService) GetGeneratedItemsV1HistoryGet(ctx context.Context, l
 
 	if localVarHttpResponse.StatusCode < 300 {
 		// If we succeed, return the data, otherwise pass on to decode error.
-		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-		if err == nil { 
+		err = a.client.decode(&localVarReturnValue, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+		if err == nil {
 			return localVarReturnValue, localVarHttpResponse, err
 		}
 	}
 
 	if localVarHttpResponse.StatusCode >= 300 {
 		newErr := GenericSwaggerError{
-			body: localVarBody,
+			body:  localVarBody,
 			error: localVarHttpResponse.Status,
 		}
 		if localVarHttpResponse.StatusCode == 200 {
 			var v GetHistoryResponseModel
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		if localVarHttpResponse.StatusCode == 422 {
 			var v HttpValidationError
-			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"));
-				if err != nil {
-					newErr.error = err.Error()
-					return localVarReturnValue, localVarHttpResponse, newErr
-				}
-				newErr.model = v
+			err = a.client.decode(&v, localVarBody, localVarHttpResponse.Header.Get("Content-Type"))
+			if err != nil {
+				newErr.error = err.Error()
 				return localVarReturnValue, localVarHttpResponse, newErr
+			}
+			newErr.model = v
+			return localVarReturnValue, localVarHttpResponse, newErr
 		}
 		return localVarReturnValue, localVarHttpResponse, newErr
 	}
