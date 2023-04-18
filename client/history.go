@@ -254,7 +254,7 @@ func (c Client) GetHistoryItemList(ctx context.Context) ([]types.HistoryItemList
 		if jerr != nil {
 			return []types.HistoryItemList{}, jerr
 		}
-		return []types.HistoryItemList{}, err
+		return history.History, err
 
 	default:
 		return []types.HistoryItemList{}, errors.Join(err, ErrUnspecified)
