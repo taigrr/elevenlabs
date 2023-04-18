@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/taigrr/elevenlabs/client/types"
@@ -39,9 +40,29 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemId string) (bool, 
 	return true, nil
 }
 
-func (c Client) HistoryDownload(ctx context.Context, id string, additionalIDs ...string) ([]byte, error) {
+func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, id2 string, additionalIDs ...string) error {
 	url := apiEndpoint + "/v1/history/download"
-	downloads := append(additionalIDs, id)
+	downloads := append(additionalIDs, id1, id2)
+	toDownload := types.HistoryPost{
+		HistoryItemIds: downloads,
+	}
+	client := &http.Client{}
+	body, _ := json.Marshal(toDownload)
+	bodyReader := bytes.NewReader(body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bodyReader)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("accept", "archive/zip")
+	req.Header.Set("xi-api-key", c.apiKey)
+	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	res, err := client.Do(req)
+	io.Copy(w, req.Response.Body)
+}
+
+func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additionalIDs ...string) ([]byte, error) {
+	url := apiEndpoint + "/v1/history/download"
+	downloads := append(additionalIDs, id1, id2)
 	toDownload := types.HistoryPost{
 		HistoryItemIds: downloads,
 	}
@@ -52,17 +73,26 @@ func (c Client) HistoryDownload(ctx context.Context, id string, additionalIDs ..
 	if err != nil {
 		return []byte{}, err
 	}
-	if len(downloads) == 1 {
-		req.Header.Set("accept", "audio/mpeg")
-	} else {
-		req.Header.Set("accept", "archive/zip")
-	}
+	req.Header.Set("accept", "archive/zip")
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	res, err := client.Do(req)
 }
 
-func (c Client) DownloadAudioByID(ctx context.Context, ID string) ([]byte, error) {
+func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID string) error {
+	url := fmt.Sprintf(apiEndpoint+"/v1/history/%s/audio", ID)
+	client := &http.Client{}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("xi-api-key", c.apiKey)
+	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	res, err := client.Do(req)
+	io.Copy(w, req.Response.Body)
+}
+
+func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) ([]byte, error) {
 	url := fmt.Sprintf(apiEndpoint+"/v1/history/%s/audio", ID)
 	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
