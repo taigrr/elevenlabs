@@ -12,8 +12,7 @@ import (
 )
 
 func (c Client) HistoryDelete(ctx context.Context, historyItemId string) (bool, error) {
-	// create path and map variables
-	url := fmt.Sprintf(apiEndpoint+"/v1/history/%s", historyItemId)
+	url := fmt.Sprintf(c.endpoint+"/v1/history/%s", historyItemId)
 
 	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
@@ -39,7 +38,7 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemId string) (bool, 
 }
 
 func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, id2 string, additionalIDs ...string) error {
-	url := apiEndpoint + "/v1/history/download"
+	url := c.endpoint + "/v1/history/download"
 	downloads := append(additionalIDs, id1, id2)
 	toDownload := types.HistoryPost{
 		HistoryItemIds: downloads,
@@ -59,7 +58,7 @@ func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, 
 }
 
 func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additionalIDs ...string) ([]byte, error) {
-	url := apiEndpoint + "/v1/history/download"
+	url := c.endpoint + "/v1/history/download"
 	downloads := append(additionalIDs, id1, id2)
 	toDownload := types.HistoryPost{
 		HistoryItemIds: downloads,
@@ -78,7 +77,7 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 }
 
 func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID string) error {
-	url := fmt.Sprintf(apiEndpoint+"/v1/history/%s/audio", ID)
+	url := fmt.Sprintf(c.endpoint+"/v1/history/%s/audio", ID)
 	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -91,7 +90,7 @@ func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID 
 }
 
 func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) ([]byte, error) {
-	url := fmt.Sprintf(apiEndpoint+"/v1/history/%s/audio", ID)
+	url := fmt.Sprintf(c.endpoint+"/v1/history/%s/audio", ID)
 	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -102,7 +101,7 @@ func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) ([]byte, er
 }
 
 func (c Client) GetHistoryList(ctx context.Context) ([]string, error) {
-	url := apiEndpoint + "/v1/history"
+	url := c.endpoint + "/v1/history"
 	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
