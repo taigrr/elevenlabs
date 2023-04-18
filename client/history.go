@@ -11,8 +11,6 @@ import (
 	"github.com/taigrr/elevenlabs/client/types"
 )
 
-var ErrUnauthorized error
-
 func (c Client) HistoryDelete(ctx context.Context, historyItemId string) (bool, error) {
 	// create path and map variables
 	url := fmt.Sprintf(apiEndpoint+"/v1/history/%s", historyItemId)

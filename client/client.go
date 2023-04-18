@@ -2,6 +2,8 @@ package client
 
 const apiEndpoint = "https://api.elevenlabs.io"
 
+var ErrUnauthorized error
+
 type Client struct {
 	apiKey string
 }
