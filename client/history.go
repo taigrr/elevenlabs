@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -26,13 +27,24 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemId string) (bool, 
 
 	switch res.StatusCode {
 	case 422:
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
 		return false, err
 	case 401:
 		return false, ErrUnauthorized
 	case 200:
 		if err != nil {
-			return false, nil
+			return false, err
 		}
+		return true, nil
+	default:
+		return false, errors.Join(err, ErrUnspecified)
 	}
 	return true, nil
 }

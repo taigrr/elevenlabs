@@ -1,8 +1,13 @@
 package client
 
+import "errors"
+
 const apiEndpoint = "https://api.elevenlabs.io"
 
-var ErrUnauthorized error
+var (
+	ErrUnauthorized = errors.New("unauthorized")
+	ErrUnspecified  = errors.New("unspecified error")
+)
 
 type Client struct {
 	apiKey   string

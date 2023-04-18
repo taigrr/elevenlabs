@@ -1,6 +1,9 @@
 package types
 
-import "os"
+import (
+	"fmt"
+	"os"
+)
 
 type AddVoiceResponse struct {
 	VoiceID string `json:"voice_id"`
@@ -143,6 +146,11 @@ type ValidationError struct {
 	Msg   string                         `json:"msg"`
 	Type_ string                         `json:"type"`
 }
+
+func (ve ValidationError) Error() string {
+	return fmt.Sprintf("%s %s: ", ve.Type_, ve.Msg)
+}
+
 type VerificationAttemptResponseModel struct {
 	Text                string                  `json:"text"`
 	DateUnix            int32                   `json:"date_unix"`
