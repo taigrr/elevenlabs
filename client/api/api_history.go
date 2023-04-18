@@ -17,7 +17,8 @@ import (
 	"strings"
 
 	"github.com/antihax/optional"
-	"github.com/taigrr/elevenlabs/types"
+
+	"github.com/taigrr/elevenlabs/client/types"
 )
 
 // Linger please
