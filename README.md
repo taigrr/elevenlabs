@@ -3,6 +3,8 @@
 [![GoDoc](https://godoc.org/github.com/taigrr/elevenlabs?status.svg)](https://godoc.org/github.com/taigrr/elevenlabs)
 [![Go Mod](https://img.shields.io/badge/go.mod-v1.20-blue)](go.mod)
 [![Go Report Card](https://goreportcard.com/badge/github.com/taigrr/elevenlabs?branch=master)](https://goreportcard.com/report/github.com/taigrr/elevenlabs)
+
+
 Unofficial [elevenlabs.io](https://beta.elevenlabs.io/) ([11.ai](http://11.ai)) voice synthesis client
 
 This library is not affiliated with, nor associated with ElevenLabs in any way.
@@ -18,6 +20,7 @@ make TTS (text-to-speech) requests to elevenlabs.io
 As a prerequisite, you must already have an account with elevenlabs.io.
 After creating your account, you can get you API key [from here](https://help.elevenlabs.io/hc/en-us/articles/14599447207697-How-to-authorize-yourself-using-your-xi-api-key-).
 
+## Example Code
 
 To use this library, create a new client and send a TTS request to a voice.
 The following code block illustrates how one might replicate the say/espeak
