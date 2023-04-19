@@ -7,14 +7,44 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/taigrr/elevenlabs/client/types"
 )
 
-func (c Client) CreateVoice(ctx context.Context, name string, files []*os.File, description string, labels string) error {
-	localVarHttpMethod = strings.ToUpper("Post")
-	localVarPath := a.client.cfg.BasePath + "/v1/voices/add"
+func (c Client) CreateVoice(ctx context.Context, name, description string, labels []string, files []*os.File) error {
+	url := c.endpoint + "/v1/voices/add"
+	client := &http.Client{}
+
+	// TODO create body here
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("xi-api-key", c.apiKey)
+	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set("accept", "application/json")
+	res, err := client.Do(req)
+	switch res.StatusCode {
+	case 422:
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return err
+	case 401:
+		return ErrUnauthorized
+	case 200:
+		if err != nil {
+			return err
+		}
+		return nil
+	default:
+		return errors.Join(err, ErrUnspecified)
+	}
 }
 
 func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
@@ -51,9 +81,10 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 	}
 }
 
-func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, types.SynthesisOptions) error {
+func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings types.SynthesisOptions) error {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/settings/edit", voiceID)
 	client := &http.Client{}
+	// TODO create payload here
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
 	if err != nil {
 		return err
@@ -91,9 +122,40 @@ func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, types.Syn
 	}
 }
 
-func (c Client) EditVoice(ctx context.Context, voiceID, name, description string,  files []*os.File, labels []string ) error {
-	localVarHttpMethod = strings.ToUpper("Post")
-	localVarPath := a.client.cfg.BasePath + "/v1/voices/{voice_id}/edit"
+func (c Client) EditVoice(ctx context.Context, voiceID, name, description string, labels []string, files []*os.File) error {
+	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/edit", voiceID)
+	client := &http.Client{}
+
+	// TODO create body here
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("xi-api-key", c.apiKey)
+	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set("accept", "application/json")
+	res, err := client.Do(req)
+	switch res.StatusCode {
+	case 422:
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return err
+	case 401:
+		return ErrUnauthorized
+	case 200:
+		if err != nil {
+			return err
+		}
+		return nil
+	default:
+		return errors.Join(err, ErrUnspecified)
+	}
 }
 
 func (c Client) defaultVoiceSettings(ctx context.Context) (types.SynthesisOptions, error) {
@@ -136,12 +198,10 @@ func (c Client) defaultVoiceSettings(ctx context.Context) (types.SynthesisOption
 	}
 }
 
-func (c Client) GetVoiceSettings(ctx context.Context, voiceId string) (VoiceSettingsResponseModel, *http.Response, error) {
-	localVarHttpMethod = strings.ToUpper("Get")
-	localVarPath := a.client.cfg.BasePath + "/v1/voices/{voice_id}/settings"
-	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s", voiceID)
+func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (VoiceSettingsResponseModel, error) {
+	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/settings", voiceID)
 	client := &http.Client{}
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}
@@ -172,12 +232,10 @@ func (c Client) GetVoiceSettings(ctx context.Context, voiceId string) (VoiceSett
 	}
 }
 
-func (c Client) GetVoice(ctx context.Context, voiceId string) (VoiceResponseModel, *http.Response, error) {
-	localVarHttpMethod = strings.ToUpper("Get")
-	localVarPath := a.client.cfg.BasePath + "/v1/voices/{voice_id}"
+func (c Client) GetVoice(ctx context.Context, voiceID string) (VoiceResponseModel, *http.Response, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s", voiceID)
 	client := &http.Client{}
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}
@@ -208,14 +266,12 @@ func (c Client) GetVoice(ctx context.Context, voiceId string) (VoiceResponseMode
 	}
 }
 
-func (c Client) GetVoices(ctx context.Context) (GetVoicesResponseModel, *http.Response, error) {
-	localVarHttpMethod = strings.ToUpper("Get")
-	localVarPath := a.client.cfg.BasePath + "/v1/voices"
-	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s", voiceID)
+func (c Client) GetVoices(ctx context.Context) ([]types.VoiceResponseModel, error) {
+	url := c.endpoint + "/v1/voices"
 	client := &http.Client{}
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return []types.VoiceResponseModel{}, err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
@@ -231,15 +287,22 @@ func (c Client) GetVoices(ctx context.Context) (GetVoicesResponseModel, *http.Re
 		} else {
 			err = errors.Join(err, ve)
 		}
-		return err
+		return []types.VoiceResponseModel{}, err
 	case 401:
-		return ErrUnauthorized
+		return []types.VoiceResponseModel{}, ErrUnauthorized
 	case 200:
 		if err != nil {
-			return err
+			return []types.VoiceResponseModel{}, err
 		}
-		return nil
+		vr := types.GetVoicesResponseModel{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&vr)
+		if jerr != nil {
+			return []types.VoiceResponseModel{}, jerr
+		}
+		return vr.Voices, nil
+
 	default:
-		return errors.Join(err, ErrUnspecified)
+		return []types.VoiceResponseModel{}, errors.Join(err, ErrUnspecified)
 	}
 }
