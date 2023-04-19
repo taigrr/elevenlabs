@@ -22,16 +22,6 @@ func (c Client) GetUserInfo(ctx context.Context) (types.UserResponseModel, error
 	res, err := client.Do(req)
 
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return types.UserResponseModel{}, err
 	case 401:
 		return types.UserResponseModel{}, ErrUnauthorized
 	case 200:
@@ -46,9 +36,18 @@ func (c Client) GetUserInfo(ctx context.Context) (types.UserResponseModel, error
 			return types.UserResponseModel{}, jerr
 		}
 		return user, err
-
+	case 422:
+		fallthrough
 	default:
-		return types.UserResponseModel{}, errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return types.UserResponseModel{}, err
 	}
 }
 

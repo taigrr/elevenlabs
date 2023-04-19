@@ -45,7 +45,16 @@ func (c Client) CreateVoice(ctx context.Context, name, description string, label
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	switch res.StatusCode {
+	case 401:
+		return ErrUnauthorized
+	case 200:
+		if err != nil {
+			return err
+		}
+		return nil
 	case 422:
+		fallthrough
+	default:
 		ve := types.ValidationError{}
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&ve)
@@ -55,15 +64,6 @@ func (c Client) CreateVoice(ctx context.Context, name, description string, label
 			err = errors.Join(err, ve)
 		}
 		return err
-	case 401:
-		return ErrUnauthorized
-	case 200:
-		if err != nil {
-			return err
-		}
-		return nil
-	default:
-		return errors.Join(err, ErrUnspecified)
 	}
 }
 
@@ -79,7 +79,16 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	switch res.StatusCode {
+	case 401:
+		return ErrUnauthorized
+	case 200:
+		if err != nil {
+			return err
+		}
+		return nil
 	case 422:
+		fallthrough
+	default:
 		ve := types.ValidationError{}
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&ve)
@@ -89,15 +98,6 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 			err = errors.Join(err, ve)
 		}
 		return err
-	case 401:
-		return ErrUnauthorized
-	case 200:
-		if err != nil {
-			return err
-		}
-		return nil
-	default:
-		return errors.Join(err, ErrUnspecified)
 	}
 }
 
@@ -115,16 +115,6 @@ func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings 
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return err
 	case 401:
 		return ErrUnauthorized
 	case 200:
@@ -138,8 +128,18 @@ func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings 
 			return jerr
 		}
 		return nil
+	case 422:
+		fallthrough
 	default:
-		return errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return err
 	}
 }
 
@@ -173,7 +173,16 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	switch res.StatusCode {
+	case 401:
+		return ErrUnauthorized
+	case 200:
+		if err != nil {
+			return err
+		}
+		return nil
 	case 422:
+		fallthrough
+	default:
 		ve := types.ValidationError{}
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&ve)
@@ -183,15 +192,6 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 			err = errors.Join(err, ve)
 		}
 		return err
-	case 401:
-		return ErrUnauthorized
-	case 200:
-		if err != nil {
-			return err
-		}
-		return nil
-	default:
-		return errors.Join(err, ErrUnspecified)
 	}
 }
 
@@ -207,16 +207,6 @@ func (c Client) defaultVoiceSettings(ctx context.Context) (types.SynthesisOption
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return types.SynthesisOptions{}, err
 	case 401:
 		return types.SynthesisOptions{}, ErrUnauthorized
 	case 200:
@@ -230,8 +220,18 @@ func (c Client) defaultVoiceSettings(ctx context.Context) (types.SynthesisOption
 			return types.SynthesisOptions{}, jerr
 		}
 		return so, nil
+	case 422:
+		fallthrough
 	default:
-		return types.SynthesisOptions{}, errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return types.SynthesisOptions{}, err
 	}
 }
 
@@ -247,16 +247,6 @@ func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.Syn
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return types.SynthesisOptions{}, err
 	case 401:
 		return types.SynthesisOptions{}, ErrUnauthorized
 	case 200:
@@ -270,8 +260,18 @@ func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.Syn
 			return types.SynthesisOptions{}, jerr
 		}
 		return so, nil
+	case 422:
+		fallthrough
 	default:
-		return types.SynthesisOptions{}, errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return types.SynthesisOptions{}, err
 	}
 }
 
@@ -287,16 +287,6 @@ func (c Client) GetVoice(ctx context.Context, voiceID string) (types.VoiceRespon
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return types.VoiceResponseModel{}, err
 	case 401:
 		return types.VoiceResponseModel{}, ErrUnauthorized
 	case 200:
@@ -311,8 +301,19 @@ func (c Client) GetVoice(ctx context.Context, voiceID string) (types.VoiceRespon
 			return types.VoiceResponseModel{}, jerr
 		}
 		return vrm, nil
+	case 422:
+		fallthrough
 	default:
-		return types.VoiceResponseModel{}, errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return types.VoiceResponseModel{}, err
+
 	}
 }
 
@@ -328,16 +329,6 @@ func (c Client) GetVoices(ctx context.Context) ([]types.VoiceResponseModel, erro
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return []types.VoiceResponseModel{}, err
 	case 401:
 		return []types.VoiceResponseModel{}, ErrUnauthorized
 	case 200:
@@ -351,9 +342,18 @@ func (c Client) GetVoices(ctx context.Context) ([]types.VoiceResponseModel, erro
 			return []types.VoiceResponseModel{}, jerr
 		}
 		return vr.Voices, nil
-
+	case 422:
+		fallthrough
 	default:
-		return []types.VoiceResponseModel{}, errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return []types.VoiceResponseModel{}, err
 	}
 }
 
