@@ -100,7 +100,7 @@ func (c Client) TTS(ctx context.Context, w io.Writer, text, voiceID string, opti
 	}
 }
 
-func (c Client) TextToSpeechV1TextToSpeechVoiceIdStreamPost(ctx context.Context, w io.Writer, text, voiceID string, options types.SynthesisOptions) error {
+func (c Client) TTSStream(ctx context.Context, w io.Writer, text, voiceID string, options types.SynthesisOptions) error {
 	url := fmt.Sprintf(c.endpoint+"/v1/text-to-speech/%s/stream", voiceID)
 	opts := types.TTS{
 		Text:          text,

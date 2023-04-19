@@ -73,9 +73,9 @@ type GetVoicesResponseModel struct {
 	Voices []VoiceResponseModel `json:"voices"`
 }
 type HistoryItemList struct {
-	HistoryItemId            string                 `json:"history_item_id"`
-	RequestId                string                 `json:"request_id"`
-	VoiceId                  string                 `json:"voice_id"`
+	HistoryItemID            string                 `json:"history_item_id"`
+	RequestID                string                 `json:"request_id"`
+	VoiceID                  string                 `json:"voice_id"`
 	VoiceName                string                 `json:"voice_name"`
 	Text                     string                 `json:"text"`
 	DateUnix                 int32                  `json:"date_unix"`
@@ -95,14 +95,14 @@ type LanguageResponseModel struct {
 	DisplayName string `json:"display_name"`
 }
 type RecordingResponseModel struct {
-	RecordingId    string `json:"recording_id"`
+	RecordingID    string `json:"recording_id"`
 	MimeType       string `json:"mime_type"`
 	SizeBytes      int32  `json:"size_bytes"`
 	UploadDateUnix int32  `json:"upload_date_unix"`
 	Transcription  string `json:"transcription"`
 }
 type Sample struct {
-	SampleId  string `json:"sample_id"`
+	SampleID  string `json:"sample_id"`
 	FileName  string `json:"file_name"`
 	MimeType  string `json:"mime_type"`
 	SizeBytes int32  `json:"size_bytes"`
@@ -127,7 +127,7 @@ type Subscription struct {
 	Status                         string                  `json:"status"`
 }
 type TtsModelResponseModel struct {
-	ModelId           string                  `json:"model_id"`
+	ModelID           string                  `json:"model_id"`
 	DisplayName       string                  `json:"display_name"`
 	SupportedLanguage []LanguageResponseModel `json:"supported_language"`
 }
@@ -155,14 +155,14 @@ type VerificationAttemptResponseModel struct {
 	Recording           *RecordingResponseModel `json:"recording"`
 }
 type VoiceResponseModel struct {
-	VoiceId           string                  `json:"voice_id"`
+	VoiceID           string                  `json:"voice_id"`
 	Name              string                  `json:"name"`
 	Samples           []Sample                `json:"samples"`
 	Category          string                  `json:"category"`
 	FineTuning        FineTuningResponseModel `json:"fine_tuning"`
 	Labels            map[string]string       `json:"labels"`
 	Description       string                  `json:"description"`
-	PreviewUrl        string                  `json:"preview_url"`
+	PreviewURL        string                  `json:"preview_url"`
 	AvailableForTiers []string                `json:"available_for_tiers"`
 	Settings          SynthesisOptions        `json:"settings"`
 }

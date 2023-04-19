@@ -13,8 +13,8 @@ import (
 	"github.com/taigrr/elevenlabs/client/types"
 )
 
-func (c Client) HistoryDelete(ctx context.Context, historyItemId string) (bool, error) {
-	url := fmt.Sprintf(c.endpoint+"/v1/history/%s", historyItemId)
+func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, error) {
+	url := fmt.Sprintf(c.endpoint+"/v1/history/%s", historyItemID)
 
 	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
@@ -47,7 +47,6 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemId string) (bool, 
 	default:
 		return false, errors.Join(err, ErrUnspecified)
 	}
-	return true, nil
 }
 
 func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, id2 string, additionalIDs ...string) error {
@@ -273,10 +272,10 @@ func (c Client) GetHistoryIDs(ctx context.Context, voiceIDs ...string) ([]string
 	}
 	for _, i := range items {
 		if len(voiceIDs) == 0 {
-			ids = append(ids, i.HistoryItemId)
+			ids = append(ids, i.HistoryItemID)
 		} else {
-			if _, ok := voiceMap[i.VoiceId]; ok {
-				ids = append(ids, i.HistoryItemId)
+			if _, ok := voiceMap[i.VoiceID]; ok {
+				ids = append(ids, i.HistoryItemID)
 			}
 		}
 	}
