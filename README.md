@@ -20,6 +20,14 @@ make TTS (text-to-speech) requests to elevenlabs.io
 As a prerequisite, you must already have an account with elevenlabs.io.
 After creating your account, you can get you API key [from here](https://help.elevenlabs.io/hc/en-us/articles/14599447207697-How-to-authorize-yourself-using-your-xi-api-key-).
 
+## Test Program
+
+To test out an example `say` program, run:
+
+`go install github.com/taigrr/elevenlabs/cmd/say@latest`
+
+Set the `XI_API_KEY` environment variable, and pipe it some text to give it a whirl!
+
 ## Example Code
 
 To use this library, create a new client and send a TTS request to a voice.
