@@ -198,12 +198,12 @@ func (c Client) defaultVoiceSettings(ctx context.Context) (types.SynthesisOption
 	}
 }
 
-func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (VoiceSettingsResponseModel, error) {
+func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.SynthesisOptions, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/settings", voiceID)
 	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return types.SynthesisOptions{}, err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
@@ -219,20 +219,26 @@ func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (VoiceSett
 		} else {
 			err = errors.Join(err, ve)
 		}
-		return err
+		return types.SynthesisOptions{}, err
 	case 401:
-		return ErrUnauthorized
+		return types.SynthesisOptions{}, ErrUnauthorized
 	case 200:
 		if err != nil {
-			return err
+			return types.SynthesisOptions{}, err
 		}
-		return nil
+		so := types.SynthesisOptions{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&so)
+		if jerr != nil {
+			return types.SynthesisOptions{}, jerr
+		}
+		return so, nil
 	default:
-		return errors.Join(err, ErrUnspecified)
+		return types.SynthesisOptions{}, errors.Join(err, ErrUnspecified)
 	}
 }
 
-func (c Client) GetVoice(ctx context.Context, voiceID string) (VoiceResponseModel, *http.Response, error) {
+func (c Client) GetVoice(ctx context.Context, voiceID string) (types.VoiceResponseModel, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s", voiceID)
 	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
