@@ -18,7 +18,7 @@ make TTS (text-to-speech) requests to elevenlabs.io
 
 
 As a prerequisite, you must already have an account with elevenlabs.io.
-After creating your account, you can get you API key [from here](https://help.elevenlabs.io/hc/en-us/articles/14599447207697-How-to-authorize-yourself-using-your-xi-api-key-).
+After creating your account, you can get your API key [from here](https://help.elevenlabs.io/hc/en-us/articles/14599447207697-How-to-authorize-yourself-using-your-xi-api-key-).
 
 ## Test Program
 
