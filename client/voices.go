@@ -146,11 +146,27 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/edit", voiceID)
 	client := &http.Client{}
 
-	// TODO create body here
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	for _, r := range files {
+		var fw io.Writer
+		var err error
+		if fw, err = w.CreateFormFile("files[]", r.Name()); err != nil {
+			return err
+		}
+		if _, err := io.Copy(fw, r); err != nil {
+			return err
+		}
+	}
+	w.WriteField("name", name)
+	w.WriteField("description", description)
+	w.WriteField("name", strings.Join(labels, ", "))
+	w.Close()
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &b)
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
