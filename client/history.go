@@ -27,7 +27,16 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, 
 	res, err := client.Do(req)
 
 	switch res.StatusCode {
+	case 401:
+		return false, ErrUnauthorized
+	case 200:
+		if err != nil {
+			return false, err
+		}
+		return true, nil
 	case 422:
+		fallthrough
+	default:
 		ve := types.ValidationError{}
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&ve)
@@ -37,15 +46,6 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, 
 			err = errors.Join(err, ve)
 		}
 		return false, err
-	case 401:
-		return false, ErrUnauthorized
-	case 200:
-		if err != nil {
-			return false, err
-		}
-		return true, nil
-	default:
-		return false, errors.Join(err, ErrUnspecified)
 	}
 }
 
@@ -69,16 +69,6 @@ func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, 
 	res, err := client.Do(req)
 
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return err
 	case 401:
 		return ErrUnauthorized
 	case 200:
@@ -88,8 +78,18 @@ func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, 
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
 		return nil
+	case 422:
+		fallthrough
 	default:
-		return errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return err
 	}
 }
 
@@ -113,16 +113,6 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 	res, err := client.Do(req)
 
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return []byte{}, err
 	case 401:
 		return []byte{}, ErrUnauthorized
 	case 200:
@@ -135,8 +125,18 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
 		return b.Bytes(), nil
+	case 422:
+		fallthrough
 	default:
-		return []byte{}, errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return []byte{}, err
 	}
 }
 
@@ -153,16 +153,6 @@ func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID 
 	res, err := client.Do(req)
 
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return err
 	case 401:
 		return ErrUnauthorized
 	case 200:
@@ -172,8 +162,18 @@ func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID 
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
 		return nil
+	case 422:
+		fallthrough
 	default:
-		return errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return err
 	}
 }
 
@@ -190,16 +190,6 @@ func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) ([]byte, er
 	res, err := client.Do(req)
 
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return []byte{}, err
 	case 401:
 		return []byte{}, ErrUnauthorized
 	case 200:
@@ -212,8 +202,18 @@ func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) ([]byte, er
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
 		return b.Bytes(), nil
+	case 422:
+		fallthrough
 	default:
-		return []byte{}, errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return []byte{}, err
 	}
 }
 
@@ -230,16 +230,6 @@ func (c Client) GetHistoryItemList(ctx context.Context) ([]types.HistoryItemList
 	res, err := client.Do(req)
 
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return []types.HistoryItemList{}, err
 	case 401:
 		return []types.HistoryItemList{}, ErrUnauthorized
 	case 200:
@@ -254,9 +244,18 @@ func (c Client) GetHistoryItemList(ctx context.Context) ([]types.HistoryItemList
 			return []types.HistoryItemList{}, jerr
 		}
 		return history.History, err
-
+	case 422:
+		fallthrough
 	default:
-		return []types.HistoryItemList{}, errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return []types.HistoryItemList{}, err
 	}
 }
 
