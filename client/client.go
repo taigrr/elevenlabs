@@ -1,6 +1,8 @@
 package client
 
-import "errors"
+import (
+	"errors"
+)
 
 const apiEndpoint = "https://api.elevenlabs.io"
 

@@ -14,6 +14,7 @@ import (
 )
 
 func (c Client) TTSWriter(ctx context.Context, w io.Writer, text, voiceID string, options types.SynthesisOptions) error {
+	options.Clamp()
 	url := fmt.Sprintf(c.endpoint+"/v1/text-to-speech/%s", voiceID)
 	opts := types.TTS{
 		Text:          text,
@@ -55,7 +56,8 @@ func (c Client) TTSWriter(ctx context.Context, w io.Writer, text, voiceID string
 	}
 }
 
-func (c Client) TTS(ctx context.Context, w io.Writer, text, voiceID string, options types.SynthesisOptions) ([]byte, error) {
+func (c Client) TTS(ctx context.Context, text, voiceID string, options types.SynthesisOptions) ([]byte, error) {
+	options.Clamp()
 	url := fmt.Sprintf(c.endpoint+"/v1/text-to-speech/%s", voiceID)
 	client := &http.Client{}
 	opts := types.TTS{
@@ -101,6 +103,7 @@ func (c Client) TTS(ctx context.Context, w io.Writer, text, voiceID string, opti
 }
 
 func (c Client) TTSStream(ctx context.Context, w io.Writer, text, voiceID string, options types.SynthesisOptions) error {
+	options.Clamp()
 	url := fmt.Sprintf(c.endpoint+"/v1/text-to-speech/%s/stream", voiceID)
 	opts := types.TTS{
 		Text:          text,

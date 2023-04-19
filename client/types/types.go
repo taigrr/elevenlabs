@@ -23,6 +23,15 @@ type TTS struct {
 	VoiceSettings SynthesisOptions `json:"voice_settings,omitempty"` // Voice settings are applied only on the given TTS request.
 }
 
+func (so *SynthesisOptions) Clamp() {
+	if so.Stability > 1 || so.Stability < 0 {
+		so.Stability = 0.75
+	}
+	if so.SimilarityBoost > 1 || so.SimilarityBoost < 0 {
+		so.SimilarityBoost = 0.75
+	}
+}
+
 type SynthesisOptions struct {
 	Stability       float64 `json:"stability"`
 	SimilarityBoost float64 `json:"similarity_boost"`
