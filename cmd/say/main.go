@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"io"
 	"log"
@@ -24,18 +23,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	buf := bytes.Buffer{}
-	w := bufio.NewWriter(&buf)
+	pipeReader, pipeWriter := io.Pipe()
 
 	reader := bufio.NewReader(os.Stdin)
 	text, _ := reader.ReadString('\n')
 
-	err = client.TTSWriter(ctx, w, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75})
-	if err != nil {
-		panic(err)
-	}
-	r := io.NopCloser(bytes.NewReader(buf.Bytes()))
-	streamer, format, err := mp3.Decode(r)
+	go func() {
+		err = client.TTSStream(ctx, pipeWriter, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75})
+		if err != nil {
+			panic(err)
+		}
+		pipeWriter.Close()
+	}()
+	streamer, format, err := mp3.Decode(pipeReader)
 	if err != nil {
 		log.Fatal(err)
 	}
