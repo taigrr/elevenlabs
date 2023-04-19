@@ -104,8 +104,9 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings types.SynthesisOptions) error {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/settings/edit", voiceID)
 	client := &http.Client{}
-	// TODO create payload here
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	b, _ := json.Marshal(settings)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(b))
 	if err != nil {
 		return err
 	}
@@ -354,4 +355,18 @@ func (c Client) GetVoices(ctx context.Context) ([]types.VoiceResponseModel, erro
 	default:
 		return []types.VoiceResponseModel{}, errors.Join(err, ErrUnspecified)
 	}
+}
+
+func (c Client) GetVoiceIDs(ctx context.Context) ([]string, error) {
+	rms, err := c.GetVoices(ctx)
+	if err != nil {
+		return []string{}, err
+	}
+	list := []string{}
+
+	for _, v := range rms {
+		list = append(list, v.VoiceID)
+	}
+
+	return list, nil
 }
