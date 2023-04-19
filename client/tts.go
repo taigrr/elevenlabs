@@ -32,16 +32,6 @@ func (c Client) TTSWriter(ctx context.Context, w io.Writer, text, voiceID string
 	res, err := client.Do(req)
 
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return err
 	case 401:
 		return ErrUnauthorized
 	case 200:
@@ -51,8 +41,18 @@ func (c Client) TTSWriter(ctx context.Context, w io.Writer, text, voiceID string
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
 		return nil
+	case 422:
+		fallthrough
 	default:
-		return errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return err
 	}
 }
 
@@ -75,16 +75,6 @@ func (c Client) TTS(ctx context.Context, text, voiceID string, options types.Syn
 	res, err := client.Do(req)
 
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return []byte{}, err
 	case 401:
 		return []byte{}, ErrUnauthorized
 	case 200:
@@ -97,8 +87,18 @@ func (c Client) TTS(ctx context.Context, text, voiceID string, options types.Syn
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
 		return b.Bytes(), nil
+	case 422:
+		fallthrough
 	default:
-		return []byte{}, errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return []byte{}, err
 	}
 }
 
@@ -121,16 +121,6 @@ func (c Client) TTSStream(ctx context.Context, w io.Writer, text, voiceID string
 	res, err := client.Do(req)
 
 	switch res.StatusCode {
-	case 422:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return err
 	case 401:
 		return ErrUnauthorized
 	case 200:
@@ -140,7 +130,17 @@ func (c Client) TTSStream(ctx context.Context, w io.Writer, text, voiceID string
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
 		return nil
+	case 422:
+		fallthrough
 	default:
-		return errors.Join(err, ErrUnspecified)
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return err
 	}
 }
