@@ -19,6 +19,7 @@ type Voice struct {
 	Labels      string     `json:"labels,omitempty"`      // Serialized labels dictionary for the voice.
 }
 type TTS struct {
+	ModelID       string           `json:"model_id"`
 	Text          string           `json:"text"`                     // The text that will get converted into speech. Currently only English text is supported.
 	VoiceSettings SynthesisOptions `json:"voice_settings,omitempty"` // Voice settings are applied only on the given TTS request.
 }
@@ -102,6 +103,22 @@ type Invoice struct {
 type LanguageResponseModel struct {
 	IsoCode     string `json:"iso_code"`
 	DisplayName string `json:"display_name"`
+}
+
+type Language struct {
+	LanguageID string `json:"language_id"`
+	Name       string `json:"name"`
+}
+
+type ModelResponseModel struct {
+	ModelID              string     `json:"model_id"`
+	Name                 string     `json:"name"`
+	Description          string     `json:"description"`
+	CanBeFinetuned       bool       `json:"can_be_finetuned"`
+	CanDoTextToSpeech    bool       `json:"can_do_text_to_speech"`
+	CanDoVoiceConversion bool       `json:"can_do_voice_conversion"`
+	TokenCostFactor      float64    `json:"token_cost_factor"`
+	Languages            []Language `json:"languages"`
 }
 type RecordingResponseModel struct {
 	RecordingID    string `json:"recording_id"`
