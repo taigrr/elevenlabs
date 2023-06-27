@@ -18,7 +18,7 @@ make TTS (text-to-speech) requests to elevenlabs.io
 
 
 As a prerequisite, you must already have an account with elevenlabs.io.
-After creating your account, you can get you API key [from here](https://help.elevenlabs.io/hc/en-us/articles/14599447207697-How-to-authorize-yourself-using-your-xi-api-key-).
+After creating your account, you can get your API key [from here](https://help.elevenlabs.io/hc/en-us/articles/14599447207697-How-to-authorize-yourself-using-your-xi-api-key-).
 
 ## Test Program
 
@@ -56,21 +56,26 @@ import (
 
 func main() {
         ctx := context.Background()
+        // load in an API key to create a client
         client := client.New(os.Getenv("XI_API_KEY"))
+        // fetch a list of voice IDs from elevenlabs
         ids, err := client.GetVoiceIDs(ctx)
         if err != nil {
                 panic(err)
         }
+        // prepare a pipe for streaming audio directly to beep
         pipeReader, pipeWriter := io.Pipe()
         reader := bufio.NewReader(os.Stdin)
         text, _ := reader.ReadString('\n')
         go func() {
+                // stream audio from elevenlabs using the first voice we found
                 err = client.TTSStream(ctx, pipeWriter, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75})
                 if err != nil {
                         panic(err)
                 }
                 pipeWriter.Close()
         }()
+        // decode and prepare the streaming mp3 as it comes through
         streamer, format, err := mp3.Decode(pipeReader)
         if err != nil {
                 log.Fatal(err)
@@ -78,6 +83,7 @@ func main() {
         defer streamer.Close()
         speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
         done := make(chan bool)
+        // play the audio
         speaker.Play(beep.Seq(streamer, beep.Callback(func() {
                 done <- true
         })))

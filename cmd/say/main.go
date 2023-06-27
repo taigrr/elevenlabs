@@ -26,7 +26,8 @@ func main() {
 	pipeReader, pipeWriter := io.Pipe()
 
 	reader := bufio.NewReader(os.Stdin)
-	text, _ := reader.ReadString('\n')
+	b, _ := io.ReadAll(reader)
+	text := string(b)
 
 	go func() {
 		err = client.TTSStream(ctx, pipeWriter, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75})
