@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -74,16 +73,14 @@ func (c Client) TTS(ctx context.Context, text, voiceID, modelID string, options 
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := client.Do(req)
-
+	if err != nil {
+		return []byte{}, err
+	}
 	switch res.StatusCode {
 	case 401:
 		return []byte{}, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return []byte{}, err
-		}
 		b := bytes.Buffer{}
-		w := bufio.NewWriter(&b)
 
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
@@ -120,14 +117,13 @@ func (c Client) TTSStream(ctx context.Context, w io.Writer, text, voiceID string
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := client.Do(req)
-
+	if err != nil {
+		return err
+	}
 	switch res.StatusCode {
 	case 401:
 		return ErrUnauthorized
 	case 200:
-		if err != nil {
-			return err
-		}
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
 		return nil
