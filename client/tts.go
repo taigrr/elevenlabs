@@ -83,7 +83,7 @@ func (c Client) TTS(ctx context.Context, text, voiceID, modelID string, options 
 		b := bytes.Buffer{}
 
 		defer res.Body.Close()
-		io.Copy(w, res.Body)
+		io.Copy(b, res.Body)
 		return b.Bytes(), nil
 	case 422:
 		fallthrough
