@@ -19,7 +19,7 @@ type Voice struct {
 	Labels      string     `json:"labels,omitempty"`      // Serialized labels dictionary for the voice.
 }
 type TTS struct {
-	ModelID       string           `json:"model_id"`
+	ModelID       string           `json:"model_id,omitempty"`
 	Text          string           `json:"text"`                     // The text that will get converted into speech. Currently only English text is supported.
 	VoiceSettings SynthesisOptions `json:"voice_settings,omitempty"` // Voice settings are applied only on the given TTS request.
 }
