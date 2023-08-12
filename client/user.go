@@ -20,15 +20,13 @@ func (c Client) GetUserInfo(ctx context.Context) (types.UserResponseModel, error
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
-
+	if err != nil {
+		return types.UserResponseModel{}, err
+	}
 	switch res.StatusCode {
 	case 401:
 		return types.UserResponseModel{}, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return types.UserResponseModel{}, err
-		}
-
 		var user types.UserResponseModel
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&user)
@@ -53,5 +51,8 @@ func (c Client) GetUserInfo(ctx context.Context) (types.UserResponseModel, error
 
 func (c Client) GetSubscriptionInfo(ctx context.Context) (types.Subscription, error) {
 	info, err := c.GetUserInfo(ctx)
+	if err != nil {
+		return types.Subscription{}, err
+	}
 	return info.Subscription, err
 }

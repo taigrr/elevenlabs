@@ -44,13 +44,13 @@ func (c Client) CreateVoice(ctx context.Context, name, description string, label
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
 	switch res.StatusCode {
 	case 401:
 		return ErrUnauthorized
 	case 200:
-		if err != nil {
-			return err
-		}
 		return nil
 	case 422:
 		fallthrough
@@ -78,13 +78,13 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
 	switch res.StatusCode {
 	case 401:
 		return ErrUnauthorized
 	case 200:
-		if err != nil {
-			return err
-		}
 		return nil
 	case 422:
 		fallthrough
@@ -114,13 +114,13 @@ func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings 
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
 	switch res.StatusCode {
 	case 401:
 		return ErrUnauthorized
 	case 200:
-		if err != nil {
-			return err
-		}
 		so := types.SynthesisOptions{}
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&so)
@@ -172,13 +172,13 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
 	switch res.StatusCode {
 	case 401:
 		return ErrUnauthorized
 	case 200:
-		if err != nil {
-			return err
-		}
 		return nil
 	case 422:
 		fallthrough
@@ -206,13 +206,13 @@ func (c Client) defaultVoiceSettings(ctx context.Context) (types.SynthesisOption
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
+	if err != nil {
+		return types.SynthesisOptions{}, err
+	}
 	switch res.StatusCode {
 	case 401:
 		return types.SynthesisOptions{}, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return types.SynthesisOptions{}, err
-		}
 		so := types.SynthesisOptions{}
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&so)
@@ -246,13 +246,13 @@ func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.Syn
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
+	if err != nil {
+		return types.SynthesisOptions{}, err
+	}
 	switch res.StatusCode {
 	case 401:
 		return types.SynthesisOptions{}, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return types.SynthesisOptions{}, err
-		}
 		so := types.SynthesisOptions{}
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&so)
