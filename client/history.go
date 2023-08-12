@@ -151,14 +151,14 @@ func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID 
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
 
 	switch res.StatusCode {
 	case 401:
 		return ErrUnauthorized
 	case 200:
-		if err != nil {
-			return err
-		}
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
 		return nil
@@ -188,14 +188,14 @@ func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) ([]byte, er
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := client.Do(req)
+	if err != nil {
+		return []byte{}, err
+	}
 
 	switch res.StatusCode {
 	case 401:
 		return []byte{}, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return []byte{}, err
-		}
 		b := bytes.Buffer{}
 		w := bufio.NewWriter(&b)
 
@@ -228,15 +228,14 @@ func (c Client) GetHistoryItemList(ctx context.Context) ([]types.HistoryItemList
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
+	if err != nil {
+		return []types.HistoryItemList{}, err
+	}
 
 	switch res.StatusCode {
 	case 401:
 		return []types.HistoryItemList{}, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return []types.HistoryItemList{}, err
-		}
-
 		var history types.GetHistoryResponse
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&history)

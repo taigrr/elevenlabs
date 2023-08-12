@@ -25,14 +25,13 @@ func (c Client) DeleteVoiceSample(ctx context.Context, voiceID, sampleID string)
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	res, err := client.Do(req)
-
+	if err != nil {
+		return false, err
+	}
 	switch res.StatusCode {
 	case 401:
 		return false, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return false, err
-		}
 		return true, nil
 	case 422:
 		fallthrough
@@ -60,14 +59,14 @@ func (c Client) DownloadVoiceSampleWriter(ctx context.Context, w io.Writer, voic
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
 
 	switch res.StatusCode {
 	case 401:
 		return ErrUnauthorized
 	case 200:
-		if err != nil {
-			return err
-		}
 		defer res.Body.Close()
 		io.Copy(w, res.Body)
 		return nil
@@ -97,14 +96,14 @@ func (c Client) DownloadVoiceSample(ctx context.Context, voiceID, sampleID strin
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := client.Do(req)
+	if err != nil {
+		return []byte{}, err
+	}
 
 	switch res.StatusCode {
 	case 401:
 		return []byte{}, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return []byte{}, err
-		}
 		b := bytes.Buffer{}
 		w := bufio.NewWriter(&b)
 
