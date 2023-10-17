@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/taigrr/elevenlabs/client/types"
+	"github.com/supagroova/elevenlabs/client/types"
 )
 
 func (c Client) CreateVoice(ctx context.Context, name, description string, labels []string, files []*os.File) error {
@@ -41,7 +41,7 @@ func (c Client) CreateVoice(ctx context.Context, name, description string, label
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	if err != nil {
@@ -75,7 +75,7 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 		return err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	if err != nil {
@@ -111,7 +111,7 @@ func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings 
 		return err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	if err != nil {
@@ -169,7 +169,7 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	if err != nil {
@@ -203,7 +203,7 @@ func (c Client) defaultVoiceSettings(ctx context.Context) (types.SynthesisOption
 		return types.SynthesisOptions{}, err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	if err != nil {
@@ -243,7 +243,7 @@ func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.Syn
 		return types.SynthesisOptions{}, err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	if err != nil {
@@ -283,7 +283,7 @@ func (c Client) GetVoice(ctx context.Context, voiceID string) (types.VoiceRespon
 		return types.VoiceResponseModel{}, err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	switch res.StatusCode {
@@ -325,7 +325,7 @@ func (c Client) GetVoices(ctx context.Context) ([]types.VoiceResponseModel, erro
 		return []types.VoiceResponseModel{}, err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := client.Do(req)
 	switch res.StatusCode {
