@@ -38,6 +38,22 @@ type SynthesisOptions struct {
 	SimilarityBoost float64 `json:"similarity_boost"`
 }
 
+type SharingOptions struct {
+	Status              string            `json:"status"`
+	HistoryItemSampleId string            `json:"history_item_sample_id"`
+	OriginalVoiceId     string            `json:"original_voice_id"`
+	PublicOwnerId       string            `json:"public_owner_id"`
+	LikedByCount        int32             `json:"liked_by_count"`
+	ClonedByCount       int32             `json:"cloned_by_count"`
+	WhitelistedEmails   []string          `json:"whitelisted_emails"`
+	Name                string            `json:"name"`
+	Labels              map[string]string `json:"labels"`
+	Description         string            `json:"description"`
+	ReviewStatus        string            `json:"review_status"`
+	ReviewMessage       string            `json:"review_message"`
+	EnabledInLibrary    bool              `json:"enabled_in_library"`
+}
+
 type ExtendedSubscriptionResponseModel struct {
 	Tier                           string                  `json:"tier"`
 	CharacterCount                 int32                   `json:"character_count"`
@@ -181,14 +197,16 @@ type VerificationAttemptResponseModel struct {
 	Recording           *RecordingResponseModel `json:"recording"`
 }
 type VoiceResponseModel struct {
-	VoiceID           string                  `json:"voice_id"`
-	Name              string                  `json:"name"`
-	Samples           []Sample                `json:"samples"`
-	Category          string                  `json:"category"`
-	FineTuning        FineTuningResponseModel `json:"fine_tuning"`
-	Labels            map[string]string       `json:"labels"`
-	Description       string                  `json:"description"`
-	PreviewURL        string                  `json:"preview_url"`
-	AvailableForTiers []string                `json:"available_for_tiers"`
-	Settings          SynthesisOptions        `json:"settings"`
+	VoiceID                 string                  `json:"voice_id"`
+	Name                    string                  `json:"name"`
+	Samples                 []Sample                `json:"samples"`
+	Category                string                  `json:"category"`
+	FineTuning              FineTuningResponseModel `json:"fine_tuning"`
+	Labels                  map[string]string       `json:"labels"`
+	Description             string                  `json:"description"`
+	PreviewURL              string                  `json:"preview_url"`
+	AvailableForTiers       []string                `json:"available_for_tiers"`
+	Settings                SynthesisOptions        `json:"settings"`
+	Sharing                 SharingOptions          `json:"sharing"`
+	HighQualityBaseModelIds []string                `json:"high_quality_base_model_ids"`
 }
