@@ -36,6 +36,8 @@ func (so *SynthesisOptions) Clamp() {
 type SynthesisOptions struct {
 	Stability       float64 `json:"stability"`
 	SimilarityBoost float64 `json:"similarity_boost"`
+	Style           float64 `json:"style"`
+	UseSpeakerBoost bool    `json:"use_speaker_boost"`
 }
 
 type SharingOptions struct {
