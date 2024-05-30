@@ -195,46 +195,6 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 	}
 }
 
-func (c Client) defaultVoiceSettings(ctx context.Context) (types.SynthesisOptions, error) {
-	url := c.endpoint + "/v1/voices/settings/default"
-	client := &http.Client{}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return types.SynthesisOptions{}, err
-	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
-	req.Header.Set("accept", "application/json")
-	res, err := client.Do(req)
-	if err != nil {
-		return types.SynthesisOptions{}, err
-	}
-	switch res.StatusCode {
-	case 401:
-		return types.SynthesisOptions{}, ErrUnauthorized
-	case 200:
-		so := types.SynthesisOptions{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&so)
-		if jerr != nil {
-			return types.SynthesisOptions{}, jerr
-		}
-		return so, nil
-	case 422:
-		fallthrough
-	default:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return types.SynthesisOptions{}, err
-	}
-}
-
 func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.SynthesisOptions, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/settings", voiceID)
 	client := &http.Client{}
