@@ -62,22 +62,6 @@ type SharingOptions struct {
 	EnabledInLibrary    bool              `json:"enabled_in_library"`
 }
 
-type SharingOptions struct {
-	Status              string            `json:"status"`
-	HistoryItemSampleId string            `json:"history_item_sample_id"`
-	OriginalVoiceId     string            `json:"original_voice_id"`
-	PublicOwnerId       string            `json:"public_owner_id"`
-	LikedByCount        int32             `json:"liked_by_count"`
-	ClonedByCount       int32             `json:"cloned_by_count"`
-	WhitelistedEmails   []string          `json:"whitelisted_emails"`
-	Name                string            `json:"name"`
-	Labels              map[string]string `json:"labels"`
-	Description         string            `json:"description"`
-	ReviewStatus        string            `json:"review_status"`
-	ReviewMessage       string            `json:"review_message"`
-	EnabledInLibrary    bool              `json:"enabled_in_library"`
-}
-
 type ExtendedSubscriptionResponseModel struct {
 	Tier                           string                  `json:"tier"`
 	CharacterCount                 int32                   `json:"character_count"`
