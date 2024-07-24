@@ -26,6 +26,12 @@ func main() {
 	}
 	pipeReader, pipeWriter := io.Pipe()
 
+	// record how long it takes to run and print out on exit
+	start := time.Now()
+	defer func() {
+		log.Println(time.Since(start))
+	}()
+
 	var text string
 	if len(os.Args) > 1 {
 		text = strings.Join(os.Args[1:], " ")
