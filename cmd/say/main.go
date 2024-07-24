@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"time"
+	"strings"
 
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/mp3"
@@ -25,9 +26,14 @@ func main() {
 	}
 	pipeReader, pipeWriter := io.Pipe()
 
-	reader := bufio.NewReader(os.Stdin)
-	b, _ := io.ReadAll(reader)
-	text := string(b)
+	var text string
+	if len(os.Args) > 1 {
+		text = strings.Join(os.Args[1:], " ")
+	} else {
+		reader := bufio.NewReader(os.Stdin)
+		b, _ := io.ReadAll(reader)
+		text = string(b)
+	}
 
 	go func() {
 		err = client.TTSStream(ctx, pipeWriter, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75, Style: 0.0, UseSpeakerBoost: false})
