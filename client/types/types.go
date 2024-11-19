@@ -37,6 +37,12 @@ func (so *SynthesisOptions) Clamp() {
 	if so.SimilarityBoost > 1 || so.SimilarityBoost < 0 {
 		so.SimilarityBoost = 0.75
 	}
+	if so.Style > 1 || so.Style < 0 {
+		so.Style = 0.0
+	}
+	if so.UseSpeakerBoost != true && so.UseSpeakerBoost != false {
+		so.UseSpeakerBoost = true
+	}
 }
 
 type SynthesisOptions struct {

@@ -69,7 +69,7 @@ func main() {
         text, _ := reader.ReadString('\n')
         go func() {
                 // stream audio from elevenlabs using the first voice we found
-                err = client.TTSStream(ctx, pipeWriter, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75})
+                err = client.TTSStream(ctx, pipeWriter, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75, Style: 0.0, UseSpeakerBoost: true})
                 if err != nil {
                         panic(err)
                 }
