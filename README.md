@@ -30,6 +30,8 @@ Set the `XI_API_KEY` environment variable, and pipe it some text to give it a wh
 
 ## Example Code
 
+### Text-to-Speech Example
+
 To use this library, create a new client and send a TTS request to a voice.
 The following code block illustrates how one might replicate the say/espeak
 command, using the streaming endpoint.
@@ -88,5 +90,51 @@ func main() {
                 done <- true
         })))
         <-done
+}
+```
+
+### Sound Generation Example
+
+The following example demonstrates how to generate sound effects using the Sound Generation API:
+
+```go
+package main
+
+import (
+        "context"
+        "os"
+
+        "github.com/taigrr/elevenlabs/client"
+)
+
+func main() {
+        ctx := context.Background()
+        // Create a new client with your API key
+        client := client.New(os.Getenv("XI_API_KEY"))
+
+        // Generate a sound effect and save it to a file
+        f, err := os.Create("footsteps.mp3")
+        if err != nil {
+                panic(err)
+        }
+        defer f.Close()
+
+        // Basic usage (using default duration and prompt influence)
+        err = client.SoundGenerationWriter(ctx, f, "footsteps on wooden floor", 0, 0)
+        if err != nil {
+                panic(err)
+        }
+
+        // Advanced usage with custom duration and prompt influence
+        audio, err := client.SoundGeneration(
+                ctx,
+                "heavy rain on a tin roof",
+                5.0,    // Set duration to 5 seconds
+                0.5,    // Set prompt influence to 0.5
+        )
+        if err != nil {
+                panic(err)
+        }
+        os.WriteFile("rain.mp3", audio, 0644)
 }
 ```
