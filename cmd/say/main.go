@@ -6,15 +6,15 @@ import (
 	"io"
 	"log"
 	"os"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/mp3"
 	"github.com/faiface/beep/speaker"
 
-	"github.com/supagroova/elevenlabs/client"
-	"github.com/supagroova/elevenlabs/client/types"
+	"github.com/taigrr/elevenlabs/client"
+	"github.com/taigrr/elevenlabs/client/types"
 )
 
 func main() {

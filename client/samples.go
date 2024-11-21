@@ -10,7 +10,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/supagroova/elevenlabs/client/types"
+	"github.com/taigrr/elevenlabs/client/types"
 )
 
 func (c Client) DeleteVoiceSample(ctx context.Context, voiceID, sampleID string) (bool, error) {
@@ -23,7 +23,7 @@ func (c Client) DeleteVoiceSample(ctx context.Context, voiceID, sampleID string)
 
 	req.Header.Set("accept", "application/json")
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	res, err := client.Do(req)
 	if err != nil {
 		return false, err
@@ -56,7 +56,7 @@ func (c Client) DownloadVoiceSampleWriter(ctx context.Context, w io.Writer, voic
 		return err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := client.Do(req)
 	if err != nil {
@@ -93,7 +93,7 @@ func (c Client) DownloadVoiceSample(ctx context.Context, voiceID, sampleID strin
 		return []byte{}, err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := client.Do(req)
 	if err != nil {

@@ -9,7 +9,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/supagroova/elevenlabs/client/types"
+	"github.com/taigrr/elevenlabs/client/types"
 )
 
 func WithPreviousText(previousText string) types.TTSParam {
@@ -95,7 +95,7 @@ func (c Client) requestTTS(ctx context.Context, params types.TTS, options types.
 		return nil, err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/supagroova/elevenlabs")
+	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := client.Do(req)
 	if err != nil {
