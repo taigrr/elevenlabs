@@ -6,8 +6,8 @@ import (
 	"io"
 	"log"
 	"os"
-	"time"
 	"strings"
+	"time"
 
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/mp3"
