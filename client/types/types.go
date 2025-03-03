@@ -230,3 +230,76 @@ type SoundGeneration struct {
 	DurationSeconds float64 `json:"duration_seconds"` // The duration of the sound which will be generated in seconds.
 	PromptInfluence float64 `json:"prompt_influence"` // A higher prompt influence makes your generation follow the prompt more closely.
 }
+
+type TimestampsGranularity string
+
+const (
+	// TimestampsGranularityNone represents no timestamps
+	TimestampsGranularityNone TimestampsGranularity = "none"
+	// TimestampsGranularityWord represents word-level timestamps
+	TimestampsGranularityWord TimestampsGranularity = "word"
+	// TimestampsGranularityCharacter represents character-level timestamps
+	TimestampsGranularityCharacter TimestampsGranularity = "character"
+)
+
+type SpeehToTextModel string
+
+const (
+	SpeehToTextModelScribeV1 SpeehToTextModel = "scribe_v1"
+)
+
+// SpeechToTextRequest represents a request to the speech-to-text API
+type SpeechToTextRequest struct {
+	// The ID of the model to use for transcription (currently only 'scribe_v1')
+	ModelID SpeehToTextModel `json:"model_id"`
+	// ISO-639-1 or ISO-639-3 language code. If not specified, language is auto-detected
+	LanguageCode string `json:"language_code,omitempty"`
+	// Whether to tag audio events like (laughter), (footsteps), etc.
+	TagAudioEvents bool `json:"tag_audio_events,omitempty"`
+	// Number of speakers (1-32). If not specified, uses model's maximum supported
+	NumSpeakers int `json:"num_speakers,omitempty"`
+	// Granularity of timestamps: "none", "word", or "character"
+	TimestampsGranularity TimestampsGranularity `json:"timestamps_granularity,omitempty"`
+	// Whether to annotate speaker changes (limits input to 8 minutes)
+	Diarize bool `json:"diarize,omitempty"`
+}
+
+// SpeechToTextResponse represents the response from the speech-to-text API
+type SpeechToTextResponse struct {
+	// ISO-639-1 language code
+	LanguageCode string `json:"language_code"`
+	// The probability of the detected language
+	LanguageProbability float64 `json:"language_probability"`
+	// The transcribed text
+	Text string `json:"text"`
+	// Detailed word-level information
+	Words []TranscriptionWord `json:"words"`
+	// Error message, if any
+	Error string `json:"error,omitempty"`
+}
+
+// TranscriptionWord represents a word or spacing in the transcription
+type TranscriptionWord struct {
+	// The text content of the word/spacing
+	Text string `json:"text"`
+	// Type of segment ("word" or "spacing")
+	Type string `json:"type"`
+	// Start time in seconds
+	Start float64 `json:"start"`
+	// End time in seconds
+	End float64 `json:"end"`
+	// Speaker identifier for multi-speaker transcriptions
+	SpeakerID string `json:"speaker_id,omitempty"`
+	// Character-level information
+	Characters []TranscriptionCharacter `json:"characters,omitempty"`
+}
+
+// TranscriptionCharacter represents character-level information in the transcription
+type TranscriptionCharacter struct {
+	// The text content of the character
+	Text string `json:"text"`
+	// Start time in seconds
+	Start float64 `json:"start"`
+	// End time in seconds
+	End float64 `json:"end"`
+}
