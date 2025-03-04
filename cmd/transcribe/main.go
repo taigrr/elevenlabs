@@ -17,7 +17,7 @@ func main() {
 	filePath := os.Args[1]
 
 	resp, err := client.ConvertSpeechToText(ctx, filePath, types.SpeechToTextRequest{
-		ModelID:               types.SpeehToTextModelScribeV1,
+		ModelID:               types.SpeechToTextModelScribeV1,
 		TimestampsGranularity: types.TimestampsGranularityWord,
 		Diarize:               true,
 	})

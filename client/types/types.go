@@ -242,16 +242,16 @@ const (
 	TimestampsGranularityCharacter TimestampsGranularity = "character"
 )
 
-type SpeehToTextModel string
+type SpeechToTextModel string
 
 const (
-	SpeehToTextModelScribeV1 SpeehToTextModel = "scribe_v1"
+	SpeechToTextModelScribeV1 SpeechToTextModel = "scribe_v1"
 )
 
 // SpeechToTextRequest represents a request to the speech-to-text API
 type SpeechToTextRequest struct {
 	// The ID of the model to use for transcription (currently only 'scribe_v1')
-	ModelID SpeehToTextModel `json:"model_id"`
+	ModelID SpeechToTextModel `json:"model_id"`
 	// ISO-639-1 or ISO-639-3 language code. If not specified, language is auto-detected
 	LanguageCode string `json:"language_code,omitempty"`
 	// Whether to tag audio events like (laughter), (footsteps), etc.
