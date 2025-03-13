@@ -202,6 +202,17 @@ func (ve ValidationError) Error() string {
 	return fmt.Sprintf("%s %s: ", ve.Type_, ve.Msg)
 }
 
+type ParamError struct {
+	Detail struct {
+		Status  string `json:"status"`
+		Message string `json:"message"`
+	} `json:"detail"`
+}
+
+func (pe ParamError) Error() string {
+	return fmt.Sprintf("%s %s: ", pe.Detail.Status, pe.Detail.Message)
+}
+
 type VerificationAttemptResponseModel struct {
 	Text                string                  `json:"text"`
 	DateUnix            int32                   `json:"date_unix"`

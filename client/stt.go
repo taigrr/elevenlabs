@@ -104,7 +104,7 @@ func (c *Client) ConvertSpeechToTextFromReader(ctx context.Context, reader io.Re
 	case 422:
 		fallthrough
 	default:
-		ve := types.ValidationError{}
+		ve := types.ParamError{}
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&ve)
 		if jerr != nil {
