@@ -17,8 +17,6 @@ import (
 
 func (c Client) CreateVoice(ctx context.Context, name, description string, labels []string, files []*os.File) error {
 	url := c.endpoint + "/v1/voices/add"
-	client := &http.Client{}
-
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 	for _, r := range files {
@@ -43,7 +41,7 @@ func (c Client) CreateVoice(ctx context.Context, name, description string, label
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -69,7 +67,6 @@ func (c Client) CreateVoice(ctx context.Context, name, description string, label
 
 func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s", voiceID)
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
 	if err != nil {
 		return err
@@ -77,7 +74,7 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -103,7 +100,7 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 
 func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings types.SynthesisOptions) error {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/settings/edit", voiceID)
-	client := &http.Client{}
+
 	b, _ := json.Marshal(settings)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(b))
@@ -113,7 +110,7 @@ func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings 
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -145,7 +142,6 @@ func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings 
 
 func (c Client) EditVoice(ctx context.Context, voiceID, name, description string, labels []string, files []*os.File) error {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/edit", voiceID)
-	client := &http.Client{}
 
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
@@ -171,7 +167,7 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -197,7 +193,7 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 
 func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.SynthesisOptions, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/settings", voiceID)
-	client := &http.Client{}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return types.SynthesisOptions{}, err
@@ -205,7 +201,7 @@ func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.Syn
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return types.SynthesisOptions{}, err
 	}
@@ -237,7 +233,7 @@ func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.Syn
 
 func (c Client) GetVoice(ctx context.Context, voiceID string) (types.VoiceResponseModel, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s", voiceID)
-	client := &http.Client{}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return types.VoiceResponseModel{}, err
@@ -245,7 +241,7 @@ func (c Client) GetVoice(ctx context.Context, voiceID string) (types.VoiceRespon
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	switch res.StatusCode {
 	case 401:
 		return types.VoiceResponseModel{}, ErrUnauthorized
@@ -279,7 +275,7 @@ func (c Client) GetVoice(ctx context.Context, voiceID string) (types.VoiceRespon
 
 func (c Client) GetVoices(ctx context.Context) ([]types.VoiceResponseModel, error) {
 	url := c.endpoint + "/v1/voices"
-	client := &http.Client{}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return []types.VoiceResponseModel{}, err
@@ -287,7 +283,7 @@ func (c Client) GetVoices(ctx context.Context) ([]types.VoiceResponseModel, erro
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	switch res.StatusCode {
 	case 401:
 		return []types.VoiceResponseModel{}, ErrUnauthorized

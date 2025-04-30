@@ -15,8 +15,6 @@ import (
 
 func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/history/%s", historyItemID)
-
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
 	if err != nil {
 		return false, err
@@ -24,7 +22,7 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, 
 	req.Header.Set("accept", "application/json")
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 
 	switch res.StatusCode {
 	case 401:
@@ -55,7 +53,6 @@ func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, 
 	toDownload := types.HistoryPost{
 		HistoryItemIds: downloads,
 	}
-	client := &http.Client{}
 	body, _ := json.Marshal(toDownload)
 	bodyReader := bytes.NewReader(body)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bodyReader)
@@ -66,7 +63,7 @@ func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, 
 	req.Header.Set("accept", "archive/zip")
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 
 	switch res.StatusCode {
 	case 401:
@@ -99,7 +96,6 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 	toDownload := types.HistoryPost{
 		HistoryItemIds: downloads,
 	}
-	client := &http.Client{}
 	body, _ := json.Marshal(toDownload)
 	bodyReader := bytes.NewReader(body)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bodyReader)
@@ -110,7 +106,7 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 	req.Header.Set("accept", "archive/zip")
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 
 	switch res.StatusCode {
 	case 401:
@@ -142,7 +138,6 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 
 func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID string) error {
 	url := fmt.Sprintf(c.endpoint+"/v1/history/%s/audio", ID)
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -150,7 +145,7 @@ func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID 
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -179,7 +174,6 @@ func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID 
 
 func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) ([]byte, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/history/%s/audio", ID)
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return []byte{}, err
@@ -187,7 +181,7 @@ func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) ([]byte, er
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -219,7 +213,6 @@ func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) ([]byte, er
 
 func (c Client) GetHistoryItemList(ctx context.Context) ([]types.HistoryItemList, error) {
 	url := c.endpoint + "/v1/history"
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return []types.HistoryItemList{}, err
@@ -227,7 +220,7 @@ func (c Client) GetHistoryItemList(ctx context.Context) ([]types.HistoryItemList
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return []types.HistoryItemList{}, err
 	}
