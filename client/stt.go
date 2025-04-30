@@ -75,7 +75,6 @@ func (c *Client) ConvertSpeechToTextFromReader(ctx context.Context, reader io.Re
 		return nil, fmt.Errorf("failed to close multipart writer: %w", err)
 	}
 
-	client := &http.Client{}
 	url := fmt.Sprintf(c.endpoint + "/v1/speech-to-text")
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
 	if err != nil {
@@ -86,7 +85,7 @@ func (c *Client) ConvertSpeechToTextFromReader(ctx context.Context, reader io.Re
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("xi-api-key", c.apiKey)
 
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}

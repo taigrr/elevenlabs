@@ -68,8 +68,6 @@ func (c Client) SoundGeneration(ctx context.Context, text string, durationSecond
 
 func (c Client) requestSoundGeneration(ctx context.Context, params types.SoundGeneration) (io.ReadCloser, error) {
 	url := c.endpoint + "/v1/sound-generation"
-	client := &http.Client{}
-
 	b, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
@@ -84,7 +82,7 @@ func (c Client) requestSoundGeneration(ctx context.Context, params types.SoundGe
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,6 @@ import (
 
 func (c Client) GetUserInfo(ctx context.Context) (types.UserResponseModel, error) {
 	url := c.endpoint + "/v1/user"
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return types.UserResponseModel{}, err
@@ -19,7 +18,7 @@ func (c Client) GetUserInfo(ctx context.Context) (types.UserResponseModel, error
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return types.UserResponseModel{}, err
 	}

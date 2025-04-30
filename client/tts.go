@@ -88,7 +88,6 @@ func (c Client) requestTTS(ctx context.Context, params types.TTS, options types.
 	if params.Stream {
 		url += "/stream"
 	}
-	client := &http.Client{}
 	b, _ := json.Marshal(params)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(b))
 	if err != nil {
@@ -97,7 +96,7 @@ func (c Client) requestTTS(ctx context.Context, params types.TTS, options types.
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

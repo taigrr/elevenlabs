@@ -15,7 +15,6 @@ import (
 
 func (c Client) DeleteVoiceSample(ctx context.Context, voiceID, sampleID string) (bool, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/samples/%s", voiceID, sampleID)
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
 	if err != nil {
 		return false, err
@@ -24,7 +23,7 @@ func (c Client) DeleteVoiceSample(ctx context.Context, voiceID, sampleID string)
 	req.Header.Set("accept", "application/json")
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return false, err
 	}
@@ -50,7 +49,6 @@ func (c Client) DeleteVoiceSample(ctx context.Context, voiceID, sampleID string)
 
 func (c Client) DownloadVoiceSampleWriter(ctx context.Context, w io.Writer, voiceID, sampleID string) error {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/samples/%s/audio", voiceID, sampleID)
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -58,7 +56,7 @@ func (c Client) DownloadVoiceSampleWriter(ctx context.Context, w io.Writer, voic
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -87,7 +85,6 @@ func (c Client) DownloadVoiceSampleWriter(ctx context.Context, w io.Writer, voic
 
 func (c Client) DownloadVoiceSample(ctx context.Context, voiceID, sampleID string) ([]byte, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/samples/%s/audio", voiceID, sampleID)
-	client := &http.Client{}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return []byte{}, err
@@ -95,7 +92,7 @@ func (c Client) DownloadVoiceSample(ctx context.Context, voiceID, sampleID strin
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return []byte{}, err
 	}
