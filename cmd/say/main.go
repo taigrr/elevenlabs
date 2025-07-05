@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/faiface/beep"
-	"github.com/faiface/beep/mp3"
-	"github.com/faiface/beep/speaker"
+	"github.com/gopxl/beep/v2"
+	"github.com/gopxl/beep/v2/mp3"
+	"github.com/gopxl/beep/v2/speaker"
 
 	"github.com/taigrr/elevenlabs/client"
 	"github.com/taigrr/elevenlabs/client/types"
