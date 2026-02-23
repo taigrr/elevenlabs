@@ -75,7 +75,7 @@ func (c *Client) ConvertSpeechToTextFromReader(ctx context.Context, reader io.Re
 		return nil, fmt.Errorf("failed to close multipart writer: %w", err)
 	}
 
-	url := fmt.Sprintf(c.endpoint + "/v1/speech-to-text")
+	url := c.endpoint + "/v1/speech-to-text"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
