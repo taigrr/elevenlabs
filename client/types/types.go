@@ -40,9 +40,8 @@ func (so *SynthesisOptions) Clamp() {
 	if so.Style > 1 || so.Style < 0 {
 		so.Style = 0.0
 	}
-	if so.UseSpeakerBoost != true && so.UseSpeakerBoost != false {
-		so.UseSpeakerBoost = true
-	}
+	// UseSpeakerBoost defaults to the zero value (false) for bool;
+	// no conditional needed as the caller sets it explicitly.
 }
 
 type SynthesisOptions struct {
