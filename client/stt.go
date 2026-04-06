@@ -16,7 +16,7 @@ import (
 )
 
 // ConvertSpeechToText converts audio to text using the specified file path
-func (c *Client) ConvertSpeechToText(ctx context.Context, audioFilePath string, request types.SpeechToTextRequest) (*types.SpeechToTextResponse, error) {
+func (c Client) ConvertSpeechToText(ctx context.Context, audioFilePath string, request types.SpeechToTextRequest) (*types.SpeechToTextResponse, error) {
 	file, err := os.Open(audioFilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open audio file: %w", err)
@@ -27,7 +27,7 @@ func (c *Client) ConvertSpeechToText(ctx context.Context, audioFilePath string, 
 }
 
 // ConvertSpeechToTextFromReader converts audio to text using the provided reader
-func (c *Client) ConvertSpeechToTextFromReader(ctx context.Context, reader io.Reader, filename string, request types.SpeechToTextRequest) (*types.SpeechToTextResponse, error) {
+func (c Client) ConvertSpeechToTextFromReader(ctx context.Context, reader io.Reader, filename string, request types.SpeechToTextRequest) (*types.SpeechToTextResponse, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 

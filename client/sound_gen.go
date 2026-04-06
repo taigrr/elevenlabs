@@ -78,6 +78,7 @@ func (c Client) requestSoundGeneration(ctx context.Context, params types.SoundGe
 		return nil, err
 	}
 
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
