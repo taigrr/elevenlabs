@@ -31,7 +31,7 @@ func (c Client) CreateVoice(ctx context.Context, name, description string, label
 	}
 	w.WriteField("name", name)
 	w.WriteField("description", description)
-	w.WriteField("name", strings.Join(labels, ", "))
+	w.WriteField("labels", strings.Join(labels, ", "))
 	w.Close()
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &b)
 	if err != nil {
@@ -107,6 +107,7 @@ func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings 
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
@@ -157,7 +158,7 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 	}
 	w.WriteField("name", name)
 	w.WriteField("description", description)
-	w.WriteField("name", strings.Join(labels, ", "))
+	w.WriteField("labels", strings.Join(labels, ", "))
 	w.Close()
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &b)
 	if err != nil {
@@ -242,14 +243,13 @@ func (c Client) GetVoice(ctx context.Context, voiceID string) (types.VoiceRespon
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return types.VoiceResponseModel{}, err
+	}
 	switch res.StatusCode {
 	case 401:
 		return types.VoiceResponseModel{}, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return types.VoiceResponseModel{}, err
-		}
-
 		vrm := types.VoiceResponseModel{}
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&vrm)
@@ -284,13 +284,13 @@ func (c Client) GetVoices(ctx context.Context) ([]types.VoiceResponseModel, erro
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "application/json")
 	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return []types.VoiceResponseModel{}, err
+	}
 	switch res.StatusCode {
 	case 401:
 		return []types.VoiceResponseModel{}, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return []types.VoiceResponseModel{}, err
-		}
 		vr := types.GetVoicesResponseModel{}
 		defer res.Body.Close()
 		jerr := json.NewDecoder(res.Body).Decode(&vr)

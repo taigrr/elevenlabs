@@ -60,6 +60,7 @@ func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, 
 		return err
 	}
 
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("accept", "archive/zip")
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
@@ -103,6 +104,7 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 		return []byte{}, err
 	}
 
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("accept", "archive/zip")
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
