@@ -12,12 +12,10 @@ import (
 	"github.com/taigrr/elevenlabs/client/types"
 )
 
-// newTestClient creates a Client pointed at the given test server.
 func newTestClient(ts *httptest.Server) Client {
 	return New("test-api-key").WithEndpoint(ts.URL)
 }
 
-// assertAPIKey checks that the request carries the expected API key header.
 func assertAPIKey(t *testing.T, r *http.Request) {
 	t.Helper()
 	if got := r.Header.Get("xi-api-key"); got != "test-api-key" {
@@ -85,10 +83,12 @@ func TestTTS(t *testing.T) {
 	defer ts.Close()
 
 	c := newTestClient(ts)
-	data, err := c.TTS(context.Background(), "hello", "voice1", "model1", types.SynthesisOptions{Stability: 0.5, SimilarityBoost: 0.5})
+	rc, err := c.TTS(context.Background(), "hello", "voice1", "model1", types.SynthesisOptions{Stability: 0.5, SimilarityBoost: 0.5})
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer rc.Close()
+	data, _ := io.ReadAll(rc)
 	if string(data) != "audio-bytes" {
 		t.Errorf("data = %q", string(data))
 	}
@@ -118,13 +118,14 @@ func TestTTSStream(t *testing.T) {
 	defer ts.Close()
 
 	c := newTestClient(ts)
-	var buf strings.Builder
-	err := c.TTSStream(context.Background(), &buf, "text", "v1", types.SynthesisOptions{Stability: 0.5, SimilarityBoost: 0.5})
+	rc, err := c.TTSStream(context.Background(), "text", "v1", types.SynthesisOptions{Stability: 0.5, SimilarityBoost: 0.5})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if buf.String() != "streamed" {
-		t.Errorf("got = %q", buf.String())
+	defer rc.Close()
+	data, _ := io.ReadAll(rc)
+	if string(data) != "streamed" {
+		t.Errorf("got = %q", string(data))
 	}
 }
 
@@ -144,12 +145,13 @@ func TestTTSWithOptionalParams(t *testing.T) {
 	defer ts.Close()
 
 	c := newTestClient(ts)
-	_, err := c.TTS(context.Background(), "hello", "v1", "m1",
+	rc, err := c.TTS(context.Background(), "hello", "v1", "m1",
 		types.SynthesisOptions{Stability: 0.5, SimilarityBoost: 0.5},
 		WithPreviousText("prev"), WithNextText("next"))
 	if err != nil {
 		t.Fatal(err)
 	}
+	rc.Close()
 }
 
 // --- Voice tests ---
@@ -372,7 +374,6 @@ func TestGetHistoryIDs(t *testing.T) {
 
 	c := newTestClient(ts)
 
-	// No filter
 	ids, err := c.GetHistoryIDs(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -432,12 +433,14 @@ func TestHistoryDownloadAudio(t *testing.T) {
 	defer ts.Close()
 
 	c := newTestClient(ts)
-	data, err := c.HistoryDownloadAudio(context.Background(), "h1")
+	rc, err := c.HistoryDownloadAudio(context.Background(), "h1")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(data) == 0 {
-		t.Error("expected non-empty data")
+	defer rc.Close()
+	data, _ := io.ReadAll(rc)
+	if string(data) != "audio-data" {
+		t.Errorf("got = %q, want %q", string(data), "audio-data")
 	}
 }
 
@@ -470,12 +473,14 @@ func TestDownloadVoiceSample(t *testing.T) {
 	defer ts.Close()
 
 	c := newTestClient(ts)
-	data, err := c.DownloadVoiceSample(context.Background(), "v1", "s1")
+	rc, err := c.DownloadVoiceSample(context.Background(), "v1", "s1")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(data) == 0 {
-		t.Error("expected non-empty data")
+	defer rc.Close()
+	data, _ := io.ReadAll(rc)
+	if string(data) != "sample-audio" {
+		t.Errorf("got = %q, want %q", string(data), "sample-audio")
 	}
 }
 
@@ -498,30 +503,14 @@ func TestSoundGeneration(t *testing.T) {
 	defer ts.Close()
 
 	c := newTestClient(ts)
-	data, err := c.SoundGeneration(context.Background(), "thunder", 0, 0)
+	rc, err := c.SoundGeneration(context.Background(), "thunder", 0, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer rc.Close()
+	data, _ := io.ReadAll(rc)
 	if string(data) != "sound-bytes" {
 		t.Errorf("data = %q", string(data))
-	}
-}
-
-func TestSoundGenerationWriter(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		w.Write([]byte("streamed-sound"))
-	}))
-	defer ts.Close()
-
-	c := newTestClient(ts)
-	var buf strings.Builder
-	err := c.SoundGenerationWriter(context.Background(), &buf, "rain", 5.0, 0.5)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if buf.String() != "streamed-sound" {
-		t.Errorf("got = %q", buf.String())
 	}
 }
 
@@ -630,110 +619,6 @@ func TestParamErrorString(t *testing.T) {
 	}
 }
 
-// --- TTSWriter test ---
-
-func TestTTSWriter(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		w.Write([]byte("written-audio"))
-	}))
-	defer ts.Close()
-
-	c := newTestClient(ts)
-	var buf strings.Builder
-	err := c.TTSWriter(context.Background(), &buf, "hello", "m1", "v1", types.SynthesisOptions{Stability: 0.5, SimilarityBoost: 0.5})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if buf.String() != "written-audio" {
-		t.Errorf("got = %q", buf.String())
-	}
-}
-
-// --- DownloadVoiceSampleWriter test ---
-
-func TestDownloadVoiceSampleWriter(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		w.Write([]byte("sample-stream"))
-	}))
-	defer ts.Close()
-
-	c := newTestClient(ts)
-	var buf strings.Builder
-	err := c.DownloadVoiceSampleWriter(context.Background(), &buf, "v1", "s1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if buf.String() != "sample-stream" {
-		t.Errorf("got = %q", buf.String())
-	}
-}
-
-// --- HistoryDownloadAudioWriter test ---
-
-func TestHistoryDownloadAudioWriter(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		w.Write([]byte("audio-stream"))
-	}))
-	defer ts.Close()
-
-	c := newTestClient(ts)
-	var buf strings.Builder
-	err := c.HistoryDownloadAudioWriter(context.Background(), &buf, "h1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if buf.String() != "audio-stream" {
-		t.Errorf("got = %q", buf.String())
-	}
-}
-
-// --- HistoryDownloadZip tests ---
-
-func TestHistoryDownloadZip(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if ct := r.Header.Get("Content-Type"); ct != "application/json" {
-			t.Errorf("Content-Type = %q, want application/json", ct)
-		}
-		var body types.HistoryPost
-		json.NewDecoder(r.Body).Decode(&body)
-		if len(body.HistoryItemIds) < 2 {
-			t.Errorf("expected at least 2 ids, got %d", len(body.HistoryItemIds))
-		}
-		w.WriteHeader(200)
-		w.Write([]byte("zip-data"))
-	}))
-	defer ts.Close()
-
-	c := newTestClient(ts)
-	data, err := c.HistoryDownloadZip(context.Background(), "h1", "h2")
-	if err != nil {
-		t.Fatal(err)
-	}
-	_ = data
-}
-
-func TestHistoryDownloadZipWriter(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		w.Write([]byte("zip-stream"))
-	}))
-	defer ts.Close()
-
-	c := newTestClient(ts)
-	var buf strings.Builder
-	err := c.HistoryDownloadZipWriter(context.Background(), &buf, "h1", "h2")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(buf.String(), "zip-stream") {
-		t.Errorf("got = %q", buf.String())
-	}
-}
-
-// Verify CreateVoice sends multipart with correct field names
 func TestCreateVoiceFieldNames(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assertAPIKey(t, r)
@@ -759,7 +644,6 @@ func TestCreateVoiceFieldNames(t *testing.T) {
 	}
 }
 
-// Verify handling of 422 validation errors
 func TestTTS422(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(422)
@@ -777,7 +661,6 @@ func TestTTS422(t *testing.T) {
 	}
 }
 
-// Test that STT properly sends diarize and other fields
 func TestSTTFields(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseMultipartForm(1 << 20); err != nil {
@@ -813,72 +696,29 @@ func TestSTTFields(t *testing.T) {
 	}
 }
 
-// Test that io.Writer variants correctly proxy
-func TestDownloadVoiceSampleWriterProxy(t *testing.T) {
+func TestHistoryDownloadZip(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if ct := r.Header.Get("Content-Type"); ct != "application/json" {
+			t.Errorf("Content-Type = %q, want application/json", ct)
+		}
+		var body types.HistoryPost
+		json.NewDecoder(r.Body).Decode(&body)
+		if len(body.HistoryItemIds) < 2 {
+			t.Errorf("expected at least 2 ids, got %d", len(body.HistoryItemIds))
+		}
 		w.WriteHeader(200)
-		_, _ = io.WriteString(w, "proxy-test")
+		w.Write([]byte("zip-data"))
 	}))
 	defer ts.Close()
 
 	c := newTestClient(ts)
-	var buf strings.Builder
-	err := c.DownloadVoiceSampleWriter(context.Background(), &buf, "v1", "s1")
+	rc, err := c.HistoryDownloadZip(context.Background(), "h1", "h2")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if buf.String() != "proxy-test" {
-		t.Errorf("got = %q", buf.String())
-	}
-}
-
-func TestDownloadVoiceSampleReturnsBody(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		_, _ = io.WriteString(w, "sample-audio")
-	}))
-	defer ts.Close()
-
-	c := newTestClient(ts)
-	body, err := c.DownloadVoiceSample(context.Background(), "v1", "s1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(body) != "sample-audio" {
-		t.Fatalf("body = %q, want %q", string(body), "sample-audio")
-	}
-}
-
-func TestHistoryDownloadAudioReturnsBody(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		_, _ = io.WriteString(w, "history-audio")
-	}))
-	defer ts.Close()
-
-	c := newTestClient(ts)
-	body, err := c.HistoryDownloadAudio(context.Background(), "h1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(body) != "history-audio" {
-		t.Fatalf("body = %q, want %q", string(body), "history-audio")
-	}
-}
-
-func TestHistoryDownloadZipReturnsBody(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(200)
-		_, _ = io.WriteString(w, "zip-bytes")
-	}))
-	defer ts.Close()
-
-	c := newTestClient(ts)
-	body, err := c.HistoryDownloadZip(context.Background(), "h1", "h2")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(body) != "zip-bytes" {
-		t.Fatalf("body = %q, want %q", string(body), "zip-bytes")
+	defer rc.Close()
+	data, _ := io.ReadAll(rc)
+	if string(data) != "zip-data" {
+		t.Errorf("got = %q, want %q", string(data), "zip-data")
 	}
 }

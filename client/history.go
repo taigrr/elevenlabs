@@ -46,7 +46,7 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, 
 	}
 }
 
-func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, id2 string, additionalIDs ...string) error {
+func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additionalIDs ...string) (io.ReadCloser, error) {
 	url := c.endpoint + "/v1/history/download"
 	downloads := append(additionalIDs, id1, id2)
 	toDownload := types.HistoryPost{
@@ -56,7 +56,7 @@ func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, 
 	bodyReader := bytes.NewReader(body)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bodyReader)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -67,14 +67,12 @@ func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, 
 
 	switch res.StatusCode {
 	case 401:
-		return ErrUnauthorized
+		return nil, ErrUnauthorized
 	case 200:
 		if err != nil {
-			return err
+			return nil, err
 		}
-		defer res.Body.Close()
-		io.Copy(w, res.Body)
-		return nil
+		return res.Body, nil
 	case 422:
 		fallthrough
 	default:
@@ -86,75 +84,29 @@ func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, 
 		} else {
 			err = errors.Join(err, ve)
 		}
-		return err
+		return nil, err
 	}
 }
 
-func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additionalIDs ...string) ([]byte, error) {
-	url := c.endpoint + "/v1/history/download"
-	downloads := append(additionalIDs, id1, id2)
-	toDownload := types.HistoryPost{
-		HistoryItemIds: downloads,
-	}
-	body, _ := json.Marshal(toDownload)
-	bodyReader := bytes.NewReader(body)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bodyReader)
-	if err != nil {
-		return []byte{}, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("accept", "archive/zip")
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	res, err := c.httpClient.Do(req)
-
-	switch res.StatusCode {
-	case 401:
-		return []byte{}, ErrUnauthorized
-	case 200:
-		defer res.Body.Close()
-		body, readErr := io.ReadAll(res.Body)
-		if readErr != nil {
-			return []byte{}, readErr
-		}
-		return body, nil
-	case 422:
-		fallthrough
-	default:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return []byte{}, err
-	}
-}
-
-func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID string) error {
+func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) (io.ReadCloser, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/history/%s/audio", ID)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := c.httpClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	switch res.StatusCode {
 	case 401:
-		return ErrUnauthorized
+		return nil, ErrUnauthorized
 	case 200:
-		defer res.Body.Close()
-		io.Copy(w, res.Body)
-		return nil
+		return res.Body, nil
 	case 422:
 		fallthrough
 	default:
@@ -166,46 +118,7 @@ func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID 
 		} else {
 			err = errors.Join(err, ve)
 		}
-		return err
-	}
-}
-
-func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) ([]byte, error) {
-	url := fmt.Sprintf(c.endpoint+"/v1/history/%s/audio", ID)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return []byte{}, err
-	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "audio/mpeg")
-	res, err := c.httpClient.Do(req)
-	if err != nil {
-		return []byte{}, err
-	}
-
-	switch res.StatusCode {
-	case 401:
-		return []byte{}, ErrUnauthorized
-	case 200:
-		defer res.Body.Close()
-		body, readErr := io.ReadAll(res.Body)
-		if readErr != nil {
-			return []byte{}, readErr
-		}
-		return body, nil
-	case 422:
-		fallthrough
-	default:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return []byte{}, err
+		return nil, err
 	}
 }
 

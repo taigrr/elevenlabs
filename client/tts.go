@@ -24,7 +24,7 @@ func WithNextText(nextText string) types.TTSParam {
 	}
 }
 
-func (c Client) TTSWriter(ctx context.Context, w io.Writer, text, modelID, voiceID string, options types.SynthesisOptions, optionalParams ...types.TTSParam) error {
+func (c Client) TTS(ctx context.Context, text, voiceID, modelID string, options types.SynthesisOptions, optionalParams ...types.TTSParam) (io.ReadCloser, error) {
 	params := types.TTS{
 		Text:    text,
 		VoiceID: voiceID,
@@ -34,36 +34,10 @@ func (c Client) TTSWriter(ctx context.Context, w io.Writer, text, modelID, voice
 		p(&params)
 	}
 
-	body, err := c.requestTTS(ctx, params, options)
-	if err != nil {
-		return err
-	}
-	defer body.Close()
-	io.Copy(w, body)
-	return nil
+	return c.requestTTS(ctx, params, options)
 }
 
-func (c Client) TTS(ctx context.Context, text, voiceID, modelID string, options types.SynthesisOptions, optionalParams ...types.TTSParam) ([]byte, error) {
-	params := types.TTS{
-		Text:    text,
-		VoiceID: voiceID,
-		ModelID: modelID,
-	}
-	for _, p := range optionalParams {
-		p(&params)
-	}
-
-	body, err := c.requestTTS(ctx, params, options)
-	if err != nil {
-		return []byte{}, err
-	}
-	defer body.Close()
-	b := bytes.Buffer{}
-	io.Copy(&b, body)
-	return b.Bytes(), nil
-}
-
-func (c Client) TTSStream(ctx context.Context, w io.Writer, text, voiceID string, options types.SynthesisOptions, optionalParams ...types.TTSParam) error {
+func (c Client) TTSStream(ctx context.Context, text, voiceID string, options types.SynthesisOptions, optionalParams ...types.TTSParam) (io.ReadCloser, error) {
 	params := types.TTS{
 		Text:    text,
 		VoiceID: voiceID,
@@ -73,13 +47,7 @@ func (c Client) TTSStream(ctx context.Context, w io.Writer, text, voiceID string
 		p(&params)
 	}
 
-	body, err := c.requestTTS(ctx, params, options)
-	if err != nil {
-		return err
-	}
-	defer body.Close()
-	io.Copy(w, body)
-	return nil
+	return c.requestTTS(ctx, params, options)
 }
 
 func (c Client) requestTTS(ctx context.Context, params types.TTS, options types.SynthesisOptions) (io.ReadCloser, error) {

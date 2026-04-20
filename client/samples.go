@@ -45,27 +45,25 @@ func (c Client) DeleteVoiceSample(ctx context.Context, voiceID, sampleID string)
 	}
 }
 
-func (c Client) DownloadVoiceSampleWriter(ctx context.Context, w io.Writer, voiceID, sampleID string) error {
+func (c Client) DownloadVoiceSample(ctx context.Context, voiceID, sampleID string) (io.ReadCloser, error) {
 	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/samples/%s/audio", voiceID, sampleID)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	req.Header.Set("accept", "audio/mpeg")
 	res, err := c.httpClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	switch res.StatusCode {
 	case 401:
-		return ErrUnauthorized
+		return nil, ErrUnauthorized
 	case 200:
-		defer res.Body.Close()
-		io.Copy(w, res.Body)
-		return nil
+		return res.Body, nil
 	case 422:
 		fallthrough
 	default:
@@ -77,45 +75,6 @@ func (c Client) DownloadVoiceSampleWriter(ctx context.Context, w io.Writer, voic
 		} else {
 			err = errors.Join(err, ve)
 		}
-		return err
-	}
-}
-
-func (c Client) DownloadVoiceSample(ctx context.Context, voiceID, sampleID string) ([]byte, error) {
-	url := fmt.Sprintf(c.endpoint+"/v1/voices/%s/samples/%s/audio", voiceID, sampleID)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return []byte{}, err
-	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "audio/mpeg")
-	res, err := c.httpClient.Do(req)
-	if err != nil {
-		return []byte{}, err
-	}
-
-	switch res.StatusCode {
-	case 401:
-		return []byte{}, ErrUnauthorized
-	case 200:
-		defer res.Body.Close()
-		body, readErr := io.ReadAll(res.Body)
-		if readErr != nil {
-			return []byte{}, readErr
-		}
-		return body, nil
-	case 422:
-		fallthrough
-	default:
-		ve := types.ValidationError{}
-		defer res.Body.Close()
-		jerr := json.NewDecoder(res.Body).Decode(&ve)
-		if jerr != nil {
-			err = errors.Join(err, jerr)
-		} else {
-			err = errors.Join(err, ve)
-		}
-		return []byte{}, err
+		return nil, err
 	}
 }

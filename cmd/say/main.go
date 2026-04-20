@@ -24,9 +24,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	pipeReader, pipeWriter := io.Pipe()
 
-	// record how long it takes to run and print out on exit
 	start := time.Now()
 	defer func() {
 		log.Println(time.Since(start))
@@ -41,14 +39,13 @@ func main() {
 		text = string(b)
 	}
 
-	go func() {
-		err = client.TTSStream(ctx, pipeWriter, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75, Style: 0.0, UseSpeakerBoost: false})
-		if err != nil {
-			panic(err)
-		}
-		pipeWriter.Close()
-	}()
-	streamer, format, err := mp3.Decode(pipeReader)
+	rc, err := client.TTSStream(ctx, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75, Style: 0.0, UseSpeakerBoost: false})
+	if err != nil {
+		panic(err)
+	}
+	defer rc.Close()
+
+	streamer, format, err := mp3.Decode(rc)
 	if err != nil {
 		log.Fatal(err)
 	}
