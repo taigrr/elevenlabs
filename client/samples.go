@@ -1,8 +1,6 @@
 package client
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -101,12 +99,12 @@ func (c Client) DownloadVoiceSample(ctx context.Context, voiceID, sampleID strin
 	case 401:
 		return []byte{}, ErrUnauthorized
 	case 200:
-		b := bytes.Buffer{}
-		w := bufio.NewWriter(&b)
-
 		defer res.Body.Close()
-		io.Copy(w, res.Body)
-		return b.Bytes(), nil
+		body, readErr := io.ReadAll(res.Body)
+		if readErr != nil {
+			return []byte{}, readErr
+		}
+		return body, nil
 	case 422:
 		fallthrough
 	default:

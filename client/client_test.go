@@ -831,3 +831,54 @@ func TestDownloadVoiceSampleWriterProxy(t *testing.T) {
 		t.Errorf("got = %q", buf.String())
 	}
 }
+
+func TestDownloadVoiceSampleReturnsBody(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		_, _ = io.WriteString(w, "sample-audio")
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	body, err := c.DownloadVoiceSample(context.Background(), "v1", "s1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(body) != "sample-audio" {
+		t.Fatalf("body = %q, want %q", string(body), "sample-audio")
+	}
+}
+
+func TestHistoryDownloadAudioReturnsBody(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		_, _ = io.WriteString(w, "history-audio")
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	body, err := c.HistoryDownloadAudio(context.Background(), "h1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(body) != "history-audio" {
+		t.Fatalf("body = %q, want %q", string(body), "history-audio")
+	}
+}
+
+func TestHistoryDownloadZipReturnsBody(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(200)
+		_, _ = io.WriteString(w, "zip-bytes")
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	body, err := c.HistoryDownloadZip(context.Background(), "h1", "h2")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(body) != "zip-bytes" {
+		t.Fatalf("body = %q, want %q", string(body), "zip-bytes")
+	}
+}
