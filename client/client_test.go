@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -880,5 +881,62 @@ func TestHistoryDownloadZipReturnsBody(t *testing.T) {
 	}
 	if string(body) != "zip-bytes" {
 		t.Fatalf("body = %q, want %q", string(body), "zip-bytes")
+	}
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (fn roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return fn(req)
+}
+
+type failingWriter struct{}
+
+func (failingWriter) Write(p []byte) (int, error) {
+	return 0, errors.New("write failed")
+}
+
+func TestHistoryDeleteTransportError(t *testing.T) {
+	transportErr := errors.New("transport failed")
+	c := New("test-api-key").WithHTTPClient(&http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			return nil, transportErr
+		}),
+	})
+
+	ok, err := c.HistoryDelete(context.Background(), "h1")
+	if ok {
+		t.Fatal("expected false result")
+	}
+	if !errors.Is(err, transportErr) {
+		t.Fatalf("err = %v, want %v", err, transportErr)
+	}
+}
+
+func TestHistoryDownloadAudioWriterReturnsCopyError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, "audio-stream")
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	err := c.HistoryDownloadAudioWriter(context.Background(), failingWriter{}, "h1")
+	if err == nil || !strings.Contains(err.Error(), "write failed") {
+		t.Fatalf("err = %v, want write failed", err)
+	}
+}
+
+func TestHistoryDownloadZipWriterReturnsCopyError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, "zip-stream")
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	err := c.HistoryDownloadZipWriter(context.Background(), failingWriter{}, "h1", "h2")
+	if err == nil || !strings.Contains(err.Error(), "write failed") {
+		t.Fatalf("err = %v, want write failed", err)
 	}
 }
