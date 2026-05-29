@@ -22,14 +22,14 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, 
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return false, err
+	}
 
 	switch res.StatusCode {
 	case 401:
 		return false, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return false, err
-		}
 		return true, nil
 	case 422:
 		fallthrough
@@ -64,17 +64,17 @@ func (c Client) HistoryDownloadZipWriter(ctx context.Context, w io.Writer, id1, 
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
 
 	switch res.StatusCode {
 	case 401:
 		return ErrUnauthorized
 	case 200:
-		if err != nil {
-			return err
-		}
 		defer res.Body.Close()
-		io.Copy(w, res.Body)
-		return nil
+		_, err = io.Copy(w, res.Body)
+		return err
 	case 422:
 		fallthrough
 	default:
@@ -153,8 +153,8 @@ func (c Client) HistoryDownloadAudioWriter(ctx context.Context, w io.Writer, ID 
 		return ErrUnauthorized
 	case 200:
 		defer res.Body.Close()
-		io.Copy(w, res.Body)
-		return nil
+		_, err = io.Copy(w, res.Body)
+		return err
 	case 422:
 		fallthrough
 	default:
