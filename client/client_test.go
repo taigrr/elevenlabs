@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -575,6 +577,93 @@ func TestConvertSpeechToTextUnauthorized(t *testing.T) {
 	)
 	if err != ErrUnauthorized {
 		t.Fatalf("err = %v, want ErrUnauthorized", err)
+	}
+}
+
+func TestConvertSpeechToText(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertAPIKey(t, r)
+		if err := r.ParseMultipartForm(1 << 20); err != nil {
+			t.Fatal(err)
+		}
+		file, _, err := r.FormFile("file")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer file.Close()
+
+		body, err := io.ReadAll(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(body) != "file-audio" {
+			t.Fatalf("audio body = %q, want %q", string(body), "file-audio")
+		}
+
+		resp := types.SpeechToTextResponse{Text: "from-file"}
+		json.NewEncoder(w).Encode(resp)
+	}))
+	defer ts.Close()
+
+	audioPath := filepath.Join(t.TempDir(), "sample.wav")
+	if err := os.WriteFile(audioPath, []byte("file-audio"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	c := newTestClient(ts)
+	resp, err := c.ConvertSpeechToText(
+		context.Background(),
+		audioPath,
+		types.SpeechToTextRequest{ModelID: types.SpeechToTextModelScribeV1},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Text != "from-file" {
+		t.Fatalf("text = %q, want %q", resp.Text, "from-file")
+	}
+}
+
+func TestEditVoice(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertAPIKey(t, r)
+		if r.Method != http.MethodPost {
+			t.Errorf("method = %s, want POST", r.Method)
+		}
+		if r.URL.Path != "/v1/voices/v1/edit" {
+			t.Errorf("path = %s, want /v1/voices/v1/edit", r.URL.Path)
+		}
+		if err := r.ParseMultipartForm(1 << 20); err != nil {
+			t.Fatal(err)
+		}
+		if got := r.FormValue("name"); got != "Updated Voice" {
+			t.Errorf("name = %q", got)
+		}
+		if got := r.FormValue("description"); got != "Updated description" {
+			t.Errorf("description = %q", got)
+		}
+		if got := r.FormValue("labels"); got != "warm, bright" {
+			t.Errorf("labels = %q, want %q", got, "warm, bright")
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer ts.Close()
+
+	samplePath := filepath.Join(t.TempDir(), "sample.wav")
+	fileData := []byte("voice-sample")
+	if err := os.WriteFile(samplePath, fileData, 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	sampleFile, err := os.Open(samplePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer sampleFile.Close()
+
+	c := newTestClient(ts)
+	if err := c.EditVoice(context.Background(), "v1", "Updated Voice", "Updated description", []string{"warm", "bright"}, []*os.File{sampleFile}); err != nil {
+		t.Fatal(err)
 	}
 }
 
