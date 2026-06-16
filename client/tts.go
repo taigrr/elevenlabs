@@ -39,8 +39,8 @@ func (c Client) TTSWriter(ctx context.Context, w io.Writer, text, modelID, voice
 		return err
 	}
 	defer body.Close()
-	io.Copy(w, body)
-	return nil
+	_, err = io.Copy(w, body)
+	return err
 }
 
 func (c Client) TTS(ctx context.Context, text, voiceID, modelID string, options types.SynthesisOptions, optionalParams ...types.TTSParam) ([]byte, error) {
@@ -78,8 +78,8 @@ func (c Client) TTSStream(ctx context.Context, w io.Writer, text, voiceID string
 		return err
 	}
 	defer body.Close()
-	io.Copy(w, body)
-	return nil
+	_, err = io.Copy(w, body)
+	return err
 }
 
 func (c Client) requestTTS(ctx context.Context, params types.TTS, options types.SynthesisOptions) (io.ReadCloser, error) {

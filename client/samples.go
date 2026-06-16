@@ -64,8 +64,8 @@ func (c Client) DownloadVoiceSampleWriter(ctx context.Context, w io.Writer, voic
 		return ErrUnauthorized
 	case 200:
 		defer res.Body.Close()
-		io.Copy(w, res.Body)
-		return nil
+		_, err = io.Copy(w, res.Body)
+		return err
 	case 422:
 		fallthrough
 	default:
