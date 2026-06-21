@@ -108,6 +108,9 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return []byte{}, err
+	}
 
 	switch res.StatusCode {
 	case 401:
