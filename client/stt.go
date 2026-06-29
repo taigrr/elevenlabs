@@ -94,6 +94,7 @@ func (c Client) ConvertSpeechToTextFromReader(ctx context.Context, reader io.Rea
 	case 401:
 		return nil, ErrUnauthorized
 	case 200:
+		defer res.Body.Close()
 		var sttResponse types.SpeechToTextResponse
 		if err := json.NewDecoder(res.Body).Decode(&sttResponse); err != nil {
 			return nil, fmt.Errorf("failed to parse API response: %w", err)
