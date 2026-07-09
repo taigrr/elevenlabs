@@ -1118,6 +1118,23 @@ func TestHistoryDeleteTransportError(t *testing.T) {
 	}
 }
 
+func TestHistoryDownloadZipTransportError(t *testing.T) {
+	transportErr := errors.New("transport failed")
+	c := New("test-api-key").WithHTTPClient(&http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			return nil, transportErr
+		}),
+	})
+
+	body, err := c.HistoryDownloadZip(context.Background(), "h1", "h2")
+	if len(body) != 0 {
+		t.Fatalf("body = %q, want empty", string(body))
+	}
+	if !errors.Is(err, transportErr) {
+		t.Fatalf("err = %v, want %v", err, transportErr)
+	}
+}
+
 func TestHistoryDownloadAudioWriterReturnsCopyError(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
