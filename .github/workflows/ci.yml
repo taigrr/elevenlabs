@@ -14,6 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Install ALSA headers (required to build cmd/say on Linux)
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev
+
       - uses: actions/setup-go@v6
         with:
           go-version: "1.26.0"
