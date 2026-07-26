@@ -12,7 +12,7 @@ jobs:
   build-test-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install ALSA headers (required to build cmd/say on Linux)
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev
