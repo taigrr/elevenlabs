@@ -30,6 +30,7 @@ func (c Client) DeleteVoiceSample(ctx context.Context, voiceID, sampleID string)
 		res.Body.Close()
 		return false, ErrUnauthorized
 	case 200:
+		drainClose(res.Body)
 		return true, nil
 	case 422:
 		fallthrough

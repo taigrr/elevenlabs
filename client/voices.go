@@ -50,6 +50,7 @@ func (c Client) CreateVoice(ctx context.Context, name, description string, label
 		res.Body.Close()
 		return ErrUnauthorized
 	case 200:
+		drainClose(res.Body)
 		return nil
 	case 422:
 		fallthrough
@@ -84,6 +85,7 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 		res.Body.Close()
 		return ErrUnauthorized
 	case 200:
+		drainClose(res.Body)
 		return nil
 	case 422:
 		fallthrough
@@ -180,6 +182,7 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 		res.Body.Close()
 		return ErrUnauthorized
 	case 200:
+		drainClose(res.Body)
 		return nil
 	case 422:
 		fallthrough

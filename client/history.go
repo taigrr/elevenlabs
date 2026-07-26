@@ -31,6 +31,7 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, 
 		res.Body.Close()
 		return false, ErrUnauthorized
 	case 200:
+		drainClose(res.Body)
 		return true, nil
 	case 422:
 		fallthrough
