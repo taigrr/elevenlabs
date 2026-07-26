@@ -22,14 +22,14 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, 
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return false, err
+	}
 
 	switch res.StatusCode {
 	case 401:
 		return false, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return false, err
-		}
 		return true, nil
 	case 422:
 		fallthrough
@@ -64,14 +64,14 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 	req.Header.Set("xi-api-key", c.apiKey)
 	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
 	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
 
 	switch res.StatusCode {
 	case 401:
 		return nil, ErrUnauthorized
 	case 200:
-		if err != nil {
-			return nil, err
-		}
 		return res.Body, nil
 	case 422:
 		fallthrough

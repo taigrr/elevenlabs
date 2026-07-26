@@ -3,9 +3,12 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -566,6 +569,48 @@ func TestConvertSpeechToTextUnauthorized(t *testing.T) {
 	}
 }
 
+func TestConvertSpeechToTextOpensFilePath(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseMultipartForm(1 << 20); err != nil {
+			t.Fatal(err)
+		}
+		file, header, err := r.FormFile("file")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer file.Close()
+
+		body, err := io.ReadAll(file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if header.Filename != "sample.wav" {
+			t.Fatalf("filename = %q, want sample.wav", header.Filename)
+		}
+		if string(body) != "fake-audio-file" {
+			t.Fatalf("body = %q, want fake-audio-file", string(body))
+		}
+
+		_ = json.NewEncoder(w).Encode(types.SpeechToTextResponse{Text: "ok"})
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	dir := t.TempDir()
+	audioFile := filepath.Join(dir, "sample.wav")
+	if err := os.WriteFile(audioFile, []byte("fake-audio-file"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	resp, err := c.ConvertSpeechToText(context.Background(), audioFile, types.SpeechToTextRequest{ModelID: types.SpeechToTextModelScribeV1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.Text != "ok" {
+		t.Fatalf("text = %q, want ok", resp.Text)
+	}
+}
+
 // --- Types tests ---
 
 func TestSynthesisOptionsClamp(t *testing.T) {
@@ -629,6 +674,10 @@ func TestCreateVoiceFieldNames(t *testing.T) {
 		if name != "TestVoice" {
 			t.Errorf("name = %q", name)
 		}
+		description := r.FormValue("description")
+		if description != "A test voice" {
+			t.Errorf("description = %q", description)
+		}
 		labels := r.FormValue("labels")
 		if labels != "english, male" {
 			t.Errorf("labels = %q, want %q", labels, "english, male")
@@ -644,6 +693,51 @@ func TestCreateVoiceFieldNames(t *testing.T) {
 	}
 }
 
+func TestEditVoiceFieldNamesAndFiles(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertAPIKey(t, r)
+		if err := r.ParseMultipartForm(1 << 20); err != nil {
+			t.Fatal(err)
+		}
+		if name := r.FormValue("name"); name != "Updated Voice" {
+			t.Fatalf("name = %q, want Updated Voice", name)
+		}
+		if description := r.FormValue("description"); description != "New description" {
+			t.Fatalf("description = %q, want New description", description)
+		}
+		if labels := r.FormValue("labels"); labels != "calm, narrator" {
+			t.Fatalf("labels = %q, want calm, narrator", labels)
+		}
+		files := r.MultipartForm.File["files[]"]
+		if len(files) != 1 {
+			t.Fatalf("len(files[]) = %d, want 1", len(files))
+		}
+		if files[0].Filename != "clip.wav" {
+			t.Fatalf("filename = %q, want clip.wav", files[0].Filename)
+		}
+		w.WriteHeader(200)
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	dir := t.TempDir()
+	voiceFile := filepath.Join(dir, "clip.wav")
+	if err := os.WriteFile(voiceFile, []byte("voice-sample"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	f, err := os.Open(voiceFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	err = c.EditVoice(context.Background(), "voice-id", "Updated Voice", "New description", []string{"calm", "narrator"}, []*os.File{f})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Verify handling of 422 validation errors
 func TestTTS422(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(422)
@@ -720,5 +814,140 @@ func TestHistoryDownloadZip(t *testing.T) {
 	data, _ := io.ReadAll(rc)
 	if string(data) != "zip-data" {
 		t.Errorf("got = %q, want %q", string(data), "zip-data")
+	}
+}
+
+func TestGetUserInfoUnauthorized(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	_, err := c.GetUserInfo(context.Background())
+	if err != ErrUnauthorized {
+		t.Fatalf("err = %v, want ErrUnauthorized", err)
+	}
+}
+
+func TestGetUserInfoValidationError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		json.NewEncoder(w).Encode(types.ValidationError{Msg: "bad user request", Type_: "value_error"})
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	_, err := c.GetUserInfo(context.Background())
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "bad user request") {
+		t.Fatalf("error = %q, want validation message", err)
+	}
+}
+
+func TestGetSubscriptionInfoUnauthorized(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	_, err := c.GetSubscriptionInfo(context.Background())
+	if err != ErrUnauthorized {
+		t.Fatalf("err = %v, want ErrUnauthorized", err)
+	}
+}
+
+func TestDeleteVoiceSampleUnauthorized(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	ok, err := c.DeleteVoiceSample(context.Background(), "v1", "s1")
+	if ok {
+		t.Fatal("ok = true, want false")
+	}
+	if err != ErrUnauthorized {
+		t.Fatalf("err = %v, want ErrUnauthorized", err)
+	}
+}
+
+func TestDeleteVoiceSampleValidationError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		json.NewEncoder(w).Encode(types.ValidationError{Msg: "bad sample request", Type_: "value_error"})
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	ok, err := c.DeleteVoiceSample(context.Background(), "v1", "s1")
+	if ok {
+		t.Fatal("ok = true, want false")
+	}
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "bad sample request") {
+		t.Fatalf("error = %q, want validation message", err)
+	}
+}
+
+func TestDownloadVoiceSampleUnauthorized(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	body, err := c.DownloadVoiceSample(context.Background(), "v1", "s1")
+	if err != ErrUnauthorized {
+		t.Fatalf("err = %v, want ErrUnauthorized", err)
+	}
+	if body != nil {
+		t.Fatalf("body = %v, want nil", body)
+	}
+}
+
+func TestDownloadVoiceSampleValidationError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		json.NewEncoder(w).Encode(types.ValidationError{Msg: "bad sample audio request", Type_: "value_error"})
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	_, err := c.DownloadVoiceSample(context.Background(), "v1", "s1")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "bad sample audio request") {
+		t.Fatalf("error = %q, want validation message", err)
+	}
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (fn roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return fn(req)
+}
+
+func TestHistoryDeleteTransportError(t *testing.T) {
+	transportErr := errors.New("transport failed")
+	c := New("test-api-key").WithHTTPClient(&http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			return nil, transportErr
+		}),
+	})
+
+	ok, err := c.HistoryDelete(context.Background(), "h1")
+	if ok {
+		t.Fatal("expected false result")
+	}
+	if !errors.Is(err, transportErr) {
+		t.Fatalf("err = %v, want %v", err, transportErr)
 	}
 }
