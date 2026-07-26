@@ -951,3 +951,20 @@ func TestHistoryDeleteTransportError(t *testing.T) {
 		t.Fatalf("err = %v, want %v", err, transportErr)
 	}
 }
+
+func TestHistoryDownloadZipTransportError(t *testing.T) {
+	transportErr := errors.New("transport failed")
+	c := New("test-api-key").WithHTTPClient(&http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			return nil, transportErr
+		}),
+	})
+
+	body, err := c.HistoryDownloadZip(context.Background(), "h1", "h2")
+	if body != nil {
+		t.Fatalf("body = %v, want nil", body)
+	}
+	if !errors.Is(err, transportErr) {
+		t.Fatalf("err = %v, want %v", err, transportErr)
+	}
+}
