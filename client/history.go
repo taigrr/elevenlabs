@@ -49,7 +49,7 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, 
 
 func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additionalIDs ...string) (io.ReadCloser, error) {
 	url := c.endpoint + "/v1/history/download"
-	downloads := append(additionalIDs, id1, id2)
+	downloads := append([]string{id1, id2}, additionalIDs...)
 	toDownload := types.HistoryPost{
 		HistoryItemIds: downloads,
 	}
