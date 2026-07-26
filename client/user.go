@@ -24,6 +24,7 @@ func (c Client) GetUserInfo(ctx context.Context) (types.UserResponseModel, error
 	}
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return types.UserResponseModel{}, ErrUnauthorized
 	case 200:
 		var user types.UserResponseModel

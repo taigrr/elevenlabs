@@ -47,6 +47,7 @@ func (c Client) CreateVoice(ctx context.Context, name, description string, label
 	}
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return ErrUnauthorized
 	case 200:
 		return nil
@@ -80,6 +81,7 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 	}
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return ErrUnauthorized
 	case 200:
 		return nil
@@ -117,6 +119,7 @@ func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings 
 	}
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return ErrUnauthorized
 	case 200:
 		so := types.SynthesisOptions{}
@@ -174,6 +177,7 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 	}
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return ErrUnauthorized
 	case 200:
 		return nil
@@ -208,6 +212,7 @@ func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.Syn
 	}
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return types.SynthesisOptions{}, ErrUnauthorized
 	case 200:
 		so := types.SynthesisOptions{}
@@ -248,6 +253,7 @@ func (c Client) GetVoice(ctx context.Context, voiceID string) (types.VoiceRespon
 	}
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return types.VoiceResponseModel{}, ErrUnauthorized
 	case 200:
 		vrm := types.VoiceResponseModel{}
@@ -289,6 +295,7 @@ func (c Client) GetVoices(ctx context.Context) ([]types.VoiceResponseModel, erro
 	}
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return []types.VoiceResponseModel{}, ErrUnauthorized
 	case 200:
 		vr := types.GetVoicesResponseModel{}

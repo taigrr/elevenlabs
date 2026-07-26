@@ -28,6 +28,7 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, 
 
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return false, ErrUnauthorized
 	case 200:
 		return true, nil
@@ -70,6 +71,7 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return nil, ErrUnauthorized
 	case 200:
 		return res.Body, nil
@@ -104,6 +106,7 @@ func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) (io.ReadClo
 
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return nil, ErrUnauthorized
 	case 200:
 		return res.Body, nil
@@ -138,6 +141,7 @@ func (c Client) GetHistoryItemList(ctx context.Context) ([]types.HistoryItemList
 
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return []types.HistoryItemList{}, ErrUnauthorized
 	case 200:
 		var history types.GetHistoryResponse

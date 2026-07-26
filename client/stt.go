@@ -92,6 +92,7 @@ func (c Client) ConvertSpeechToTextFromReader(ctx context.Context, reader io.Rea
 
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return nil, ErrUnauthorized
 	case 200:
 		defer res.Body.Close()

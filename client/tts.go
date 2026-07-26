@@ -72,6 +72,7 @@ func (c Client) requestTTS(ctx context.Context, params types.TTS, options types.
 
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return nil, ErrUnauthorized
 	case 200:
 		return res.Body, nil

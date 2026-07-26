@@ -27,6 +27,7 @@ func (c Client) DeleteVoiceSample(ctx context.Context, voiceID, sampleID string)
 	}
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return false, ErrUnauthorized
 	case 200:
 		return true, nil
@@ -61,6 +62,7 @@ func (c Client) DownloadVoiceSample(ctx context.Context, voiceID, sampleID strin
 
 	switch res.StatusCode {
 	case 401:
+		res.Body.Close()
 		return nil, ErrUnauthorized
 	case 200:
 		return res.Body, nil
