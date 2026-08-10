@@ -52,11 +52,15 @@ func (c Client) TTSStream(ctx context.Context, text, voiceID string, options typ
 
 func (c Client) requestTTS(ctx context.Context, params types.TTS, options types.SynthesisOptions) (io.ReadCloser, error) {
 	options.Clamp()
+	params.VoiceSettings = options
 	url := fmt.Sprintf(c.endpoint+"/v1/text-to-speech/%s", params.VoiceID)
 	if params.Stream {
 		url += "/stream"
 	}
-	b, _ := json.Marshal(params)
+	b, err := json.Marshal(params)
+	if err != nil {
+		return nil, err
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
