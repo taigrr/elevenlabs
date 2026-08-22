@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -79,6 +80,12 @@ func TestTTS(t *testing.T) {
 		json.NewDecoder(r.Body).Decode(&body)
 		if body.Text != "hello" {
 			t.Errorf("text = %q", body.Text)
+		}
+		if body.VoiceSettings.Stability != 0.5 {
+			t.Errorf("stability = %f, want 0.5", body.VoiceSettings.Stability)
+		}
+		if body.VoiceSettings.SimilarityBoost != 0.5 {
+			t.Errorf("similarity_boost = %f, want 0.5", body.VoiceSettings.SimilarityBoost)
 		}
 		w.WriteHeader(200)
 		w.Write([]byte("audio-bytes"))
@@ -155,6 +162,22 @@ func TestTTSWithOptionalParams(t *testing.T) {
 		t.Fatal(err)
 	}
 	rc.Close()
+}
+
+func TestTTSReturnsMarshalError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Fatal("server should not be called when request body cannot be encoded")
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	_, err := c.TTS(context.Background(), "hello", "v1", "m1", types.SynthesisOptions{Stability: math.NaN()})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "unsupported value") {
+		t.Fatalf("error = %q, want unsupported value", err)
+	}
 }
 
 // --- Voice tests ---
