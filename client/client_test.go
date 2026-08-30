@@ -62,6 +62,30 @@ func TestWithHTTPClient(t *testing.T) {
 	}
 }
 
+func TestWithHTTPClientNilUsesDefault(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assertAPIKey(t, r)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("audio-bytes"))
+	}))
+	defer ts.Close()
+
+	c := New("test-api-key").WithEndpoint(ts.URL).WithHTTPClient(nil)
+	rc, err := c.TTS(context.Background(), "hello", "voice1", "model1", types.SynthesisOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rc.Close()
+
+	data, err := io.ReadAll(rc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(data) != "audio-bytes" {
+		t.Errorf("data = %q", string(data))
+	}
+}
+
 // --- TTS tests ---
 
 func TestTTS(t *testing.T) {

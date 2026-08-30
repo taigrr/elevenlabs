@@ -81,9 +81,9 @@ func (c Client) ConvertSpeechToTextFromReader(ctx context.Context, reader io.Rea
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("xi-api-key", c.apiKey)
+	req.Header.Set(headerContentType, writer.FormDataContentType())
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAPIKey, c.apiKey)
 
 	res, err := c.httpClient.Do(req)
 	if err != nil {

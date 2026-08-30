@@ -65,10 +65,10 @@ func (c Client) requestTTS(ctx context.Context, params types.TTS, options types.
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "audio/mpeg")
+	req.Header.Set(headerContentType, contentTypeJSON)
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeMP3)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err

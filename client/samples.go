@@ -18,9 +18,9 @@ func (c Client) DeleteVoiceSample(ctx context.Context, voiceID, sampleID string)
 		return false, err
 	}
 
-	req.Header.Set("accept", "application/json")
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set(headerAccept, contentTypeJSON)
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return false, err
@@ -53,9 +53,9 @@ func (c Client) DownloadVoiceSample(ctx context.Context, voiceID, sampleID strin
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "audio/mpeg")
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeMP3)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err

@@ -18,9 +18,9 @@ func (c Client) HistoryDelete(ctx context.Context, historyItemID string) (bool, 
 	if err != nil {
 		return false, err
 	}
-	req.Header.Set("accept", "application/json")
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set(headerAccept, contentTypeJSON)
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return false, err
@@ -61,10 +61,10 @@ func (c Client) HistoryDownloadZip(ctx context.Context, id1, id2 string, additio
 		return nil, err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("accept", "archive/zip")
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
+	req.Header.Set(headerContentType, contentTypeJSON)
+	req.Header.Set(headerAccept, contentTypeZip)
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -97,9 +97,9 @@ func (c Client) HistoryDownloadAudio(ctx context.Context, ID string) (io.ReadClo
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "audio/mpeg")
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeMP3)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
@@ -132,9 +132,9 @@ func (c Client) GetHistoryItemList(ctx context.Context) ([]types.HistoryItemList
 	if err != nil {
 		return []types.HistoryItemList{}, err
 	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "application/json")
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeJSON)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return []types.HistoryItemList{}, err

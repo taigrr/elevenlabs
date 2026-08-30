@@ -6,7 +6,19 @@ import (
 	"net/http"
 )
 
-const apiEndpoint = "https://api.elevenlabs.io"
+const (
+	apiEndpoint = "https://api.elevenlabs.io"
+	userAgent   = "github.com/taigrr/elevenlabs"
+
+	headerAccept      = "accept"
+	headerContentType = "Content-Type"
+	headerUserAgent   = "User-Agent"
+	headerAPIKey      = "xi-api-key"
+
+	contentTypeJSON = "application/json"
+	contentTypeMP3  = "audio/mpeg"
+	contentTypeZip  = "archive/zip"
+)
 
 // drainClose drains and closes a response body so the underlying connection
 // can be returned to the keep-alive pool. Use it on success paths that do not
@@ -31,7 +43,7 @@ func New(apiKey string) Client {
 	return Client{
 		apiKey:     apiKey,
 		endpoint:   apiEndpoint,
-		httpClient: &http.Client{},
+		httpClient: defaultHTTPClient(),
 	}
 }
 
@@ -45,8 +57,16 @@ func (c Client) WithAPIKey(apiKey string) Client {
 	return c
 }
 
-// WithHTTPClient allows users to provide their own http.Client
+// WithHTTPClient allows users to provide their own http.Client.
+// Passing nil resets the client to the default HTTP client.
 func (c Client) WithHTTPClient(hc *http.Client) Client {
+	if hc == nil {
+		hc = defaultHTTPClient()
+	}
 	c.httpClient = hc
 	return c
+}
+
+func defaultHTTPClient() *http.Client {
+	return &http.Client{}
 }
