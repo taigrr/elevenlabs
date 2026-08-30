@@ -37,10 +37,10 @@ func (c Client) CreateVoice(ctx context.Context, name, description string, label
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", w.FormDataContentType())
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "application/json")
+	req.Header.Set(headerContentType, w.FormDataContentType())
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeJSON)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
@@ -73,9 +73,9 @@ func (c Client) DeleteVoice(ctx context.Context, voiceID string) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "application/json")
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeJSON)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
@@ -111,10 +111,10 @@ func (c Client) EditVoiceSettings(ctx context.Context, voiceID string, settings 
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "application/json")
+	req.Header.Set(headerContentType, contentTypeJSON)
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeJSON)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
@@ -169,10 +169,10 @@ func (c Client) EditVoice(ctx context.Context, voiceID, name, description string
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", w.FormDataContentType())
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "application/json")
+	req.Header.Set(headerContentType, w.FormDataContentType())
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeJSON)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return err
@@ -206,9 +206,9 @@ func (c Client) GetVoiceSettings(ctx context.Context, voiceID string) (types.Syn
 	if err != nil {
 		return types.SynthesisOptions{}, err
 	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "application/json")
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeJSON)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return types.SynthesisOptions{}, err
@@ -247,9 +247,9 @@ func (c Client) GetVoice(ctx context.Context, voiceID string) (types.VoiceRespon
 	if err != nil {
 		return types.VoiceResponseModel{}, err
 	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "application/json")
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeJSON)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return types.VoiceResponseModel{}, err
@@ -289,9 +289,9 @@ func (c Client) GetVoices(ctx context.Context) ([]types.VoiceResponseModel, erro
 	if err != nil {
 		return []types.VoiceResponseModel{}, err
 	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "application/json")
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeJSON)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return []types.VoiceResponseModel{}, err
