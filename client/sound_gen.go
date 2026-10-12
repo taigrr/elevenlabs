@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 
@@ -49,10 +49,23 @@ func (c Client) requestSoundGeneration(ctx context.Context, params types.SoundGe
 		return nil, err
 	}
 
-	if res.StatusCode != http.StatusOK {
+	switch res.StatusCode {
+	case http.StatusOK:
+		return res.Body, nil
+	case http.StatusUnauthorized:
 		res.Body.Close()
-		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
+		return nil, ErrUnauthorized
+	case http.StatusUnprocessableEntity:
+		fallthrough
+	default:
+		ve := types.ValidationError{}
+		defer res.Body.Close()
+		jerr := json.NewDecoder(res.Body).Decode(&ve)
+		if jerr != nil {
+			err = errors.Join(err, jerr)
+		} else {
+			err = errors.Join(err, ve)
+		}
+		return nil, err
 	}
-
-	return res.Body, nil
 }
