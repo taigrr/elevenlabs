@@ -236,9 +236,9 @@ type VoiceResponseModel struct {
 }
 
 type SoundGeneration struct {
-	Text            string  `json:"text"`             // The text that will get converted into a sound effect.
-	DurationSeconds float64 `json:"duration_seconds"` // The duration of the sound which will be generated in seconds.
-	PromptInfluence float64 `json:"prompt_influence"` // A higher prompt influence makes your generation follow the prompt more closely.
+	Text            string  `json:"text"`                       // The text that will get converted into a sound effect.
+	DurationSeconds float64 `json:"duration_seconds,omitempty"` // The duration of the sound which will be generated in seconds.
+	PromptInfluence float64 `json:"prompt_influence"`           // A higher prompt influence makes your generation follow the prompt more closely.
 }
 
 type TimestampsGranularity string
