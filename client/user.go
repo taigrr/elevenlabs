@@ -15,9 +15,9 @@ func (c Client) GetUserInfo(ctx context.Context) (types.UserResponseModel, error
 	if err != nil {
 		return types.UserResponseModel{}, err
 	}
-	req.Header.Set("xi-api-key", c.apiKey)
-	req.Header.Set("User-Agent", "github.com/taigrr/elevenlabs")
-	req.Header.Set("accept", "application/json")
+	req.Header.Set(headerAPIKey, c.apiKey)
+	req.Header.Set(headerUserAgent, userAgent)
+	req.Header.Set(headerAccept, contentTypeJSON)
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return types.UserResponseModel{}, err
