@@ -564,6 +564,64 @@ func TestSoundGeneration(t *testing.T) {
 	}
 }
 
+func TestSoundGenerationRequestDefaults(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		if _, ok := body["duration_seconds"]; ok {
+			t.Fatal("duration_seconds should be omitted when zero")
+		}
+		if body["prompt_influence"] != 0.3 {
+			t.Fatalf("prompt_influence = %v, want 0.3", body["prompt_influence"])
+		}
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("sound-bytes"))
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	rc, err := c.SoundGeneration(context.Background(), "thunder", 0, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rc.Close()
+}
+
+func TestSoundGenerationUnauthorized(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	_, err := c.SoundGeneration(context.Background(), "thunder", 0, 0)
+	if err != ErrUnauthorized {
+		t.Fatalf("err = %v, want ErrUnauthorized", err)
+	}
+}
+
+func TestSoundGenerationValidationError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_ = json.NewEncoder(w).Encode(types.ValidationError{
+			Msg:   "text is required",
+			Type_: "value_error",
+		})
+	}))
+	defer ts.Close()
+
+	c := newTestClient(ts)
+	_, err := c.SoundGeneration(context.Background(), "", 0, 0)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !strings.Contains(err.Error(), "text is required") {
+		t.Fatalf("err = %q, want validation message", err.Error())
+	}
+}
+
 // --- STT tests ---
 
 func TestConvertSpeechToTextFromReader(t *testing.T) {
