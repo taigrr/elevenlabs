@@ -2,6 +2,8 @@ module github.com/taigrr/elevenlabs
 
 go 1.27.2
 
+toolchain go1.27.3
+
 require github.com/gopxl/beep/v2 v2.1.1
 
 require (
@@ -9,5 +11,5 @@ require (
 	github.com/ebitengine/purego v0.10.2 // indirect
 	github.com/hajimehoshi/go-mp3 v0.3.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
 )
