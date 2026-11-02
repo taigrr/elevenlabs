@@ -5,9 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/taigrr/elevenlabs/client/types"
 )
@@ -53,15 +53,15 @@ func (c Client) TTSStream(ctx context.Context, text, voiceID string, options typ
 func (c Client) requestTTS(ctx context.Context, params types.TTS, options types.SynthesisOptions) (io.ReadCloser, error) {
 	options.Clamp()
 	params.VoiceSettings = options
-	url := fmt.Sprintf(c.endpoint+"/v1/text-to-speech/%s", params.VoiceID)
+	requestURL := c.endpoint + "/v1/text-to-speech/" + url.PathEscape(params.VoiceID)
 	if params.Stream {
-		url += "/stream"
+		requestURL += "/stream"
 	}
 	b, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(b))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL, bytes.NewBuffer(b))
 	if err != nil {
 		return nil, err
 	}
