@@ -141,6 +141,12 @@ type Client struct {
 	Workspaces *WorkspacesService
 	// Flows runs asynchronous image, video and speech generations and templates.
 	Flows *FlowsService
+	// Productions orders human-reviewed dubbing, subtitles and transcription.
+	Productions *ProductionsService
+	// Dubbing dubs audio and video and edits dubbing projects and resources.
+	Dubbing *DubbingService
+	// Studio manages Studio projects, chapters, snapshots and podcasts.
+	Studio *StudioService
 }
 
 // NewClient returns a Client configured by opts. Without WithAPIKey the key
@@ -193,6 +199,9 @@ func newClient(cfg *config) *Client {
 		SpeechEngine:              &SpeechEngineService{cfg: cfg},
 		Workspace:                 newWorkspaceService(cfg),
 		Flows:                     newFlowsService(cfg),
+		Studio:                    newStudioService(cfg),
+		Dubbing:                   newDubbingService(cfg),
+		Productions:               newProductionsService(cfg),
 		Workspaces:                &WorkspacesService{APIKeys: &WorkspacesAPIKeysService{cfg: cfg}},
 	}
 }

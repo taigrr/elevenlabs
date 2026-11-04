@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // File is an upload for multipart endpoints. Reader is streamed to the
@@ -30,11 +31,15 @@ func NewFile(r io.Reader, name string) File {
 	return File{Reader: r, Name: name}
 }
 
-var fileType = reflect.TypeFor[File]()
+var (
+	fileType = reflect.TypeFor[File]()
+	timeType = reflect.TypeFor[time.Time]()
+)
 
 // Encoding rules shared by the query and form encoders, driven by struct
 // tags (`query:"name"` / `form:"name"`):
 //   - nil pointers, nil slices/maps and empty strings are omitted;
+//   - time.Time values are encoded as RFC 3339 in UTC;
 //   - slices of scalars are repeated (key=a&key=b);
 //   - in forms, maps, structs and slices of structs are JSON-encoded.
 func encodeQuery(values url.Values, v any) error {
@@ -79,6 +84,10 @@ func walkTagged(v any, tag string, fn func(name string, field reflect.Value) err
 // appendValues flattens field into string values. When jsonComposite is
 // true, composite values are JSON-encoded instead of rejected.
 func appendValues(name string, field reflect.Value, add func(key, val string), jsonComposite bool) error {
+	if field.Type() == timeType {
+		add(name, field.Interface().(time.Time).UTC().Format(time.RFC3339Nano))
+		return nil
+	}
 	switch field.Kind() {
 	case reflect.Pointer, reflect.Interface:
 		if field.IsNil() {
