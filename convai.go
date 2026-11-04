@@ -34,19 +34,61 @@ type ConversationalAIService struct {
 	Secrets *ConvAISecretsService
 	// Dashboard holds the dashboard settings endpoints.
 	Dashboard *ConvAIDashboardService
+	// PhoneNumbers manages imported phone numbers.
+	PhoneNumbers *PhoneNumbersService
+	// Twilio places and registers Twilio calls.
+	Twilio *TwilioService
+	// SIPTrunk places outbound SIP trunk calls.
+	SIPTrunk *SIPTrunkService
+	// Exotel places outbound Exotel calls.
+	Exotel *ExotelService
+	// WhatsApp places WhatsApp calls and sends template messages.
+	WhatsApp *WhatsAppService
+	// WhatsAppAccounts manages connected WhatsApp accounts.
+	WhatsAppAccounts *WhatsAppAccountsService
+	// BatchCalls submits and manages batch calls.
+	BatchCalls *BatchCallsService
+	// MCPServers manages MCP servers, tool approvals and tool configs.
+	MCPServers *MCPServersService
+	// TriageTickets manages agent conversation triage tickets.
+	TriageTickets *TriageTicketsService
+	// Analytics reports conversation analytics.
+	Analytics *ConvAIAnalyticsService
+	// LLM lists available LLMs.
+	LLM *ConvAILLMService
+	// LLMUsage estimates LLM costs.
+	LLMUsage *ConvAILLMUsageService
+	// Realtime creates realtime client secrets.
+	Realtime *ConvAIRealtimeService
+	// Users lists end users of conversations.
+	Users *ConvAIUsersService
 }
 
 func newConversationalAIService(cfg *config) *ConversationalAIService {
 	return &ConversationalAIService{
-		cfg:           cfg,
-		Agents:        newAgentsService(cfg),
-		Conversations: newConversationsService(cfg),
-		KnowledgeBase: newKnowledgeBaseService(cfg),
-		Tools:         &ToolsService{cfg: cfg, Executions: &ToolExecutionsService{cfg: cfg}},
-		Tests:         &AgentTestsService{cfg: cfg, Folders: &AgentTestFoldersService{cfg: cfg}, Invocations: &TestInvocationsService{cfg: cfg}},
-		Settings:      &ConvAISettingsService{cfg: cfg},
-		Secrets:       &ConvAISecretsService{cfg: cfg},
-		Dashboard:     &ConvAIDashboardService{Settings: &ConvAIDashboardSettingsService{cfg: cfg}},
+		cfg:              cfg,
+		Agents:           newAgentsService(cfg),
+		Conversations:    newConversationsService(cfg),
+		KnowledgeBase:    newKnowledgeBaseService(cfg),
+		Tools:            &ToolsService{cfg: cfg, Executions: &ToolExecutionsService{cfg: cfg}},
+		Tests:            &AgentTestsService{cfg: cfg, Folders: &AgentTestFoldersService{cfg: cfg}, Invocations: &TestInvocationsService{cfg: cfg}},
+		Settings:         &ConvAISettingsService{cfg: cfg},
+		Secrets:          &ConvAISecretsService{cfg: cfg},
+		Dashboard:        &ConvAIDashboardService{Settings: &ConvAIDashboardSettingsService{cfg: cfg}},
+		PhoneNumbers:     &PhoneNumbersService{cfg: cfg},
+		Twilio:           &TwilioService{cfg: cfg},
+		SIPTrunk:         &SIPTrunkService{cfg: cfg},
+		Exotel:           &ExotelService{cfg: cfg},
+		WhatsApp:         &WhatsAppService{cfg: cfg},
+		WhatsAppAccounts: &WhatsAppAccountsService{cfg: cfg},
+		BatchCalls:       &BatchCallsService{cfg: cfg},
+		MCPServers:       newMCPServersService(cfg),
+		TriageTickets:    &TriageTicketsService{cfg: cfg},
+		Analytics:        &ConvAIAnalyticsService{LiveCount: &ConvAILiveCountService{cfg: cfg}},
+		LLM:              &ConvAILLMService{cfg: cfg},
+		LLMUsage:         &ConvAILLMUsageService{cfg: cfg},
+		Realtime:         &ConvAIRealtimeService{cfg: cfg},
+		Users:            &ConvAIUsersService{cfg: cfg},
 	}
 }
 
