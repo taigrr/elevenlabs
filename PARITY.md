@@ -1,10 +1,21 @@
 # ElevenLabs Go parity checklist
 
-Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = already implemented in taigrr/elevenlabs (master 3cd8406).
+Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs`).
 
-**Totals:** 19/419 endpoints covered.  assets: 0/4; audioEffects: 0/1; audioIsolation: 0/4; audioNative: 0/4; conversationalAi: 0/186; dubbing: 0/37; environmentVariables: 0/5; environments: 0/3; flows: 0/14; forcedAlignment: 0/1; history: 4/5; models: 0/1; music: 0/13; productions: 0/11; pronunciationDictionaries: 0/9; samples: 1/1; serviceAccounts: 0/7; speechEngine: 0/6; speechToSpeech: 0/2; speechToText: 1/3; studio: 0/23; textToDialogue: 0/4; textToSoundEffects: 1/1; textToSpeech: 2/4; textToVoice: 0/5; tokens: 0/1; usage: 0/1; user: 2/2; voices: 8/36; webhooks: 0/4; workspace: 0/20; workspaces: 0/1
+**Totals:** 24/419 endpoints covered.  assets: 0/4; audioEffects: 0/1; audioIsolation: 0/4; audioNative: 0/4; conversationalAi: 0/186; dubbing: 0/37; environmentVariables: 0/5; environments: 0/3; flows: 0/14; forcedAlignment: 0/1; history: 5/5; models: 0/1; music: 0/13; productions: 0/11; pronunciationDictionaries: 0/9; samples: 1/1; serviceAccounts: 0/7; speechEngine: 0/6; speechToSpeech: 0/2; speechToText: 1/3; studio: 0/23; textToDialogue: 0/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 0/5; tokens: 0/1; usage: 0/1; user: 2/2; voices: 10/36; webhooks: 0/4; workspace: 0/20; workspaces: 0/1
 
-Also required beyond REST: ElevenLabsError/ElevenLabsTimeoutError equivalents (typed *APIError + sentinels per status 400/401/403/404/409/422/429/5xx), retries w/ backoff (maxRetries, Retry-After), per-request timeouts/headers/options, base URL environments (production/us/eu/india residency), pagination helpers, WebSocket realtime (TTS stream-input, multi-stream-input, dialogue stream-input, STT realtime, dubbing/translation realtime), conversational AI websocket, webhooks signature verification (src/wrapper/webhooks.ts), music multipart helper, speechToText wrapper helpers.
+## core (beyond REST, not counted in totals)
+- [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
+- [x] Retries with exponential backoff + jitter (maxRetries, Retry-After, X-RateLimit-Reset)
+- [x] Per-request options (headers, query params, body params, timeout, retries, API key)
+- [x] Base URL environments (production, US, EU, India, Singapore residency)
+- [x] Pagination iterators (`iter.Seq2`)
+- [x] Streaming multipart uploads and streaming binary / NDJSON responses
+- [ ] WebSocket realtime: TTS stream-input, multi-stream-input, dialogue stream-input, STT realtime, dubbing/translation realtime
+- [ ] Conversational AI websocket
+- [ ] Webhooks signature verification (src/wrapper/webhooks.ts)
+- [ ] Music multipart helper (src/wrapper/music.ts)
+- [ ] speechToText wrapper helpers (src/wrapper/speechToText.ts)
 
 ## assets (4)
 - [ ] `GET /v1/assets` — assets.list
@@ -287,7 +298,7 @@ Also required beyond REST: ElevenLabsError/ElevenLabsTimeoutError equivalents (t
 
 ## history (5)
 - [x] `GET /v1/history` — history.list
-- [ ] `GET /v1/history/{history_item_id}` — history.get
+- [x] `GET /v1/history/{history_item_id}` — history.get
 - [x] `DELETE /v1/history/{history_item_id}` — history.delete
 - [x] `GET /v1/history/{history_item_id}/audio` — history.getAudio (stream/binary)
 - [x] `POST /v1/history/download` — history.download (stream/binary)
@@ -399,9 +410,9 @@ Also required beyond REST: ElevenLabsError/ElevenLabsTimeoutError equivalents (t
 
 ## textToSpeech (4)
 - [x] `POST /v1/text-to-speech/{voice_id}` — textToSpeech.convert (stream/binary)
-- [ ] `POST /v1/text-to-speech/{voice_id}/with-timestamps` — textToSpeech.convertWithTimestamps
+- [x] `POST /v1/text-to-speech/{voice_id}/with-timestamps` — textToSpeech.convertWithTimestamps
 - [x] `POST /v1/text-to-speech/{voice_id}/stream` — textToSpeech.stream (stream/binary)
-- [ ] `POST /v1/text-to-speech/{voice_id}/stream/with-timestamps` — textToSpeech.streamWithTimestamps (stream/binary)
+- [x] `POST /v1/text-to-speech/{voice_id}/stream/with-timestamps` — textToSpeech.streamWithTimestamps (stream/binary)
 
 ## textToVoice (5)
 - [ ] `POST /v1/text-to-voice/create-previews` — textToVoice.createPreviews
@@ -425,7 +436,7 @@ Also required beyond REST: ElevenLabsError/ElevenLabsTimeoutError equivalents (t
 - [x] `GET /v1/voices/{voice_id}` — voices.get
 - [x] `DELETE /v1/voices/{voice_id}` — voices.delete
 - [x] `POST /v1/voices/{voice_id}/edit` — voices.update
-- [ ] `GET /v2/voices` — voices.search
+- [x] `GET /v2/voices` — voices.search
 - [ ] `POST /v1/voices/{voice_id}/replicate-to-isolated-environment` — voices.replicateToIsolatedEnvironment
 - [ ] `POST /v1/voices/add/{public_user_id}/{voice_id}` — voices.share
 - [ ] `POST /v1/similar-voices` — voices.findSimilarVoices
@@ -454,7 +465,7 @@ Also required beyond REST: ElevenLabsError/ElevenLabsTimeoutError equivalents (t
 - [ ] `GET /v1/voices/pvc/{voice_id}/captcha` — voices.pvc.verification.captcha.get
 - [ ] `POST /v1/voices/pvc/{voice_id}/captcha` — voices.pvc.verification.captcha.verify
 - [x] `GET /v1/voices/{voice_id}/samples/{sample_id}/audio` — voices.samples.audio.get (stream/binary)
-- [ ] `GET /v1/voices/settings/default` — voices.settings.getDefault
+- [x] `GET /v1/voices/settings/default` — voices.settings.getDefault
 - [x] `GET /v1/voices/{voice_id}/settings` — voices.settings.get
 - [x] `POST /v1/voices/{voice_id}/settings/edit` — voices.settings.update
 

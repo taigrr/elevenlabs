@@ -15,8 +15,9 @@ derived, [can be found here](https://api.elevenlabs.io/docs).
 
 ## Purpose
 
-This go client provides an easy interface to create synthesized voices and
-make TTS (text-to-speech) requests to elevenlabs.io
+This Go client provides an idiomatic interface to the elevenlabs.io API.
+It is modeled on the official TypeScript SDK: endpoints are grouped into services such as `client.TextToSpeech`, `client.Voices` and `client.History`, and every call takes a `context.Context`.
+See [PARITY.md](PARITY.md) for endpoint coverage and [MIGRATION.md](MIGRATION.md) for upgrading from the previous `client` package.
 
 As a prerequisite, you must already have an account with elevenlabs.io.
 After creating your account, you can get your API key [from here](https://help.elevenlabs.io/hc/en-us/articles/14599447207697-How-to-authorize-yourself-using-your-xi-api-key-).
@@ -31,19 +32,28 @@ Set the `XI_API_KEY` environment variable, and pipe it some text to give it a wh
 
 ## Example Code
 
+### Creating a client
+
+```go
+client := elevenlabs.NewClient(
+        elevenlabs.WithAPIKey(os.Getenv("XI_API_KEY")), // defaults to $ELEVENLABS_API_KEY
+        elevenlabs.WithEnvironment(elevenlabs.EnvironmentProductionEU), // optional data residency
+        elevenlabs.WithMaxRetries(3),
+        elevenlabs.WithTimeout(60*time.Second),
+)
+```
+
+Per-call behavior can be adjusted with request options such as `elevenlabs.WithRequestTimeout`, `elevenlabs.WithRequestHeader` and `elevenlabs.WithQueryParam`.
+
 ### Text-to-Speech Example
 
-To use this library, create a new client and send a TTS request to a voice.
-The following code block illustrates how one might replicate the say/espeak
-command, using the streaming endpoint.
-I've opted to go with gopxl's beep package, but you can also save the file
-to an mp3 on-disk.
+The following program replicates the say/espeak command using the streaming endpoint and gopxl's beep package.
+Audio responses are `io.ReadCloser`s that stream from the network, so you can just as easily copy them to a file.
 
 ```go
 package main
 
 import (
-        "bufio"
         "context"
         "io"
         "log"
@@ -54,89 +64,112 @@ import (
         "github.com/gopxl/beep/v2/mp3"
         "github.com/gopxl/beep/v2/speaker"
 
-        "github.com/taigrr/elevenlabs/client"
-        "github.com/taigrr/elevenlabs/client/types"
+        "github.com/taigrr/elevenlabs"
 )
 
 func main() {
         ctx := context.Background()
-        // load in an API key to create a client
-        client := client.New(os.Getenv("XI_API_KEY"))
-        // fetch a list of voice IDs from elevenlabs
-        ids, err := client.GetVoiceIDs(ctx)
+        client := elevenlabs.NewClient(elevenlabs.WithAPIKey(os.Getenv("XI_API_KEY")))
+
+        voices, err := client.Voices.GetAll(ctx, nil)
         if err != nil {
-                panic(err)
+                log.Fatal(err)
         }
-        // prepare a pipe for streaming audio directly to beep
-        pipeReader, pipeWriter := io.Pipe()
-        reader := bufio.NewReader(os.Stdin)
-        text, _ := reader.ReadString('\n')
-        go func() {
-                // stream audio from elevenlabs using the first voice we found
-                err = client.TTSStream(ctx, pipeWriter, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75, Style: 0.0, UseSpeakerBoost: true})
-                if err != nil {
-                        panic(err)
-                }
-                pipeWriter.Close()
-        }()
-        // decode and prepare the streaming mp3 as it comes through
-        streamer, format, err := mp3.Decode(pipeReader)
+        text, _ := io.ReadAll(os.Stdin)
+
+        audio, err := client.TextToSpeech.Stream(ctx, voices.Voices[0].VoiceID, &elevenlabs.TextToSpeechRequest{
+                Text:    string(text),
+                ModelID: "eleven_multilingual_v2",
+                VoiceSettings: &elevenlabs.VoiceSettings{
+                        Stability:       elevenlabs.Ptr(0.75),
+                        SimilarityBoost: elevenlabs.Ptr(0.75),
+                },
+        })
+        if err != nil {
+                log.Fatal(err)
+        }
+        defer audio.Close()
+
+        streamer, format, err := mp3.Decode(audio)
         if err != nil {
                 log.Fatal(err)
         }
         defer streamer.Close()
         speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-        done := make(chan bool)
-        // play the audio
-        speaker.Play(beep.Seq(streamer, beep.Callback(func() {
-                done <- true
-        })))
+        done := make(chan struct{})
+        speaker.Play(beep.Seq(streamer, beep.Callback(func() { close(done) })))
         <-done
 }
 ```
 
 ### Sound Generation Example
 
-The following example demonstrates how to generate sound effects using the Sound Generation API:
+```go
+audio, err := client.TextToSoundEffects.Convert(ctx, &elevenlabs.CreateSoundEffectRequest{
+        Text:            "heavy rain on a tin roof",
+        DurationSeconds: elevenlabs.Ptr(5.0),
+        PromptInfluence: elevenlabs.Ptr(0.5),
+})
+if err != nil {
+        log.Fatal(err)
+}
+defer audio.Close()
+
+f, err := os.Create("rain.mp3")
+if err != nil {
+        log.Fatal(err)
+}
+defer f.Close()
+io.Copy(f, audio)
+```
+
+### Speech-to-Text Example
+
+Uploads accept any `io.Reader` and are streamed rather than buffered.
 
 ```go
-package main
+f, err := os.Open("meeting.mp3")
+if err != nil {
+        log.Fatal(err)
+}
+defer f.Close()
 
-import (
-        "context"
-        "os"
+resp, err := client.SpeechToText.Convert(ctx, &elevenlabs.SpeechToTextConvertRequest{
+        ModelID:               elevenlabs.SpeechToTextModelScribeV1,
+        File:                  &elevenlabs.File{Reader: f, Name: "meeting.mp3"},
+        TimestampsGranularity: elevenlabs.TimestampsGranularityWord,
+        Diarize:               elevenlabs.Ptr(true),
+})
+if err != nil {
+        log.Fatal(err)
+}
+fmt.Println(resp.Chunk.Text)
+```
 
-        "github.com/taigrr/elevenlabs/client"
-)
+### Pagination
 
-func main() {
-        ctx := context.Background()
-        // Create a new client with your API key
-        client := client.New(os.Getenv("XI_API_KEY"))
-
-        // Generate a sound effect and save it to a file
-        f, err := os.Create("footsteps.mp3")
+```go
+for item, err := range client.History.ListAll(ctx, &elevenlabs.HistoryListRequest{PageSize: elevenlabs.Ptr(100)}) {
         if err != nil {
-                panic(err)
+                log.Fatal(err)
         }
-        defer f.Close()
-
-        // Basic usage (using default duration and prompt influence)
-        err = client.SoundGenerationWriter(ctx, f, "footsteps on wooden floor", 0, 0)
-        if err != nil {
-                panic(err)
-        }
-
-        // Advanced usage with custom duration and prompt influence
-        audio, err := client.SoundGeneration(
-                ctx,
-                "heavy rain on a tin roof",
-                5.0,    // Set duration to 5 seconds
-                0.5,    // Set prompt influence to 0.5
-        )
-        if err != nil {
-                panic(err)
-        }
-        os.WriteFile("rain.mp3", audio, 0644)
+        fmt.Println(item.HistoryItemID)
 }
 ```
+
+### Errors
+
+Non-2xx responses are returned as `*elevenlabs.APIError`, which matches status sentinels with `errors.Is`:
+
+```go
+_, err := client.Voices.Get(ctx, "missing", nil)
+if errors.Is(err, elevenlabs.ErrNotFound) {
+        // handle missing voice
+}
+var apiErr *elevenlabs.APIError
+if errors.As(err, &apiErr) {
+        log.Println(apiErr.StatusCode, apiErr.Message)
+}
+```
+
+Requests with status 408, 409, 429 or 5xx are retried automatically with exponential backoff, honoring `Retry-After`.
