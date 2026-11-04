@@ -219,3 +219,15 @@ func ExampleConversationAudioService_Get() {
 		log.Fatal(err)
 	}
 }
+
+func ExampleBatchCallsService_ListAll() {
+	ctx := context.Background()
+	client := elevenlabs.NewClient()
+
+	for batch, err := range client.ConversationalAI.BatchCalls.ListAll(ctx, &elevenlabs.BatchCallListRequest{AgentID: "agent-id"}) {
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(batch.Name, batch.Status, batch.TotalCallsFinished)
+	}
+}

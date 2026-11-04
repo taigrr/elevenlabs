@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 365/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 133/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
+**Totals:** 418/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 186/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -90,14 +90,14 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `GET /v1/convai/agents/{agent_id}/versions/{version_id}` — conversationalAi.agents.versions.get
 - [x] `GET /v1/convai/agents/{agent_id}/widget` — conversationalAi.agents.widget.get
 - [x] `POST /v1/convai/agents/{agent_id}/avatar` — conversationalAi.agents.widget.avatar.create
-- [ ] `GET /v1/convai/analytics/live-count` — conversationalAi.analytics.liveCount.get
-- [ ] `POST /v1/convai/batch-calling/submit` — conversationalAi.batchCalls.create
-- [ ] `GET /v1/convai/batch-calling/workspace` — conversationalAi.batchCalls.list
-- [ ] `GET /v1/convai/batch-calling/{batch_id}` — conversationalAi.batchCalls.get
-- [ ] `DELETE /v1/convai/batch-calling/{batch_id}` — conversationalAi.batchCalls.delete
-- [ ] `POST /v1/convai/batch-calling/{batch_id}/cancel` — conversationalAi.batchCalls.cancel
-- [ ] `POST /v1/convai/batch-calling/{batch_id}/retry` — conversationalAi.batchCalls.retry
-- [ ] `GET /v1/convai/batch-calling/{batch_id}/export` — conversationalAi.batchCalls.export (stream/binary)
+- [x] `GET /v1/convai/analytics/live-count` — conversationalAi.analytics.liveCount.get
+- [x] `POST /v1/convai/batch-calling/submit` — conversationalAi.batchCalls.create
+- [x] `GET /v1/convai/batch-calling/workspace` — conversationalAi.batchCalls.list
+- [x] `GET /v1/convai/batch-calling/{batch_id}` — conversationalAi.batchCalls.get
+- [x] `DELETE /v1/convai/batch-calling/{batch_id}` — conversationalAi.batchCalls.delete
+- [x] `POST /v1/convai/batch-calling/{batch_id}/cancel` — conversationalAi.batchCalls.cancel
+- [x] `POST /v1/convai/batch-calling/{batch_id}/retry` — conversationalAi.batchCalls.retry
+- [x] `GET /v1/convai/batch-calling/{batch_id}/export` — conversationalAi.batchCalls.export (stream/binary)
 - [x] `GET /v1/convai/conversation/get-signed-url` — conversationalAi.conversations.getSignedUrl
 - [x] `GET /v1/convai/conversation/token` — conversationalAi.conversations.getWebrtcToken
 - [x] `GET /v1/convai/conversations` — conversationalAi.conversations.list
@@ -124,7 +124,7 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `GET /v1/convai/agents/{agent_id}/topics` — conversationalAi.conversations.topics.get
 - [x] `GET /v1/convai/settings/dashboard` — conversationalAi.dashboard.settings.get
 - [x] `PATCH /v1/convai/settings/dashboard` — conversationalAi.dashboard.settings.update
-- [ ] `POST /v1/convai/exotel/outbound-call` — conversationalAi.exotel.outboundCall
+- [x] `POST /v1/convai/exotel/outbound-call` — conversationalAi.exotel.outboundCall
 - [x] `GET /v1/convai/knowledge-base` — conversationalAi.knowledgeBase.list
 - [x] `POST /v1/convai/knowledge-base/rag-index` — conversationalAi.knowledgeBase.getOrCreateRagIndexes
 - [x] `GET /v1/convai/knowledge-base/search` — conversationalAi.knowledgeBase.search
@@ -152,29 +152,29 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `GET /v1/convai/knowledge-base/{documentation_id}/chunk/{chunk_id}` — conversationalAi.knowledgeBase.documents.chunk.get
 - [x] `GET /v1/convai/knowledge-base/{documentation_id}/chunks` — conversationalAi.knowledgeBase.documents.chunks.list
 - [x] `GET /v1/convai/knowledge-base/summaries` — conversationalAi.knowledgeBase.documents.summaries.get
-- [ ] `GET /v1/convai/llm/list` — conversationalAi.llm.list
-- [ ] `POST /v1/convai/llm-usage/calculate` — conversationalAi.llmUsage.calculate
-- [ ] `GET /v1/convai/mcp-servers` — conversationalAi.mcpServers.list
-- [ ] `POST /v1/convai/mcp-servers` — conversationalAi.mcpServers.create
-- [ ] `GET /v1/convai/mcp-servers/{mcp_server_id}` — conversationalAi.mcpServers.get
-- [ ] `DELETE /v1/convai/mcp-servers/{mcp_server_id}` — conversationalAi.mcpServers.delete
-- [ ] `PATCH /v1/convai/mcp-servers/{mcp_server_id}` — conversationalAi.mcpServers.update
-- [ ] `PATCH /v1/convai/mcp-servers/{mcp_server_id}/approval-policy` — conversationalAi.mcpServers.approvalPolicy.update
-- [ ] `POST /v1/convai/mcp-servers/{mcp_server_id}/tool-approvals` — conversationalAi.mcpServers.toolApprovals.create
-- [ ] `DELETE /v1/convai/mcp-servers/{mcp_server_id}/tool-approvals/{tool_name}` — conversationalAi.mcpServers.toolApprovals.delete
-- [ ] `POST /v1/convai/mcp-servers/{mcp_server_id}/tool-configs` — conversationalAi.mcpServers.toolConfigs.create
-- [ ] `GET /v1/convai/mcp-servers/{mcp_server_id}/tool-configs/{tool_name}` — conversationalAi.mcpServers.toolConfigs.get
-- [ ] `DELETE /v1/convai/mcp-servers/{mcp_server_id}/tool-configs/{tool_name}` — conversationalAi.mcpServers.toolConfigs.delete
-- [ ] `PATCH /v1/convai/mcp-servers/{mcp_server_id}/tool-configs/{tool_name}` — conversationalAi.mcpServers.toolConfigs.update
-- [ ] `GET /v1/convai/mcp-servers/{mcp_server_id}/tools` — conversationalAi.mcpServers.tools.list
-- [ ] `GET /v1/convai/phone-numbers` — conversationalAi.phoneNumbers.list
-- [ ] `POST /v1/convai/phone-numbers` — conversationalAi.phoneNumbers.create
-- [ ] `GET /v1/convai/phone-numbers/{phone_number_id}` — conversationalAi.phoneNumbers.get
-- [ ] `DELETE /v1/convai/phone-numbers/{phone_number_id}` — conversationalAi.phoneNumbers.delete
-- [ ] `PATCH /v1/convai/phone-numbers/{phone_number_id}` — conversationalAi.phoneNumbers.update
-- [ ] `GET /v1/convai/v2/phone-numbers` — conversationalAi.phoneNumbers.listV2
-- [ ] `GET /v1/convai/phone-numbers/{phone_number_id}/sip-messages` — conversationalAi.phoneNumbers.getSipMessages
-- [ ] `POST /v1/convai/realtime/client_secrets` — conversationalAi.realtime.createClientSecret
+- [x] `GET /v1/convai/llm/list` — conversationalAi.llm.list
+- [x] `POST /v1/convai/llm-usage/calculate` — conversationalAi.llmUsage.calculate
+- [x] `GET /v1/convai/mcp-servers` — conversationalAi.mcpServers.list
+- [x] `POST /v1/convai/mcp-servers` — conversationalAi.mcpServers.create
+- [x] `GET /v1/convai/mcp-servers/{mcp_server_id}` — conversationalAi.mcpServers.get
+- [x] `DELETE /v1/convai/mcp-servers/{mcp_server_id}` — conversationalAi.mcpServers.delete
+- [x] `PATCH /v1/convai/mcp-servers/{mcp_server_id}` — conversationalAi.mcpServers.update
+- [x] `PATCH /v1/convai/mcp-servers/{mcp_server_id}/approval-policy` — conversationalAi.mcpServers.approvalPolicy.update
+- [x] `POST /v1/convai/mcp-servers/{mcp_server_id}/tool-approvals` — conversationalAi.mcpServers.toolApprovals.create
+- [x] `DELETE /v1/convai/mcp-servers/{mcp_server_id}/tool-approvals/{tool_name}` — conversationalAi.mcpServers.toolApprovals.delete
+- [x] `POST /v1/convai/mcp-servers/{mcp_server_id}/tool-configs` — conversationalAi.mcpServers.toolConfigs.create
+- [x] `GET /v1/convai/mcp-servers/{mcp_server_id}/tool-configs/{tool_name}` — conversationalAi.mcpServers.toolConfigs.get
+- [x] `DELETE /v1/convai/mcp-servers/{mcp_server_id}/tool-configs/{tool_name}` — conversationalAi.mcpServers.toolConfigs.delete
+- [x] `PATCH /v1/convai/mcp-servers/{mcp_server_id}/tool-configs/{tool_name}` — conversationalAi.mcpServers.toolConfigs.update
+- [x] `GET /v1/convai/mcp-servers/{mcp_server_id}/tools` — conversationalAi.mcpServers.tools.list
+- [x] `GET /v1/convai/phone-numbers` — conversationalAi.phoneNumbers.list
+- [x] `POST /v1/convai/phone-numbers` — conversationalAi.phoneNumbers.create
+- [x] `GET /v1/convai/phone-numbers/{phone_number_id}` — conversationalAi.phoneNumbers.get
+- [x] `DELETE /v1/convai/phone-numbers/{phone_number_id}` — conversationalAi.phoneNumbers.delete
+- [x] `PATCH /v1/convai/phone-numbers/{phone_number_id}` — conversationalAi.phoneNumbers.update
+- [x] `GET /v1/convai/v2/phone-numbers` — conversationalAi.phoneNumbers.listV2
+- [x] `GET /v1/convai/phone-numbers/{phone_number_id}/sip-messages` — conversationalAi.phoneNumbers.getSipMessages
+- [x] `POST /v1/convai/realtime/client_secrets` — conversationalAi.realtime.createClientSecret
 - [x] `GET /v1/convai/secrets` — conversationalAi.secrets.list
 - [x] `POST /v1/convai/secrets` — conversationalAi.secrets.create
 - [x] `GET /v1/convai/secrets/{secret_id}` — conversationalAi.secrets.get
@@ -183,7 +183,7 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `GET /v1/convai/secrets/{secret_id}/dependencies/${core.url.encodePathParam(serializers.SecretDependencyResourceType.jsonOrThrow(resource_type))}` — conversationalAi.secrets.getDependencies
 - [x] `GET /v1/convai/settings` — conversationalAi.settings.get
 - [x] `PATCH /v1/convai/settings` — conversationalAi.settings.update
-- [ ] `POST /v1/convai/sip-trunk/outbound-call` — conversationalAi.sipTrunk.outboundCall
+- [x] `POST /v1/convai/sip-trunk/outbound-call` — conversationalAi.sipTrunk.outboundCall
 - [x] `POST /v1/convai/agent-testing/create` — conversationalAi.tests.create
 - [x] `POST /v1/convai/agent-testing/bulk-move` — conversationalAi.tests.move
 - [x] `GET /v1/convai/agent-testing/{test_id}` — conversationalAi.tests.get
@@ -207,26 +207,26 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `PATCH /v1/convai/tools/{tool_id}` — conversationalAi.tools.update
 - [x] `GET /v1/convai/tools/{tool_id}/dependent-agents` — conversationalAi.tools.getDependentAgents
 - [x] `GET /v1/convai/tools/{tool_id}/executions` — conversationalAi.tools.executions.get
-- [ ] `GET /v1/convai/agents/{agent_id}/triage-tickets` — conversationalAi.triageTickets.list
-- [ ] `POST /v1/convai/agents/{agent_id}/triage-tickets` — conversationalAi.triageTickets.createManual
-- [ ] `GET /v1/convai/triage-tickets` — conversationalAi.triageTickets.listForWorkspace
-- [ ] `POST /v1/convai/triage-tickets` — conversationalAi.triageTickets.create
-- [ ] `GET /v1/convai/agents/{agent_id}/triage-tickets/assignable-users` — conversationalAi.triageTickets.listAssignableUsers
-- [ ] `GET /v1/convai/triage-tickets/{agentqa_ticket_id}` — conversationalAi.triageTickets.get
-- [ ] `DELETE /v1/convai/triage-tickets/{agentqa_ticket_id}` — conversationalAi.triageTickets.delete
-- [ ] `PATCH /v1/convai/triage-tickets/{agentqa_ticket_id}` — conversationalAi.triageTickets.update
-- [ ] `POST /v1/convai/triage-tickets/{agentqa_ticket_id}/comments` — conversationalAi.triageTickets.addComment
-- [ ] `POST /v1/convai/triage-tickets/{agentqa_ticket_id}/merge` — conversationalAi.triageTickets.merge
-- [ ] `POST /v1/convai/triage-tickets/{agentqa_ticket_id}/turn-comments` — conversationalAi.triageTickets.addTurnComment
-- [ ] `POST /v1/convai/twilio/outbound-call` — conversationalAi.twilio.outboundCall
-- [ ] `POST /v1/convai/twilio/register-call` — conversationalAi.twilio.registerCall
-- [ ] `GET /v1/convai/users` — conversationalAi.users.list
-- [ ] `POST /v1/convai/whatsapp/outbound-call` — conversationalAi.whatsapp.outboundCall
-- [ ] `POST /v1/convai/whatsapp/outbound-message` — conversationalAi.whatsapp.outboundMessage
-- [ ] `GET /v1/convai/whatsapp-accounts/{phone_number_id}` — conversationalAi.whatsappAccounts.get
-- [ ] `DELETE /v1/convai/whatsapp-accounts/{phone_number_id}` — conversationalAi.whatsappAccounts.delete
-- [ ] `PATCH /v1/convai/whatsapp-accounts/{phone_number_id}` — conversationalAi.whatsappAccounts.update
-- [ ] `GET /v1/convai/whatsapp-accounts` — conversationalAi.whatsappAccounts.list
+- [x] `GET /v1/convai/agents/{agent_id}/triage-tickets` — conversationalAi.triageTickets.list
+- [x] `POST /v1/convai/agents/{agent_id}/triage-tickets` — conversationalAi.triageTickets.createManual
+- [x] `GET /v1/convai/triage-tickets` — conversationalAi.triageTickets.listForWorkspace
+- [x] `POST /v1/convai/triage-tickets` — conversationalAi.triageTickets.create
+- [x] `GET /v1/convai/agents/{agent_id}/triage-tickets/assignable-users` — conversationalAi.triageTickets.listAssignableUsers
+- [x] `GET /v1/convai/triage-tickets/{agentqa_ticket_id}` — conversationalAi.triageTickets.get
+- [x] `DELETE /v1/convai/triage-tickets/{agentqa_ticket_id}` — conversationalAi.triageTickets.delete
+- [x] `PATCH /v1/convai/triage-tickets/{agentqa_ticket_id}` — conversationalAi.triageTickets.update
+- [x] `POST /v1/convai/triage-tickets/{agentqa_ticket_id}/comments` — conversationalAi.triageTickets.addComment
+- [x] `POST /v1/convai/triage-tickets/{agentqa_ticket_id}/merge` — conversationalAi.triageTickets.merge
+- [x] `POST /v1/convai/triage-tickets/{agentqa_ticket_id}/turn-comments` — conversationalAi.triageTickets.addTurnComment
+- [x] `POST /v1/convai/twilio/outbound-call` — conversationalAi.twilio.outboundCall
+- [x] `POST /v1/convai/twilio/register-call` — conversationalAi.twilio.registerCall
+- [x] `GET /v1/convai/users` — conversationalAi.users.list
+- [x] `POST /v1/convai/whatsapp/outbound-call` — conversationalAi.whatsapp.outboundCall
+- [x] `POST /v1/convai/whatsapp/outbound-message` — conversationalAi.whatsapp.outboundMessage
+- [x] `GET /v1/convai/whatsapp-accounts/{phone_number_id}` — conversationalAi.whatsappAccounts.get
+- [x] `DELETE /v1/convai/whatsapp-accounts/{phone_number_id}` — conversationalAi.whatsappAccounts.delete
+- [x] `PATCH /v1/convai/whatsapp-accounts/{phone_number_id}` — conversationalAi.whatsappAccounts.update
+- [x] `GET /v1/convai/whatsapp-accounts` — conversationalAi.whatsappAccounts.list
 
 ## dubbing (37)
 - [x] `GET /v1/dubbing` — dubbing.list

@@ -247,6 +247,42 @@ for conv, err := range client.ConversationalAI.Conversations.ListAll(ctx, &eleve
 }
 ```
 
+Telephony, batch calls and MCP servers hang off the same service:
+
+```go
+call, err := client.ConversationalAI.Twilio.OutboundCall(ctx, &elevenlabs.TwilioOutboundCallRequest{
+        OutboundCallRequest: elevenlabs.OutboundCallRequest{
+                AgentID:            agent.AgentID,
+                AgentPhoneNumberID: "phnum_123",
+                ToNumber:           "+15551234567",
+        },
+})
+if err != nil {
+        log.Fatal(err)
+}
+fmt.Println(call.Success, call.Message)
+
+batch, err := client.ConversationalAI.BatchCalls.Create(ctx, &elevenlabs.CreateBatchCallRequest{
+        CallName:           "reminders",
+        AgentID:            agent.AgentID,
+        AgentPhoneNumberID: "phnum_123",
+        Recipients:         []elevenlabs.BatchCallRecipient{{PhoneNumber: "+15551234567"}},
+})
+if err != nil {
+        log.Fatal(err)
+}
+fmt.Println(batch.ID, batch.Status)
+
+server, err := client.ConversationalAI.MCPServers.Create(ctx, &elevenlabs.MCPServerConfig{
+        Name: "docs",
+        URL:  "https://mcp.example.com/sse",
+})
+if err != nil {
+        log.Fatal(err)
+}
+_, err = client.ConversationalAI.MCPServers.ApprovalPolicy.Update(ctx, server.ID, elevenlabs.MCPApprovalAutoApproveAll)
+```
+
 Large agent configuration sections (platform settings, workflows, tool
 schemas) are exposed as `json.RawMessage` so they round-trip unchanged.
 
