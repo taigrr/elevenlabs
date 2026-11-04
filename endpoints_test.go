@@ -50,7 +50,7 @@ func readAll(rc io.ReadCloser, err error) (any, error) {
 	return string(b), err
 }
 
-func endpointCases() []endpointCase {
+func coreEndpointCases() []endpointCase {
 	return []endpointCase{
 		{
 			name:     "user.get",
