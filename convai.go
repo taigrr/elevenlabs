@@ -22,6 +22,8 @@ type ConversationalAIService struct {
 	Agents *AgentsService
 	// Conversations reads and manages conversations.
 	Conversations *ConversationsService
+	// KnowledgeBase manages knowledge base documents, folders and crawls.
+	KnowledgeBase *KnowledgeBaseService
 }
 
 func newConversationalAIService(cfg *config) *ConversationalAIService {
@@ -29,6 +31,7 @@ func newConversationalAIService(cfg *config) *ConversationalAIService {
 		cfg:           cfg,
 		Agents:        newAgentsService(cfg),
 		Conversations: newConversationsService(cfg),
+		KnowledgeBase: newKnowledgeBaseService(cfg),
 	}
 }
 

@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 301/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 69/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
+**Totals:** 332/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 100/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -41,10 +41,10 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `POST /v1/audio-native/content` — audioNative.updateContentFromUrl
 
 ## conversationalAi (186)
-- [ ] `POST /v1/convai/knowledge-base` — conversationalAi.addToKnowledgeBase
-- [ ] `GET /v1/convai/knowledge-base/rag-index` — conversationalAi.ragIndexOverview
-- [ ] `GET /v1/convai/knowledge-base/{documentation_id}/rag-index` — conversationalAi.getDocumentRagIndexes
-- [ ] `DELETE /v1/convai/knowledge-base/{documentation_id}/rag-index/{rag_index_id}` — conversationalAi.deleteDocumentRagIndex
+- [x] `POST /v1/convai/knowledge-base` — conversationalAi.addToKnowledgeBase
+- [x] `GET /v1/convai/knowledge-base/rag-index` — conversationalAi.ragIndexOverview
+- [x] `GET /v1/convai/knowledge-base/{documentation_id}/rag-index` — conversationalAi.getDocumentRagIndexes
+- [x] `DELETE /v1/convai/knowledge-base/{documentation_id}/rag-index/{rag_index_id}` — conversationalAi.deleteDocumentRagIndex
 - [x] `POST /v1/convai/agents/create` — conversationalAi.agents.create
 - [x] `GET /v1/convai/agents/{agent_id}` — conversationalAi.agents.get
 - [x] `DELETE /v1/convai/agents/{agent_id}` — conversationalAi.agents.delete
@@ -125,33 +125,33 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `GET /v1/convai/settings/dashboard` — conversationalAi.dashboard.settings.get
 - [ ] `PATCH /v1/convai/settings/dashboard` — conversationalAi.dashboard.settings.update
 - [ ] `POST /v1/convai/exotel/outbound-call` — conversationalAi.exotel.outboundCall
-- [ ] `GET /v1/convai/knowledge-base` — conversationalAi.knowledgeBase.list
-- [ ] `POST /v1/convai/knowledge-base/rag-index` — conversationalAi.knowledgeBase.getOrCreateRagIndexes
-- [ ] `GET /v1/convai/knowledge-base/search` — conversationalAi.knowledgeBase.search
-- [ ] `GET /v1/convai/knowledge-base/crawl` — conversationalAi.knowledgeBase.crawlJobs.list
-- [ ] `POST /v1/convai/knowledge-base/crawl` — conversationalAi.knowledgeBase.crawlJobs.create
-- [ ] `GET /v1/convai/knowledge-base/crawl/{crawl_job_id}` — conversationalAi.knowledgeBase.crawlJobs.get
-- [ ] `POST /v1/convai/knowledge-base/crawl/{crawl_job_id}/cancel` — conversationalAi.knowledgeBase.crawlJobs.cancel
-- [ ] `PATCH /v1/convai/knowledge-base/{documentation_id}/update-file` — conversationalAi.knowledgeBase.document.updateFile
-- [ ] `POST /v1/convai/knowledge-base/{documentation_id}/refresh` — conversationalAi.knowledgeBase.document.refresh
-- [ ] `POST /v1/convai/knowledge-base/{documentation_id}/rag-index` — conversationalAi.knowledgeBase.document.computeRagIndex
-- [ ] `POST /v1/convai/knowledge-base/url` — conversationalAi.knowledgeBase.documents.createFromUrl
-- [ ] `POST /v1/convai/knowledge-base/file` — conversationalAi.knowledgeBase.documents.createFromFile
-- [ ] `POST /v1/convai/knowledge-base/text` — conversationalAi.knowledgeBase.documents.createFromText
-- [ ] `POST /v1/convai/knowledge-base/folder` — conversationalAi.knowledgeBase.documents.createFolder
-- [ ] `GET /v1/convai/knowledge-base/{documentation_id}` — conversationalAi.knowledgeBase.documents.get
-- [ ] `DELETE /v1/convai/knowledge-base/{documentation_id}` — conversationalAi.knowledgeBase.documents.delete
-- [ ] `PATCH /v1/convai/knowledge-base/{documentation_id}` — conversationalAi.knowledgeBase.documents.update
-- [ ] `GET /v1/convai/knowledge-base/{documentation_id}/dependent-agents` — conversationalAi.knowledgeBase.documents.getAgents
-- [ ] `POST /v1/convai/knowledge-base/dependent-agents` — conversationalAi.knowledgeBase.documents.getBulkAgents
-- [ ] `GET /v1/convai/knowledge-base/{documentation_id}/content` — conversationalAi.knowledgeBase.documents.getContent
-- [ ] `GET /v1/convai/knowledge-base/{documentation_id}/source-file-url` — conversationalAi.knowledgeBase.documents.getSourceFileUrl
-- [ ] `POST /v1/convai/knowledge-base/{document_id}/move` — conversationalAi.knowledgeBase.documents.move
-- [ ] `POST /v1/convai/knowledge-base/bulk-move` — conversationalAi.knowledgeBase.documents.bulkMove
-- [ ] `POST /v1/convai/knowledge-base/bulk-delete` — conversationalAi.knowledgeBase.documents.bulkDelete
-- [ ] `GET /v1/convai/knowledge-base/{documentation_id}/chunk/{chunk_id}` — conversationalAi.knowledgeBase.documents.chunk.get
-- [ ] `GET /v1/convai/knowledge-base/{documentation_id}/chunks` — conversationalAi.knowledgeBase.documents.chunks.list
-- [ ] `GET /v1/convai/knowledge-base/summaries` — conversationalAi.knowledgeBase.documents.summaries.get
+- [x] `GET /v1/convai/knowledge-base` — conversationalAi.knowledgeBase.list
+- [x] `POST /v1/convai/knowledge-base/rag-index` — conversationalAi.knowledgeBase.getOrCreateRagIndexes
+- [x] `GET /v1/convai/knowledge-base/search` — conversationalAi.knowledgeBase.search
+- [x] `GET /v1/convai/knowledge-base/crawl` — conversationalAi.knowledgeBase.crawlJobs.list
+- [x] `POST /v1/convai/knowledge-base/crawl` — conversationalAi.knowledgeBase.crawlJobs.create
+- [x] `GET /v1/convai/knowledge-base/crawl/{crawl_job_id}` — conversationalAi.knowledgeBase.crawlJobs.get
+- [x] `POST /v1/convai/knowledge-base/crawl/{crawl_job_id}/cancel` — conversationalAi.knowledgeBase.crawlJobs.cancel
+- [x] `PATCH /v1/convai/knowledge-base/{documentation_id}/update-file` — conversationalAi.knowledgeBase.document.updateFile
+- [x] `POST /v1/convai/knowledge-base/{documentation_id}/refresh` — conversationalAi.knowledgeBase.document.refresh
+- [x] `POST /v1/convai/knowledge-base/{documentation_id}/rag-index` — conversationalAi.knowledgeBase.document.computeRagIndex
+- [x] `POST /v1/convai/knowledge-base/url` — conversationalAi.knowledgeBase.documents.createFromUrl
+- [x] `POST /v1/convai/knowledge-base/file` — conversationalAi.knowledgeBase.documents.createFromFile
+- [x] `POST /v1/convai/knowledge-base/text` — conversationalAi.knowledgeBase.documents.createFromText
+- [x] `POST /v1/convai/knowledge-base/folder` — conversationalAi.knowledgeBase.documents.createFolder
+- [x] `GET /v1/convai/knowledge-base/{documentation_id}` — conversationalAi.knowledgeBase.documents.get
+- [x] `DELETE /v1/convai/knowledge-base/{documentation_id}` — conversationalAi.knowledgeBase.documents.delete
+- [x] `PATCH /v1/convai/knowledge-base/{documentation_id}` — conversationalAi.knowledgeBase.documents.update
+- [x] `GET /v1/convai/knowledge-base/{documentation_id}/dependent-agents` — conversationalAi.knowledgeBase.documents.getAgents
+- [x] `POST /v1/convai/knowledge-base/dependent-agents` — conversationalAi.knowledgeBase.documents.getBulkAgents
+- [x] `GET /v1/convai/knowledge-base/{documentation_id}/content` — conversationalAi.knowledgeBase.documents.getContent
+- [x] `GET /v1/convai/knowledge-base/{documentation_id}/source-file-url` — conversationalAi.knowledgeBase.documents.getSourceFileUrl
+- [x] `POST /v1/convai/knowledge-base/{document_id}/move` — conversationalAi.knowledgeBase.documents.move
+- [x] `POST /v1/convai/knowledge-base/bulk-move` — conversationalAi.knowledgeBase.documents.bulkMove
+- [x] `POST /v1/convai/knowledge-base/bulk-delete` — conversationalAi.knowledgeBase.documents.bulkDelete
+- [x] `GET /v1/convai/knowledge-base/{documentation_id}/chunk/{chunk_id}` — conversationalAi.knowledgeBase.documents.chunk.get
+- [x] `GET /v1/convai/knowledge-base/{documentation_id}/chunks` — conversationalAi.knowledgeBase.documents.chunks.list
+- [x] `GET /v1/convai/knowledge-base/summaries` — conversationalAi.knowledgeBase.documents.summaries.get
 - [ ] `GET /v1/convai/llm/list` — conversationalAi.llm.list
 - [ ] `POST /v1/convai/llm-usage/calculate` — conversationalAi.llmUsage.calculate
 - [ ] `GET /v1/convai/mcp-servers` — conversationalAi.mcpServers.list
