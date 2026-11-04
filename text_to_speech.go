@@ -2,6 +2,7 @@ package elevenlabs
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 )
@@ -55,12 +56,21 @@ const (
 	TextNormalizationAuto TextNormalization = "auto"
 	TextNormalizationOn   TextNormalization = "on"
 	TextNormalizationOff  TextNormalization = "off"
+	// TextNormalizationApplyEnglish is "on" assuming English text; only some endpoints (e.g. Audio Native) accept it.
+	TextNormalizationApplyEnglish TextNormalization = "apply_english"
 )
 
 // PronunciationDictionaryLocator references a pronunciation dictionary version.
 type PronunciationDictionaryLocator struct {
 	PronunciationDictionaryID string `json:"pronunciation_dictionary_id"`
 	VersionID                 string `json:"version_id,omitempty"`
+}
+
+// String returns the JSON encoding of l, the form used by multipart
+// endpoints that take locators as JSON strings.
+func (l PronunciationDictionaryLocator) String() string {
+	b, _ := json.Marshal(l)
+	return string(b)
 }
 
 // AudioEffects configures post-processing effects applied to generated audio.
