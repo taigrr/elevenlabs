@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 339/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 107/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
+**Totals:** 349/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 117/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -122,8 +122,8 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `DELETE /v1/convai/tags/{tag_id}` — conversationalAi.conversations.tags.delete
 - [x] `PATCH /v1/convai/tags/{tag_id}` — conversationalAi.conversations.tags.update
 - [x] `GET /v1/convai/agents/{agent_id}/topics` — conversationalAi.conversations.topics.get
-- [ ] `GET /v1/convai/settings/dashboard` — conversationalAi.dashboard.settings.get
-- [ ] `PATCH /v1/convai/settings/dashboard` — conversationalAi.dashboard.settings.update
+- [x] `GET /v1/convai/settings/dashboard` — conversationalAi.dashboard.settings.get
+- [x] `PATCH /v1/convai/settings/dashboard` — conversationalAi.dashboard.settings.update
 - [ ] `POST /v1/convai/exotel/outbound-call` — conversationalAi.exotel.outboundCall
 - [x] `GET /v1/convai/knowledge-base` — conversationalAi.knowledgeBase.list
 - [x] `POST /v1/convai/knowledge-base/rag-index` — conversationalAi.knowledgeBase.getOrCreateRagIndexes
@@ -175,14 +175,14 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `GET /v1/convai/v2/phone-numbers` — conversationalAi.phoneNumbers.listV2
 - [ ] `GET /v1/convai/phone-numbers/{phone_number_id}/sip-messages` — conversationalAi.phoneNumbers.getSipMessages
 - [ ] `POST /v1/convai/realtime/client_secrets` — conversationalAi.realtime.createClientSecret
-- [ ] `GET /v1/convai/secrets` — conversationalAi.secrets.list
-- [ ] `POST /v1/convai/secrets` — conversationalAi.secrets.create
-- [ ] `GET /v1/convai/secrets/{secret_id}` — conversationalAi.secrets.get
-- [ ] `DELETE /v1/convai/secrets/{secret_id}` — conversationalAi.secrets.delete
-- [ ] `PATCH /v1/convai/secrets/{secret_id}` — conversationalAi.secrets.update
-- [ ] `GET /v1/convai/secrets/{secret_id}/dependencies/${core.url.encodePathParam(serializers.SecretDependencyResourceType.jsonOrThrow(resource_type))}` — conversationalAi.secrets.getDependencies
-- [ ] `GET /v1/convai/settings` — conversationalAi.settings.get
-- [ ] `PATCH /v1/convai/settings` — conversationalAi.settings.update
+- [x] `GET /v1/convai/secrets` — conversationalAi.secrets.list
+- [x] `POST /v1/convai/secrets` — conversationalAi.secrets.create
+- [x] `GET /v1/convai/secrets/{secret_id}` — conversationalAi.secrets.get
+- [x] `DELETE /v1/convai/secrets/{secret_id}` — conversationalAi.secrets.delete
+- [x] `PATCH /v1/convai/secrets/{secret_id}` — conversationalAi.secrets.update
+- [x] `GET /v1/convai/secrets/{secret_id}/dependencies/${core.url.encodePathParam(serializers.SecretDependencyResourceType.jsonOrThrow(resource_type))}` — conversationalAi.secrets.getDependencies
+- [x] `GET /v1/convai/settings` — conversationalAi.settings.get
+- [x] `PATCH /v1/convai/settings` — conversationalAi.settings.update
 - [ ] `POST /v1/convai/sip-trunk/outbound-call` — conversationalAi.sipTrunk.outboundCall
 - [ ] `POST /v1/convai/agent-testing/create` — conversationalAi.tests.create
 - [ ] `POST /v1/convai/agent-testing/bulk-move` — conversationalAi.tests.move

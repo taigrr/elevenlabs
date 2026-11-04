@@ -26,6 +26,12 @@ type ConversationalAIService struct {
 	KnowledgeBase *KnowledgeBaseService
 	// Tools manages workspace tools.
 	Tools *ToolsService
+	// Settings reads and updates workspace conversational AI settings.
+	Settings *ConvAISettingsService
+	// Secrets manages workspace secrets.
+	Secrets *ConvAISecretsService
+	// Dashboard holds the dashboard settings endpoints.
+	Dashboard *ConvAIDashboardService
 }
 
 func newConversationalAIService(cfg *config) *ConversationalAIService {
@@ -35,6 +41,9 @@ func newConversationalAIService(cfg *config) *ConversationalAIService {
 		Conversations: newConversationsService(cfg),
 		KnowledgeBase: newKnowledgeBaseService(cfg),
 		Tools:         &ToolsService{cfg: cfg, Executions: &ToolExecutionsService{cfg: cfg}},
+		Settings:      &ConvAISettingsService{cfg: cfg},
+		Secrets:       &ConvAISecretsService{cfg: cfg},
+		Dashboard:     &ConvAIDashboardService{Settings: &ConvAIDashboardSettingsService{cfg: cfg}},
 	}
 }
 
