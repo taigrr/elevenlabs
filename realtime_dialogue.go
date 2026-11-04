@@ -8,7 +8,8 @@ import (
 // TextToDialogueStreamInputRequest holds the query parameters of the
 // text-to-dialogue WebSocket endpoints.
 type TextToDialogueStreamInputRequest struct {
-	// ModelID defaults to eleven_v3_conversational on the server.
+	// ModelID defaults to eleven_v3_conversational on the server, which only
+	// supports a single voice; use eleven_v3 for multi-speaker dialogue.
 	ModelID      string       `query:"model_id"`
 	OutputFormat OutputFormat `query:"output_format"`
 	LanguageCode string       `query:"language_code"`
