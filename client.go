@@ -106,22 +106,25 @@ func WithUserAgent(ua string) Option {
 type Client struct {
 	cfg *config
 
-	AudioIsolation     *AudioIsolationService
-	ForcedAlignment    *ForcedAlignmentService
-	History            *HistoryService
-	Models             *ModelsService
-	Music              *MusicService
-	Samples            *SamplesService
-	SpeechToSpeech     *SpeechToSpeechService
-	SpeechToText       *SpeechToTextService
-	TextToDialogue     *TextToDialogueService
-	TextToSoundEffects *TextToSoundEffectsService
-	TextToSpeech       *TextToSpeechService
-	TextToVoice        *TextToVoiceService
-	Tokens             *TokensService
-	Usage              *UsageService
-	User               *UserService
-	Voices             *VoicesService
+	Assets                    *AssetsService
+	AudioIsolation            *AudioIsolationService
+	AudioNative               *AudioNativeService
+	ForcedAlignment           *ForcedAlignmentService
+	History                   *HistoryService
+	Models                    *ModelsService
+	Music                     *MusicService
+	PronunciationDictionaries *PronunciationDictionariesService
+	Samples                   *SamplesService
+	SpeechToSpeech            *SpeechToSpeechService
+	SpeechToText              *SpeechToTextService
+	TextToDialogue            *TextToDialogueService
+	TextToSoundEffects        *TextToSoundEffectsService
+	TextToSpeech              *TextToSpeechService
+	TextToVoice               *TextToVoiceService
+	Tokens                    *TokensService
+	Usage                     *UsageService
+	User                      *UserService
+	Voices                    *VoicesService
 }
 
 // NewClient returns a Client configured by opts. Without WithAPIKey the key
@@ -147,23 +150,26 @@ func NewClient(opts ...Option) *Client {
 
 func newClient(cfg *config) *Client {
 	return &Client{
-		cfg:                cfg,
-		AudioIsolation:     &AudioIsolationService{cfg: cfg},
-		ForcedAlignment:    &ForcedAlignmentService{cfg: cfg},
-		History:            &HistoryService{cfg: cfg},
-		Models:             &ModelsService{cfg: cfg},
-		Music:              newMusicService(cfg),
-		Samples:            &SamplesService{cfg: cfg},
-		SpeechToSpeech:     &SpeechToSpeechService{cfg: cfg},
-		SpeechToText:       newSpeechToTextService(cfg),
-		TextToDialogue:     &TextToDialogueService{cfg: cfg},
-		TextToSoundEffects: &TextToSoundEffectsService{cfg: cfg},
-		TextToSpeech:       &TextToSpeechService{cfg: cfg},
-		TextToVoice:        newTextToVoiceService(cfg),
-		Tokens:             newTokensService(cfg),
-		Usage:              &UsageService{cfg: cfg},
-		User:               newUserService(cfg),
-		Voices:             newVoicesService(cfg),
+		cfg:                       cfg,
+		Assets:                    &AssetsService{cfg: cfg},
+		AudioIsolation:            &AudioIsolationService{cfg: cfg},
+		AudioNative:               &AudioNativeService{cfg: cfg},
+		ForcedAlignment:           &ForcedAlignmentService{cfg: cfg},
+		History:                   &HistoryService{cfg: cfg},
+		Models:                    &ModelsService{cfg: cfg},
+		Music:                     newMusicService(cfg),
+		PronunciationDictionaries: newPronunciationDictionariesService(cfg),
+		Samples:                   &SamplesService{cfg: cfg},
+		SpeechToSpeech:            &SpeechToSpeechService{cfg: cfg},
+		SpeechToText:              newSpeechToTextService(cfg),
+		TextToDialogue:            &TextToDialogueService{cfg: cfg},
+		TextToSoundEffects:        &TextToSoundEffectsService{cfg: cfg},
+		TextToSpeech:              &TextToSpeechService{cfg: cfg},
+		TextToVoice:               newTextToVoiceService(cfg),
+		Tokens:                    newTokensService(cfg),
+		Usage:                     &UsageService{cfg: cfg},
+		User:                      newUserService(cfg),
+		Voices:                    newVoicesService(cfg),
 	}
 }
 

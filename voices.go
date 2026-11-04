@@ -11,8 +11,14 @@ import (
 type VoicesService struct {
 	cfg *config
 
+	// Accents groups voice accent endpoints.
+	Accents *VoicesAccentsService
+	// Collections groups voice collection endpoints.
+	Collections *VoicesCollectionsService
 	// IVC groups instant voice cloning endpoints.
 	IVC *VoicesIVCService
+	// PVC groups professional voice cloning endpoints.
+	PVC *VoicesPVCService
 	// Settings groups voice settings endpoints.
 	Settings *VoicesSettingsService
 	// Samples groups voice sample endpoints.
@@ -21,10 +27,13 @@ type VoicesService struct {
 
 func newVoicesService(cfg *config) *VoicesService {
 	return &VoicesService{
-		cfg:      cfg,
-		IVC:      &VoicesIVCService{cfg: cfg},
-		Settings: &VoicesSettingsService{cfg: cfg},
-		Samples:  &VoicesSamplesService{cfg: cfg, Audio: &VoicesSamplesAudioService{cfg: cfg}},
+		cfg:         cfg,
+		Accents:     &VoicesAccentsService{cfg: cfg},
+		Collections: &VoicesCollectionsService{cfg: cfg},
+		IVC:         &VoicesIVCService{cfg: cfg},
+		PVC:         newVoicesPVCService(cfg),
+		Settings:    &VoicesSettingsService{cfg: cfg},
+		Samples:     &VoicesSamplesService{cfg: cfg, Audio: &VoicesSamplesAudioService{cfg: cfg}},
 	}
 }
 
@@ -261,13 +270,37 @@ const (
 	FineTuningStateDelayed    FineTuningState = "delayed"
 )
 
+// SpeakerSeparationStatus is the state of speaker separation for a sample.
+type SpeakerSeparationStatus string
+
+// SpeakerSeparationStatus values.
+const (
+	SpeakerSeparationStatusNotStarted SpeakerSeparationStatus = "not_started"
+	SpeakerSeparationStatusPending    SpeakerSeparationStatus = "pending"
+	SpeakerSeparationStatusCompleted  SpeakerSeparationStatus = "completed"
+	SpeakerSeparationStatusFailed     SpeakerSeparationStatus = "failed"
+)
+
+// Utterance is a time span in seconds.
+type Utterance struct {
+	Start float64 `json:"start"`
+	End   float64 `json:"end"`
+}
+
+// Speaker is a speaker detected in a sample.
+type Speaker struct {
+	SpeakerID    string      `json:"speaker_id"`
+	DurationSecs float64     `json:"duration_secs"`
+	Utterances   []Utterance `json:"utterances,omitempty"`
+}
+
 // SpeakerSeparation describes speaker separation of a sample.
 type SpeakerSeparation struct {
-	VoiceID            string                    `json:"voice_id"`
-	SampleID           string                    `json:"sample_id"`
-	Status             string                    `json:"status"`
-	Speakers           map[string]map[string]any `json:"speakers,omitempty"`
-	SelectedSpeakerIDs []string                  `json:"selected_speaker_ids,omitempty"`
+	VoiceID            string                  `json:"voice_id"`
+	SampleID           string                  `json:"sample_id"`
+	Status             SpeakerSeparationStatus `json:"status"`
+	Speakers           map[string]*Speaker     `json:"speakers,omitempty"`
+	SelectedSpeakerIDs []string                `json:"selected_speaker_ids,omitempty"`
 }
 
 // VoiceSample describes an audio sample attached to a voice.
