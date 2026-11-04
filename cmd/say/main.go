@@ -1,8 +1,10 @@
+// Command say reads text from its arguments or stdin and speaks it using the
+// ElevenLabs streaming text-to-speech endpoint.
 package main
 
 import (
-	"bufio"
 	"context"
+	"errors"
 	"io"
 	"log"
 	"os"
@@ -13,49 +15,67 @@ import (
 	"github.com/gopxl/beep/v2/mp3"
 	"github.com/gopxl/beep/v2/speaker"
 
-	"github.com/taigrr/elevenlabs/client"
-	"github.com/taigrr/elevenlabs/client/types"
+	"github.com/taigrr/elevenlabs"
 )
 
 func main() {
-	ctx := context.Background()
-	client := client.New(os.Getenv("XI_API_KEY"))
-	ids, err := client.GetVoiceIDs(ctx)
+	if err := run(context.Background()); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run(ctx context.Context) error {
+	opts := []elevenlabs.Option{}
+	if key := os.Getenv("XI_API_KEY"); key != "" {
+		opts = append(opts, elevenlabs.WithAPIKey(key))
+	}
+	client := elevenlabs.NewClient(opts...)
+
+	voices, err := client.Voices.GetAll(ctx, nil)
 	if err != nil {
-		panic(err)
+		return err
+	}
+	if len(voices.Voices) == 0 {
+		return errors.New("no voices available")
 	}
 
 	start := time.Now()
-	defer func() {
-		log.Println(time.Since(start))
-	}()
+	defer func() { log.Println(time.Since(start)) }()
 
 	var text string
 	if len(os.Args) > 1 {
 		text = strings.Join(os.Args[1:], " ")
 	} else {
-		reader := bufio.NewReader(os.Stdin)
-		b, _ := io.ReadAll(reader)
+		b, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			return err
+		}
 		text = string(b)
 	}
 
-	rc, err := client.TTSStream(ctx, text, ids[0], types.SynthesisOptions{Stability: 0.75, SimilarityBoost: 0.75, Style: 0.0, UseSpeakerBoost: false})
+	audio, err := client.TextToSpeech.Stream(ctx, voices.Voices[0].VoiceID, &elevenlabs.TextToSpeechRequest{
+		Text: text,
+		VoiceSettings: &elevenlabs.VoiceSettings{
+			Stability:       elevenlabs.Ptr(0.75),
+			SimilarityBoost: elevenlabs.Ptr(0.75),
+		},
+	})
 	if err != nil {
-		panic(err)
+		return err
 	}
-	defer rc.Close()
+	defer audio.Close()
 
-	streamer, format, err := mp3.Decode(rc)
+	streamer, format, err := mp3.Decode(audio)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer streamer.Close()
 
-	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-	done := make(chan bool)
-	speaker.Play(beep.Seq(streamer, beep.Callback(func() {
-		done <- true
-	})))
-
+	if err := speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10)); err != nil {
+		return err
+	}
+	done := make(chan struct{})
+	speaker.Play(beep.Seq(streamer, beep.Callback(func() { close(done) })))
 	<-done
+	return nil
 }
