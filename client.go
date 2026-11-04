@@ -125,6 +125,22 @@ type Client struct {
 	Usage                     *UsageService
 	User                      *UserService
 	Voices                    *VoicesService
+	// Webhooks manages workspace webhooks and verifies webhook deliveries.
+	Webhooks *WebhooksService
+	// ServiceAccounts manages service accounts and their API keys.
+	ServiceAccounts *ServiceAccountsService
+	// EnvironmentVariables manages conversational AI environment variables.
+	EnvironmentVariables *EnvironmentVariablesService
+	// Environments manages conversational AI environments.
+	Environments *EnvironmentsService
+	// SpeechEngine manages speech engines.
+	SpeechEngine *SpeechEngineService
+	// Workspace manages the current workspace.
+	Workspace *WorkspaceService
+	// Workspaces holds cross-workspace endpoints.
+	Workspaces *WorkspacesService
+	// Flows runs asynchronous image, video and speech generations and templates.
+	Flows *FlowsService
 }
 
 // NewClient returns a Client configured by opts. Without WithAPIKey the key
@@ -170,6 +186,14 @@ func newClient(cfg *config) *Client {
 		Usage:                     &UsageService{cfg: cfg},
 		User:                      newUserService(cfg),
 		Voices:                    newVoicesService(cfg),
+		Webhooks:                  &WebhooksService{cfg: cfg},
+		ServiceAccounts:           newServiceAccountsService(cfg),
+		EnvironmentVariables:      &EnvironmentVariablesService{cfg: cfg},
+		Environments:              &EnvironmentsService{cfg: cfg},
+		SpeechEngine:              &SpeechEngineService{cfg: cfg},
+		Workspace:                 newWorkspaceService(cfg),
+		Flows:                     newFlowsService(cfg),
+		Workspaces:                &WorkspacesService{APIKeys: &WorkspacesAPIKeysService{cfg: cfg}},
 	}
 }
 

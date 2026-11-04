@@ -409,6 +409,24 @@ func doValue[T any](ctx context.Context, cfg *config, req *request) (*T, error) 
 	return out, nil
 }
 
+// doValueHeader is doValue that also returns the response headers.
+func doValueHeader[T any](ctx context.Context, cfg *config, req *request) (*T, http.Header, error) {
+	resp, cancel, err := cfg.send(ctx, req)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer cancel()
+	defer drainClose(resp.Body)
+	out := new(T)
+	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
+		if ctx.Err() == nil && errors.Is(err, context.DeadlineExceeded) {
+			return nil, nil, timeoutError(req.method, req.path, err)
+		}
+		return nil, nil, fmt.Errorf("elevenlabs: decode %s %s response: %w", req.method, req.path, err)
+	}
+	return out, resp.Header, nil
+}
+
 // doStream sends req and returns the raw response body. The per-attempt
 // timeout stays active until the body is closed.
 func doStream(ctx context.Context, cfg *config, req *request) (io.ReadCloser, error) {
