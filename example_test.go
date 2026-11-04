@@ -10,7 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 
-	"github.com/taigrr/elevenlabs"
+	"github.com/taigrr/elevenlabs/v2"
 )
 
 func ExampleNewClient() {

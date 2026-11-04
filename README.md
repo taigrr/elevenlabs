@@ -1,7 +1,7 @@
 # elevenlabs
 
 [![License 0BSD](https://img.shields.io/badge/License-0BSD-pink.svg)](https://opensource.org/licenses/0BSD)
-[![GoDoc](https://godoc.org/github.com/taigrr/elevenlabs?status.svg)](https://godoc.org/github.com/taigrr/elevenlabs)
+[![GoDoc](https://pkg.go.dev/badge/github.com/taigrr/elevenlabs/v2.svg)](https://pkg.go.dev/github.com/taigrr/elevenlabs/v2)
 [![CI](https://github.com/taigrr/elevenlabs/actions/workflows/ci.yml/badge.svg)](https://github.com/taigrr/elevenlabs/actions/workflows/ci.yml)
 [![Go Mod](https://img.shields.io/badge/go.mod-v1.27.2-blue)](go.mod)
 [![Go Report Card](https://goreportcard.com/badge/github.com/taigrr/elevenlabs?branch=master)](https://goreportcard.com/report/github.com/taigrr/elevenlabs)
@@ -26,7 +26,7 @@ After creating your account, you can get your API key [from here](https://help.e
 
 To test out an example `say` program, run:
 
-`go install github.com/taigrr/elevenlabs/cmd/say@latest`
+`go install github.com/taigrr/elevenlabs/v2/cmd/say@latest`
 
 Set the `XI_API_KEY` environment variable, and pipe it some text to give it a whirl!
 
@@ -64,7 +64,7 @@ import (
         "github.com/gopxl/beep/v2/mp3"
         "github.com/gopxl/beep/v2/speaker"
 
-        "github.com/taigrr/elevenlabs"
+        "github.com/taigrr/elevenlabs/v2"
 )
 
 func main() {

@@ -1,4 +1,4 @@
-module github.com/taigrr/elevenlabs
+module github.com/taigrr/elevenlabs/v2
 
 go 1.27.2
 

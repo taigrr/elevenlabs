@@ -23,7 +23,7 @@ const (
 
 const (
 	// DefaultUserAgent is sent as the User-Agent header unless overridden with WithUserAgent.
-	DefaultUserAgent = "github.com/taigrr/elevenlabs"
+	DefaultUserAgent = "github.com/taigrr/elevenlabs/v2"
 	// DefaultTimeout is the per-attempt request timeout, matching the official SDK.
 	DefaultTimeout = 240 * time.Second
 	// DefaultMaxRetries is the number of retries for retryable failures, matching the official SDK.

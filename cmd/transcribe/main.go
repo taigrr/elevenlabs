@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/taigrr/elevenlabs"
+	"github.com/taigrr/elevenlabs/v2"
 )
 
 func main() {

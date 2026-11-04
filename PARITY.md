@@ -1,6 +1,6 @@
 # ElevenLabs Go parity checklist
 
-Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs`).
+Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
 **Totals:** 24/419 endpoints covered.  assets: 0/4; audioEffects: 0/1; audioIsolation: 0/4; audioNative: 0/4; conversationalAi: 0/186; dubbing: 0/37; environmentVariables: 0/5; environments: 0/3; flows: 0/14; forcedAlignment: 0/1; history: 5/5; models: 0/1; music: 0/13; productions: 0/11; pronunciationDictionaries: 0/9; samples: 1/1; serviceAccounts: 0/7; speechEngine: 0/6; speechToSpeech: 0/2; speechToText: 1/3; studio: 0/23; textToDialogue: 0/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 0/5; tokens: 0/1; usage: 0/1; user: 2/2; voices: 10/36; webhooks: 0/4; workspace: 0/20; workspaces: 0/1
 

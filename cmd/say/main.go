@@ -15,7 +15,7 @@ import (
 	"github.com/gopxl/beep/v2/mp3"
 	"github.com/gopxl/beep/v2/speaker"
 
-	"github.com/taigrr/elevenlabs"
+	"github.com/taigrr/elevenlabs/v2"
 )
 
 func main() {

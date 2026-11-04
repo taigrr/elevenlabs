@@ -1,14 +1,23 @@
 # Migration guide
 
 This document lists every breaking change made on the `parity` branch, which rebuilds the client to match the official ElevenLabs TypeScript SDK.
-The module path (`github.com/taigrr/elevenlabs`) is unchanged.
+The module path is now `github.com/taigrr/elevenlabs/v2`.
+
+## Module path (v2)
+
+The module path is now `github.com/taigrr/elevenlabs/v2`.
+Update your imports from `github.com/taigrr/elevenlabs` to `github.com/taigrr/elevenlabs/v2` and fetch the new version with:
+
+```sh
+go get github.com/taigrr/elevenlabs/v2@latest
+```
 
 ## Packages
 
 | Old | New |
 | --- | --- |
-| `github.com/taigrr/elevenlabs/client` | `github.com/taigrr/elevenlabs` (package `elevenlabs`) |
-| `github.com/taigrr/elevenlabs/client/types` | merged into `github.com/taigrr/elevenlabs` |
+| `github.com/taigrr/elevenlabs/client` | `github.com/taigrr/elevenlabs/v2` (package `elevenlabs`) |
+| `github.com/taigrr/elevenlabs/client/types` | merged into `github.com/taigrr/elevenlabs/v2` |
 
 ## Client construction
 
