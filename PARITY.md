@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 58/419 endpoints covered.  assets: 0/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 0/4; conversationalAi: 0/186; dubbing: 0/37; environmentVariables: 0/5; environments: 0/3; flows: 0/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 0/11; pronunciationDictionaries: 0/9; samples: 1/1; serviceAccounts: 0/7; speechEngine: 0/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 0/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 10/36; webhooks: 0/4; workspace: 0/20; workspaces: 0/1
+**Totals:** 101/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 0/186; dubbing: 0/37; environmentVariables: 0/5; environments: 0/3; flows: 0/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 0/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 0/7; speechEngine: 0/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 0/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 0/4; workspace: 0/20; workspaces: 0/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -18,10 +18,10 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] speechToText wrapper helpers (src/wrapper/speechToText.ts)
 
 ## assets (4)
-- [ ] `GET /v1/assets` — assets.list
-- [ ] `POST /v1/assets` — assets.create
-- [ ] `GET /v1/assets/{asset_id}` — assets.get
-- [ ] `DELETE /v1/assets/{asset_id}` — assets.delete
+- [x] `GET /v1/assets` — assets.list
+- [x] `POST /v1/assets` — assets.create
+- [x] `GET /v1/assets/{asset_id}` — assets.get
+- [x] `DELETE /v1/assets/{asset_id}` — assets.delete
 
 ## audioEffects (1)
 - [ ] `GET /v1/audio-effects/catalog` — audioEffects.getCatalog
@@ -33,10 +33,10 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `POST /v1/audio-isolation/stream` — audioIsolation.stream (stream/binary)
 
 ## audioNative (4)
-- [ ] `POST /v1/audio-native` — audioNative.create
-- [ ] `GET /v1/audio-native/{project_id}/settings` — audioNative.getSettings
-- [ ] `POST /v1/audio-native/{project_id}/content` — audioNative.update
-- [ ] `POST /v1/audio-native/content` — audioNative.updateContentFromUrl
+- [x] `POST /v1/audio-native` — audioNative.create
+- [x] `GET /v1/audio-native/{project_id}/settings` — audioNative.getSettings
+- [x] `POST /v1/audio-native/{project_id}/content` — audioNative.update
+- [x] `POST /v1/audio-native/content` — audioNative.updateContentFromUrl
 
 ## conversationalAi (186)
 - [ ] `POST /v1/convai/knowledge-base` — conversationalAi.addToKnowledgeBase
@@ -335,15 +335,15 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `GET /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/media/${core.url.encodePathParam(serializers.MediaId.jsonOrThrow(media_id))}` — productions.orders.media.get
 
 ## pronunciationDictionaries (9)
-- [ ] `POST /v1/pronunciation-dictionaries/add-from-file` — pronunciationDictionaries.createFromFile
-- [ ] `POST /v1/pronunciation-dictionaries/add-from-rules` — pronunciationDictionaries.createFromRules
-- [ ] `GET /v1/pronunciation-dictionaries/{pronunciation_dictionary_id}` — pronunciationDictionaries.get
-- [ ] `PATCH /v1/pronunciation-dictionaries/{pronunciation_dictionary_id}` — pronunciationDictionaries.update
-- [ ] `GET /v1/pronunciation-dictionaries/{dictionary_id}/{version_id}/download` — pronunciationDictionaries.download (stream/binary)
-- [ ] `GET /v1/pronunciation-dictionaries` — pronunciationDictionaries.list
-- [ ] `POST /v1/pronunciation-dictionaries/{pronunciation_dictionary_id}/set-rules` — pronunciationDictionaries.rules.set
-- [ ] `POST /v1/pronunciation-dictionaries/{pronunciation_dictionary_id}/add-rules` — pronunciationDictionaries.rules.add
-- [ ] `POST /v1/pronunciation-dictionaries/{pronunciation_dictionary_id}/remove-rules` — pronunciationDictionaries.rules.remove
+- [x] `POST /v1/pronunciation-dictionaries/add-from-file` — pronunciationDictionaries.createFromFile
+- [x] `POST /v1/pronunciation-dictionaries/add-from-rules` — pronunciationDictionaries.createFromRules
+- [x] `GET /v1/pronunciation-dictionaries/{pronunciation_dictionary_id}` — pronunciationDictionaries.get
+- [x] `PATCH /v1/pronunciation-dictionaries/{pronunciation_dictionary_id}` — pronunciationDictionaries.update
+- [x] `GET /v1/pronunciation-dictionaries/{dictionary_id}/{version_id}/download` — pronunciationDictionaries.download (stream/binary)
+- [x] `GET /v1/pronunciation-dictionaries` — pronunciationDictionaries.list
+- [x] `POST /v1/pronunciation-dictionaries/{pronunciation_dictionary_id}/set-rules` — pronunciationDictionaries.rules.set
+- [x] `POST /v1/pronunciation-dictionaries/{pronunciation_dictionary_id}/add-rules` — pronunciationDictionaries.rules.add
+- [x] `POST /v1/pronunciation-dictionaries/{pronunciation_dictionary_id}/remove-rules` — pronunciationDictionaries.rules.remove
 
 ## samples (1)
 - [x] `DELETE /v1/voices/{voice_id}/samples/{sample_id}` — samples.delete
@@ -437,33 +437,33 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `DELETE /v1/voices/{voice_id}` — voices.delete
 - [x] `POST /v1/voices/{voice_id}/edit` — voices.update
 - [x] `GET /v2/voices` — voices.search
-- [ ] `POST /v1/voices/{voice_id}/replicate-to-isolated-environment` — voices.replicateToIsolatedEnvironment
-- [ ] `POST /v1/voices/add/{public_user_id}/{voice_id}` — voices.share
-- [ ] `POST /v1/similar-voices` — voices.findSimilarVoices
-- [ ] `GET /v1/shared-voices` — voices.getShared
-- [ ] `GET /v1/voices/accents` — voices.accents.get
-- [ ] `GET /v1/voices/collections` — voices.collections.list
-- [ ] `POST /v1/voices/collections` — voices.collections.create
-- [ ] `GET /v1/voices/collections/{collection_id}` — voices.collections.get
-- [ ] `DELETE /v1/voices/collections/{collection_id}` — voices.collections.delete
-- [ ] `PATCH /v1/voices/collections/{collection_id}` — voices.collections.update
-- [ ] `POST /v1/voices/collections/{collection_id}/voice/{voice_id}` — voices.collections.addVoice
-- [ ] `DELETE /v1/voices/collections/{collection_id}/voice/{voice_id}` — voices.collections.removeVoice
+- [x] `POST /v1/voices/{voice_id}/replicate-to-isolated-environment` — voices.replicateToIsolatedEnvironment
+- [x] `POST /v1/voices/add/{public_user_id}/{voice_id}` — voices.share
+- [x] `POST /v1/similar-voices` — voices.findSimilarVoices
+- [x] `GET /v1/shared-voices` — voices.getShared
+- [x] `GET /v1/voices/accents` — voices.accents.get
+- [x] `GET /v1/voices/collections` — voices.collections.list
+- [x] `POST /v1/voices/collections` — voices.collections.create
+- [x] `GET /v1/voices/collections/{collection_id}` — voices.collections.get
+- [x] `DELETE /v1/voices/collections/{collection_id}` — voices.collections.delete
+- [x] `PATCH /v1/voices/collections/{collection_id}` — voices.collections.update
+- [x] `POST /v1/voices/collections/{collection_id}/voice/{voice_id}` — voices.collections.addVoice
+- [x] `DELETE /v1/voices/collections/{collection_id}/voice/{voice_id}` — voices.collections.removeVoice
 - [x] `POST /v1/voices/add` — voices.ivc.create
-- [ ] `POST /v1/voices/pvc` — voices.pvc.create
-- [ ] `POST /v1/voices/pvc/{voice_id}` — voices.pvc.update
-- [ ] `POST /v1/voices/pvc/{voice_id}/train` — voices.pvc.train
-- [ ] `POST /v1/voices/pvc/{voice_id}/samples` — voices.pvc.samples.create
-- [ ] `POST /v1/voices/pvc/{voice_id}/samples/{sample_id}` — voices.pvc.samples.update
-- [ ] `DELETE /v1/voices/pvc/{voice_id}/samples/{sample_id}` — voices.pvc.samples.delete
-- [ ] `GET /v1/voices/pvc/{voice_id}/samples/{sample_id}/audio` — voices.pvc.samples.audio.get
-- [ ] `GET /v1/voices/pvc/{voice_id}/samples/{sample_id}/speakers` — voices.pvc.samples.speakers.get
-- [ ] `POST /v1/voices/pvc/{voice_id}/samples/{sample_id}/separate-speakers` — voices.pvc.samples.speakers.separate
-- [ ] `GET /v1/voices/pvc/{voice_id}/samples/{sample_id}/speakers/{speaker_id}/audio` — voices.pvc.samples.speakers.audio.get
-- [ ] `GET /v1/voices/pvc/{voice_id}/samples/{sample_id}/waveform` — voices.pvc.samples.waveform.get
-- [ ] `POST /v1/voices/pvc/{voice_id}/verification` — voices.pvc.verification.request
-- [ ] `GET /v1/voices/pvc/{voice_id}/captcha` — voices.pvc.verification.captcha.get
-- [ ] `POST /v1/voices/pvc/{voice_id}/captcha` — voices.pvc.verification.captcha.verify
+- [x] `POST /v1/voices/pvc` — voices.pvc.create
+- [x] `POST /v1/voices/pvc/{voice_id}` — voices.pvc.update
+- [x] `POST /v1/voices/pvc/{voice_id}/train` — voices.pvc.train
+- [x] `POST /v1/voices/pvc/{voice_id}/samples` — voices.pvc.samples.create
+- [x] `POST /v1/voices/pvc/{voice_id}/samples/{sample_id}` — voices.pvc.samples.update
+- [x] `DELETE /v1/voices/pvc/{voice_id}/samples/{sample_id}` — voices.pvc.samples.delete
+- [x] `GET /v1/voices/pvc/{voice_id}/samples/{sample_id}/audio` — voices.pvc.samples.audio.get
+- [x] `GET /v1/voices/pvc/{voice_id}/samples/{sample_id}/speakers` — voices.pvc.samples.speakers.get
+- [x] `POST /v1/voices/pvc/{voice_id}/samples/{sample_id}/separate-speakers` — voices.pvc.samples.speakers.separate
+- [x] `GET /v1/voices/pvc/{voice_id}/samples/{sample_id}/speakers/{speaker_id}/audio` — voices.pvc.samples.speakers.audio.get
+- [x] `GET /v1/voices/pvc/{voice_id}/samples/{sample_id}/waveform` — voices.pvc.samples.waveform.get
+- [x] `POST /v1/voices/pvc/{voice_id}/verification` — voices.pvc.verification.request
+- [x] `GET /v1/voices/pvc/{voice_id}/captcha` — voices.pvc.verification.captcha.get
+- [x] `POST /v1/voices/pvc/{voice_id}/captcha` — voices.pvc.verification.captcha.verify
 - [x] `GET /v1/voices/{voice_id}/samples/{sample_id}/audio` — voices.samples.audio.get (stream/binary)
 - [x] `GET /v1/voices/settings/default` — voices.settings.getDefault
 - [x] `GET /v1/voices/{voice_id}/settings` — voices.settings.get

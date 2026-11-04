@@ -164,6 +164,22 @@ defer out.Close()
 io.Copy(out, song)
 ```
 
+### Pronunciation Dictionary Example
+
+```go
+dict, err := client.PronunciationDictionaries.CreateFromRules(ctx, &elevenlabs.PronunciationDictionaryCreateFromRulesRequest{
+        Name: "My Dictionary",
+        Rules: []elevenlabs.PronunciationRule{
+                elevenlabs.AliasRule("Thailand", "tie-land"),
+                elevenlabs.PhonemeRule("tomato", "təˈmeɪtoʊ", "ipa"),
+        },
+})
+if err != nil {
+        log.Fatal(err)
+}
+_, err = client.PronunciationDictionaries.Rules.Add(ctx, dict.ID, []elevenlabs.PronunciationRule{elevenlabs.AliasRule("SQL", "sequel")})
+```
+
 ### Pagination
 
 ```go

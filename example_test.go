@@ -85,6 +85,23 @@ func ExampleHistoryService_ListAll() {
 	}
 }
 
+func ExamplePronunciationDictionariesService_CreateFromRules() {
+	ctx := context.Background()
+	client := elevenlabs.NewClient()
+
+	dict, err := client.PronunciationDictionaries.CreateFromRules(ctx, &elevenlabs.PronunciationDictionaryCreateFromRulesRequest{
+		Name: "My Dictionary",
+		Rules: []elevenlabs.PronunciationRule{
+			elevenlabs.AliasRule("Thailand", "tie-land"),
+			elevenlabs.PhonemeRule("tomato", "təˈmeɪtoʊ", "ipa"),
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(dict.ID, dict.VersionID)
+}
+
 func ExampleAPIError() {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
