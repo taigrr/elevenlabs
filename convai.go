@@ -20,12 +20,15 @@ type ConversationalAIService struct {
 
 	// Agents manages agents and their branches, drafts, deployments and more.
 	Agents *AgentsService
+	// Conversations reads and manages conversations.
+	Conversations *ConversationsService
 }
 
 func newConversationalAIService(cfg *config) *ConversationalAIService {
 	return &ConversationalAIService{
-		cfg:    cfg,
-		Agents: newAgentsService(cfg),
+		cfg:           cfg,
+		Agents:        newAgentsService(cfg),
+		Conversations: newConversationsService(cfg),
 	}
 }
 

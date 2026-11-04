@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 277/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 45/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
+**Totals:** 301/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 69/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -98,30 +98,30 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `POST /v1/convai/batch-calling/{batch_id}/cancel` — conversationalAi.batchCalls.cancel
 - [ ] `POST /v1/convai/batch-calling/{batch_id}/retry` — conversationalAi.batchCalls.retry
 - [ ] `GET /v1/convai/batch-calling/{batch_id}/export` — conversationalAi.batchCalls.export (stream/binary)
-- [ ] `GET /v1/convai/conversation/get-signed-url` — conversationalAi.conversations.getSignedUrl
-- [ ] `GET /v1/convai/conversation/token` — conversationalAi.conversations.getWebrtcToken
-- [ ] `GET /v1/convai/conversations` — conversationalAi.conversations.list
-- [ ] `GET /v1/convai/conversations/resolve` — conversationalAi.conversations.resolve
-- [ ] `GET /v1/convai/conversations/{conversation_id}` — conversationalAi.conversations.get
-- [ ] `DELETE /v1/convai/conversations/{conversation_id}` — conversationalAi.conversations.delete
-- [ ] `GET /v1/convai/conversations/{conversation_id}/summary` — conversationalAi.conversations.getSummary
-- [ ] `GET /v1/convai/conversations/{conversation_id}/sip-messages` — conversationalAi.conversations.getSipMessages
-- [ ] `POST /v1/convai/conversations/{conversation_id}/analysis/run` — conversationalAi.conversations.analysis.run
-- [ ] `POST /v1/convai/conversations/{conversation_id}/analysis/evaluations/run` — conversationalAi.conversations.analysis.runEvaluation
-- [ ] `GET /v1/convai/conversations/{conversation_id}/audio` — conversationalAi.conversations.audio.get (stream/binary)
-- [ ] `POST /v1/convai/conversations/{conversation_id}/feedback` — conversationalAi.conversations.feedback.create
-- [ ] `POST /v1/convai/conversations/{conversation_id}/files` — conversationalAi.conversations.files.create
-- [ ] `DELETE /v1/convai/conversations/{conversation_id}/files/{file_id}` — conversationalAi.conversations.files.delete
-- [ ] `GET /v1/convai/conversations/messages/text-search` — conversationalAi.conversations.messages.textSearch
-- [ ] `GET /v1/convai/conversations/messages/smart-search` — conversationalAi.conversations.messages.search
-- [ ] `POST /v1/convai/conversations/{conversation_id}/tags` — conversationalAi.conversations.tags.assign
-- [ ] `DELETE /v1/convai/conversations/{conversation_id}/tags/{tag_id}` — conversationalAi.conversations.tags.unassign
-- [ ] `GET /v1/convai/tags` — conversationalAi.conversations.tags.list
-- [ ] `POST /v1/convai/tags` — conversationalAi.conversations.tags.create
-- [ ] `GET /v1/convai/tags/{tag_id}` — conversationalAi.conversations.tags.get
-- [ ] `DELETE /v1/convai/tags/{tag_id}` — conversationalAi.conversations.tags.delete
-- [ ] `PATCH /v1/convai/tags/{tag_id}` — conversationalAi.conversations.tags.update
-- [ ] `GET /v1/convai/agents/{agent_id}/topics` — conversationalAi.conversations.topics.get
+- [x] `GET /v1/convai/conversation/get-signed-url` — conversationalAi.conversations.getSignedUrl
+- [x] `GET /v1/convai/conversation/token` — conversationalAi.conversations.getWebrtcToken
+- [x] `GET /v1/convai/conversations` — conversationalAi.conversations.list
+- [x] `GET /v1/convai/conversations/resolve` — conversationalAi.conversations.resolve
+- [x] `GET /v1/convai/conversations/{conversation_id}` — conversationalAi.conversations.get
+- [x] `DELETE /v1/convai/conversations/{conversation_id}` — conversationalAi.conversations.delete
+- [x] `GET /v1/convai/conversations/{conversation_id}/summary` — conversationalAi.conversations.getSummary
+- [x] `GET /v1/convai/conversations/{conversation_id}/sip-messages` — conversationalAi.conversations.getSipMessages
+- [x] `POST /v1/convai/conversations/{conversation_id}/analysis/run` — conversationalAi.conversations.analysis.run
+- [x] `POST /v1/convai/conversations/{conversation_id}/analysis/evaluations/run` — conversationalAi.conversations.analysis.runEvaluation
+- [x] `GET /v1/convai/conversations/{conversation_id}/audio` — conversationalAi.conversations.audio.get (stream/binary)
+- [x] `POST /v1/convai/conversations/{conversation_id}/feedback` — conversationalAi.conversations.feedback.create
+- [x] `POST /v1/convai/conversations/{conversation_id}/files` — conversationalAi.conversations.files.create
+- [x] `DELETE /v1/convai/conversations/{conversation_id}/files/{file_id}` — conversationalAi.conversations.files.delete
+- [x] `GET /v1/convai/conversations/messages/text-search` — conversationalAi.conversations.messages.textSearch
+- [x] `GET /v1/convai/conversations/messages/smart-search` — conversationalAi.conversations.messages.search
+- [x] `POST /v1/convai/conversations/{conversation_id}/tags` — conversationalAi.conversations.tags.assign
+- [x] `DELETE /v1/convai/conversations/{conversation_id}/tags/{tag_id}` — conversationalAi.conversations.tags.unassign
+- [x] `GET /v1/convai/tags` — conversationalAi.conversations.tags.list
+- [x] `POST /v1/convai/tags` — conversationalAi.conversations.tags.create
+- [x] `GET /v1/convai/tags/{tag_id}` — conversationalAi.conversations.tags.get
+- [x] `DELETE /v1/convai/tags/{tag_id}` — conversationalAi.conversations.tags.delete
+- [x] `PATCH /v1/convai/tags/{tag_id}` — conversationalAi.conversations.tags.update
+- [x] `GET /v1/convai/agents/{agent_id}/topics` — conversationalAi.conversations.topics.get
 - [ ] `GET /v1/convai/settings/dashboard` — conversationalAi.dashboard.settings.get
 - [ ] `PATCH /v1/convai/settings/dashboard` — conversationalAi.dashboard.settings.update
 - [ ] `POST /v1/convai/exotel/outbound-call` — conversationalAi.exotel.outboundCall

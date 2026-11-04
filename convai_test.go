@@ -1,5 +1,7 @@
 package elevenlabs
 
 func convaiEndpointCases() []endpointCase {
-	return convaiAgentEndpointCases()
+	cases := convaiAgentEndpointCases()
+	cases = append(cases, convaiConversationEndpointCases()...)
+	return cases
 }
