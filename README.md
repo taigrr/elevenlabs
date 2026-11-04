@@ -146,6 +146,24 @@ if err != nil {
 fmt.Println(resp.Chunk.Text)
 ```
 
+### Music Example
+
+`ComposeDetailed` decodes the metadata part and streams the audio part.
+
+```go
+song, err := client.Music.ComposeDetailed(ctx, &elevenlabs.MusicComposeDetailedRequest{
+        MusicGenerationParams: elevenlabs.MusicGenerationParams{Prompt: "upbeat synthwave", MusicLengthMs: elevenlabs.Ptr(int64(30000))},
+})
+if err != nil {
+        log.Fatal(err)
+}
+defer song.Close()
+fmt.Println(song.Metadata.SongMetadata.Title)
+out, _ := os.Create(song.Filename)
+defer out.Close()
+io.Copy(out, song)
+```
+
 ### Pagination
 
 ```go

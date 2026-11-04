@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 24/419 endpoints covered.  assets: 0/4; audioEffects: 0/1; audioIsolation: 0/4; audioNative: 0/4; conversationalAi: 0/186; dubbing: 0/37; environmentVariables: 0/5; environments: 0/3; flows: 0/14; forcedAlignment: 0/1; history: 5/5; models: 0/1; music: 0/13; productions: 0/11; pronunciationDictionaries: 0/9; samples: 1/1; serviceAccounts: 0/7; speechEngine: 0/6; speechToSpeech: 0/2; speechToText: 1/3; studio: 0/23; textToDialogue: 0/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 0/5; tokens: 0/1; usage: 0/1; user: 2/2; voices: 10/36; webhooks: 0/4; workspace: 0/20; workspaces: 0/1
+**Totals:** 58/419 endpoints covered.  assets: 0/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 0/4; conversationalAi: 0/186; dubbing: 0/37; environmentVariables: 0/5; environments: 0/3; flows: 0/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 0/11; pronunciationDictionaries: 0/9; samples: 1/1; serviceAccounts: 0/7; speechEngine: 0/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 0/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 10/36; webhooks: 0/4; workspace: 0/20; workspaces: 0/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -14,8 +14,8 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] WebSocket realtime: TTS stream-input, multi-stream-input, dialogue stream-input, STT realtime, dubbing/translation realtime
 - [ ] Conversational AI websocket
 - [ ] Webhooks signature verification (src/wrapper/webhooks.ts)
-- [ ] Music multipart helper (src/wrapper/music.ts)
-- [ ] speechToText wrapper helpers (src/wrapper/speechToText.ts)
+- [x] Music multipart helper (src/wrapper/music.ts)
+- [x] speechToText wrapper helpers (src/wrapper/speechToText.ts)
 
 ## assets (4)
 - [ ] `GET /v1/assets` — assets.list
@@ -27,10 +27,10 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `GET /v1/audio-effects/catalog` — audioEffects.getCatalog
 
 ## audioIsolation (4)
-- [ ] `POST /v1/audio-isolation` — audioIsolation.convert (stream/binary)
-- [ ] `GET /v1/audio-isolation/history` — audioIsolation.list
-- [ ] `DELETE /v1/audio-isolation/history/{history_item_id}` — audioIsolation.delete
-- [ ] `POST /v1/audio-isolation/stream` — audioIsolation.stream (stream/binary)
+- [x] `POST /v1/audio-isolation` — audioIsolation.convert (stream/binary)
+- [x] `GET /v1/audio-isolation/history` — audioIsolation.list
+- [x] `DELETE /v1/audio-isolation/history/{history_item_id}` — audioIsolation.delete
+- [x] `POST /v1/audio-isolation/stream` — audioIsolation.stream (stream/binary)
 
 ## audioNative (4)
 - [ ] `POST /v1/audio-native` — audioNative.create
@@ -294,7 +294,7 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `GET /v1/flows/video/{generation_id}` — flows.video.get
 
 ## forcedAlignment (1)
-- [ ] `POST /v1/forced-alignment` — forcedAlignment.create
+- [x] `POST /v1/forced-alignment` — forcedAlignment.create
 
 ## history (5)
 - [x] `GET /v1/history` — history.list
@@ -304,22 +304,22 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `POST /v1/history/download` — history.download (stream/binary)
 
 ## models (1)
-- [ ] `GET /v1/models` — models.list
+- [x] `GET /v1/models` — models.list
 
 ## music (13)
-- [ ] `POST /v1/music/video-to-music` — music.videoToMusic (stream/binary)
-- [ ] `POST /v1/music` — music.compose (stream/binary)
-- [ ] `POST /v1/music/detailed` — music.composeDetailed (stream/binary)
-- [ ] `POST /v1/music/detailed/stream` — music.composeDetailedStream (stream/binary)
-- [ ] `POST /v1/music/stream` — music.stream (stream/binary)
-- [ ] `POST /v1/music/upload` — music.upload
-- [ ] `POST /v1/music/stem-separation` — music.separateStems (stream/binary)
-- [ ] `POST /v1/music/plan` — music.compositionPlan.create
-- [ ] `GET /v1/music/finetunes` — music.finetunes.list
-- [ ] `POST /v1/music/finetunes` — music.finetunes.create
-- [ ] `GET /v1/music/finetunes/{finetune_id}` — music.finetunes.get
-- [ ] `DELETE /v1/music/finetunes/{finetune_id}` — music.finetunes.delete
-- [ ] `PATCH /v1/music/finetunes/{finetune_id}` — music.finetunes.update
+- [x] `POST /v1/music/video-to-music` — music.videoToMusic (stream/binary)
+- [x] `POST /v1/music` — music.compose (stream/binary)
+- [x] `POST /v1/music/detailed` — music.composeDetailed (stream/binary)
+- [x] `POST /v1/music/detailed/stream` — music.composeDetailedStream (stream/binary)
+- [x] `POST /v1/music/stream` — music.stream (stream/binary)
+- [x] `POST /v1/music/upload` — music.upload
+- [x] `POST /v1/music/stem-separation` — music.separateStems (stream/binary)
+- [x] `POST /v1/music/plan` — music.compositionPlan.create
+- [x] `GET /v1/music/finetunes` — music.finetunes.list
+- [x] `POST /v1/music/finetunes` — music.finetunes.create
+- [x] `GET /v1/music/finetunes/{finetune_id}` — music.finetunes.get
+- [x] `DELETE /v1/music/finetunes/{finetune_id}` — music.finetunes.delete
+- [x] `PATCH /v1/music/finetunes/{finetune_id}` — music.finetunes.update
 
 ## productions (11)
 - [ ] `GET /v1/productions/orders` — productions.orders.list
@@ -366,13 +366,13 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `POST /v1/speech-engine/{speech_engine_id}/duplicate` — speechEngine.duplicate
 
 ## speechToSpeech (2)
-- [ ] `POST /v1/voice-changer/{voice_id}` — speechToSpeech.convert (stream/binary)
-- [ ] `POST /v1/voice-changer/{voice_id}/stream` — speechToSpeech.stream (stream/binary)
+- [x] `POST /v1/voice-changer/{voice_id}` — speechToSpeech.convert (stream/binary)
+- [x] `POST /v1/voice-changer/{voice_id}/stream` — speechToSpeech.stream (stream/binary)
 
 ## speechToText (3)
 - [x] `POST /v1/speech-to-text` — speechToText.convert
-- [ ] `GET /v1/speech-to-text/transcripts/{transcription_id}` — speechToText.transcripts.get
-- [ ] `DELETE /v1/speech-to-text/transcripts/{transcription_id}` — speechToText.transcripts.delete
+- [x] `GET /v1/speech-to-text/transcripts/{transcription_id}` — speechToText.transcripts.get
+- [x] `DELETE /v1/speech-to-text/transcripts/{transcription_id}` — speechToText.transcripts.delete
 
 ## studio (23)
 - [ ] `POST /v1/studio/podcasts` — studio.createPodcast
@@ -400,10 +400,10 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `POST /v1/studio/projects/{project_id}/snapshots/{project_snapshot_id}/archive` — studio.projects.snapshots.streamArchive (stream/binary)
 
 ## textToDialogue (4)
-- [ ] `POST /v1/text-to-dialogue` — textToDialogue.convert (stream/binary)
-- [ ] `POST /v1/text-to-dialogue/stream` — textToDialogue.stream (stream/binary)
-- [ ] `POST /v1/text-to-dialogue/stream/with-timestamps` — textToDialogue.streamWithTimestamps (stream/binary)
-- [ ] `POST /v1/text-to-dialogue/with-timestamps` — textToDialogue.convertWithTimestamps
+- [x] `POST /v1/text-to-dialogue` — textToDialogue.convert (stream/binary)
+- [x] `POST /v1/text-to-dialogue/stream` — textToDialogue.stream (stream/binary)
+- [x] `POST /v1/text-to-dialogue/stream/with-timestamps` — textToDialogue.streamWithTimestamps (stream/binary)
+- [x] `POST /v1/text-to-dialogue/with-timestamps` — textToDialogue.convertWithTimestamps
 
 ## textToSoundEffects (1)
 - [x] `POST /v1/sound-generation` — textToSoundEffects.convert (stream/binary)
@@ -415,17 +415,17 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `POST /v1/text-to-speech/{voice_id}/stream/with-timestamps` — textToSpeech.streamWithTimestamps (stream/binary)
 
 ## textToVoice (5)
-- [ ] `POST /v1/text-to-voice/create-previews` — textToVoice.createPreviews
-- [ ] `POST /v1/text-to-voice` — textToVoice.create
-- [ ] `POST /v1/text-to-voice/design` — textToVoice.design
-- [ ] `POST /v1/text-to-voice/{voice_id}/remix` — textToVoice.remix
-- [ ] `GET /v1/text-to-voice/{generated_voice_id}/stream` — textToVoice.preview.stream (stream/binary)
+- [x] `POST /v1/text-to-voice/create-previews` — textToVoice.createPreviews
+- [x] `POST /v1/text-to-voice` — textToVoice.create
+- [x] `POST /v1/text-to-voice/design` — textToVoice.design
+- [x] `POST /v1/text-to-voice/{voice_id}/remix` — textToVoice.remix
+- [x] `GET /v1/text-to-voice/{generated_voice_id}/stream` — textToVoice.preview.stream (stream/binary)
 
 ## tokens (1)
-- [ ] `POST /v1/single-use-token/${core.url.encodePathParam(serializers.SingleUseTokenType.jsonOrThrow(token_type))}` — tokens.singleUse.create
+- [x] `POST /v1/single-use-token/${core.url.encodePathParam(serializers.SingleUseTokenType.jsonOrThrow(token_type))}` — tokens.singleUse.create
 
 ## usage (1)
-- [ ] `GET /v1/usage/character-stats` — usage.get
+- [x] `GET /v1/usage/character-stats` — usage.get
 
 ## user (2)
 - [x] `GET /v1/user` — user.get
