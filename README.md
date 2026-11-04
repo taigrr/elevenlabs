@@ -17,7 +17,7 @@ derived, [can be found here](https://api.elevenlabs.io/docs).
 
 This Go client provides an idiomatic interface to the elevenlabs.io API.
 It is modeled on the official TypeScript SDK: endpoints are grouped into services such as `client.TextToSpeech`, `client.Voices` and `client.History`, and every call takes a `context.Context`.
-See [PARITY.md](PARITY.md) for endpoint coverage and [MIGRATION.md](MIGRATION.md) for upgrading from the previous `client` package.
+See [MIGRATION.md](MIGRATION.md) for upgrading from the previous `client` package.
 
 As a prerequisite, you must already have an account with elevenlabs.io.
 After creating your account, you can get your API key [from here](https://help.elevenlabs.io/hc/en-us/articles/14599447207697-How-to-authorize-yourself-using-your-xi-api-key-).
