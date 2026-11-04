@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 418/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 186/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
+**Totals:** 418/419 endpoints covered; realtime WebSocket sockets: 8/8.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 186/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -11,13 +11,23 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] Base URL environments (production, US, EU, India, Singapore residency)
 - [x] Pagination iterators (`iter.Seq2`)
 - [x] Streaming multipart uploads and streaming binary / NDJSON responses
-- [ ] WebSocket realtime: TTS stream-input, multi-stream-input, dialogue stream-input, STT realtime, dubbing/translation realtime
-- [ ] Conversational AI websocket
+- [x] WebSocket realtime: TTS stream-input, multi-stream-input, dialogue stream-input, STT realtime, dubbing/translation realtime (see realtime section)
+- [x] Conversational AI websocket (see realtime section)
 - [ ] Speech engine WebSocket server / session helpers (src/wrapper/speech-engine; deferred to the realtime batch, needs a WebSocket dependency)
 - [x] Webhooks signature verification (src/wrapper/webhooks.ts)
 - [x] Flows `createAndWait` polling helpers (src/wrapper/flows.ts)
 - [x] Music multipart helper (src/wrapper/music.ts)
 - [x] speechToText wrapper helpers (src/wrapper/speechToText.ts)
+
+## realtime (WebSocket, not counted in endpoint totals)
+- [x] `WSS /v1/text-to-speech/{voice_id}/stream-input` — v1TextToSpeechVoiceIdStreamInput → `TextToSpeech.StreamInput`
+- [x] `WSS /v1/text-to-speech/{voice_id}/multi-stream-input` — v1TextToSpeechVoiceIdMultiStreamInput → `TextToSpeech.MultiStreamInput`
+- [x] `WSS /v1/text-to-dialogue/stream-input` — v1TextToDialogueStreamInput → `TextToDialogue.StreamInput`
+- [x] `WSS /v1/text-to-dialogue/multi-stream-input` — v1TextToDialogueMultiStreamInput → `TextToDialogue.MultiStreamInput`
+- [x] `WSS /v1/speech-to-text/realtime` — v1SpeechToTextRealtime + wrapper/realtime (ScribeRealtime, RealtimeConnection: send, commit, URL streaming via ffmpeg) → `SpeechToText.Realtime`, `SendFrom`, `StreamURL`
+- [x] `WSS /v1/dubbing/realtime` — v1DubbingRealtime → `Dubbing.Realtime`
+- [x] `WSS /v1/translation/realtime` — v1TranslationRealtime → `Translation.Realtime`
+- [x] `WSS /v1/convai/conversation` — conversationalAi/conversation (Conversation, ClientTools, signed URLs, auto pong, interruption handling) → `ConversationalAI.Connect`, `ClientTools`
 
 ## assets (4)
 - [x] `GET /v1/assets` — assets.list

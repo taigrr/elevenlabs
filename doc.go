@@ -69,6 +69,21 @@
 // deeply nested or polymorphic sections are json.RawMessage. Batch
 // endpoints return map[string]BatchResult[T] keyed by the requested ID.
 //
+// # Realtime (WebSocket)
+//
+// Streaming sockets return a connection type with Send/Recv methods and
+// typed messages: TextToSpeech.StreamInput and MultiStreamInput,
+// TextToDialogue.StreamInput and MultiStreamInput, SpeechToText.Realtime
+// (Scribe), Dubbing.Realtime, Translation.Realtime and
+// ConversationalAI.Connect (agent conversations, with ClientTools).
+// Audio flows through io.Writer (AudioWriter) and io.Reader (AudioReader)
+// adapters where natural. Send and Recv may run on different goroutines;
+// cancelling the context passed to Recv closes the connection. Recv returns
+// io.EOF after a normal closure, a *CloseError (matching ErrSocketClosed)
+// after an abnormal one, and a *RealtimeError (matching ErrRealtime and the
+// closest HTTP sentinel, e.g. ErrUnauthorized) for in-band error messages.
+// Handshake failures are *APIError values like any other request.
+//
 // # Long-running work
 //
 // Flows generations and template runs are asynchronous. Each create call has

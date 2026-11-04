@@ -286,6 +286,61 @@ _, err = client.ConversationalAI.MCPServers.ApprovalPolicy.Update(ctx, server.ID
 Large agent configuration sections (platform settings, workflows, tool
 schemas) are exposed as `json.RawMessage` so they round-trip unchanged.
 
+### Realtime (WebSocket) Example
+
+Text-to-speech from text that arrives in pieces (for example from an LLM):
+
+```go
+stream, err := client.TextToSpeech.StreamInput(ctx, "JBFqnCBsd6RMkjVDRZzb", &elevenlabs.TextToSpeechStreamInputRequest{
+        ModelID: "eleven_flash_v2_5",
+})
+if err != nil {
+        log.Fatal(err)
+}
+defer stream.Close()
+
+go func() {
+        _ = stream.Send(ctx, &elevenlabs.InitializeConnection{})
+        for _, chunk := range []string{"Hello ", "world. "} {
+                _ = stream.SendText(ctx, chunk)
+        }
+        _ = stream.CloseSend(ctx)
+}()
+_, err = io.Copy(out, stream.AudioReader(ctx))
+```
+
+Realtime transcription (Scribe), agent conversations, dialogue, dubbing and
+translation follow the same Send/Recv pattern:
+
+```go
+conn, err := client.SpeechToText.Realtime(ctx, &elevenlabs.SpeechToTextRealtimeRequest{
+        ModelID:     "scribe_v2_realtime",
+        AudioFormat: elevenlabs.RealtimeAudioPCM16000,
+})
+if err != nil {
+        log.Fatal(err)
+}
+defer conn.Close()
+go conn.SendFrom(ctx, pcm) // or io.Copy(conn.AudioWriter(ctx), pcm); conn.Commit(ctx)
+for {
+        msg, err := conn.Recv(ctx)
+        if err != nil {
+                break // io.EOF, *elevenlabs.CloseError or *elevenlabs.RealtimeError
+        }
+        if msg.MessageType == elevenlabs.RealtimeCommittedTranscript {
+                fmt.Println(msg.Text)
+        }
+}
+
+conv, err := client.ConversationalAI.Connect(ctx, &elevenlabs.ConversationRequest{AgentID: "agent_123"})
+if err != nil {
+        log.Fatal(err)
+}
+defer conv.Close()
+_ = conv.SendUserMessage(ctx, "Hi!")
+ev, err := conv.Recv(ctx) // pings are answered automatically
+```
+
 ### Webhook Verification Example
 
 ```go
