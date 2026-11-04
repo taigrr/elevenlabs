@@ -14,6 +14,10 @@ func convaiEndpointCases() []endpointCase {
 	cases = append(cases, convaiToolEndpointCases()...)
 	cases = append(cases, convaiSettingsEndpointCases()...)
 	cases = append(cases, convaiTestingEndpointCases()...)
+	cases = append(cases, convaiTelephonyEndpointCases()...)
+	cases = append(cases, convaiMCPEndpointCases()...)
+	cases = append(cases, convaiTriageEndpointCases()...)
+	cases = append(cases, convaiMiscEndpointCases()...)
 	return cases
 }
 
