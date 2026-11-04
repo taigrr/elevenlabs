@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 101/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 0/186; dubbing: 0/37; environmentVariables: 0/5; environments: 0/3; flows: 0/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 0/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 0/7; speechEngine: 0/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 0/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 0/4; workspace: 0/20; workspaces: 0/1
+**Totals:** 232/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 0/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -13,7 +13,9 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] Streaming multipart uploads and streaming binary / NDJSON responses
 - [ ] WebSocket realtime: TTS stream-input, multi-stream-input, dialogue stream-input, STT realtime, dubbing/translation realtime
 - [ ] Conversational AI websocket
-- [ ] Webhooks signature verification (src/wrapper/webhooks.ts)
+- [ ] Speech engine WebSocket server / session helpers (src/wrapper/speech-engine; deferred to the realtime batch, needs a WebSocket dependency)
+- [x] Webhooks signature verification (src/wrapper/webhooks.ts)
+- [x] Flows `createAndWait` polling helpers (src/wrapper/flows.ts)
 - [x] Music multipart helper (src/wrapper/music.ts)
 - [x] speechToText wrapper helpers (src/wrapper/speechToText.ts)
 
@@ -227,71 +229,71 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `GET /v1/convai/whatsapp-accounts` — conversationalAi.whatsappAccounts.list
 
 ## dubbing (37)
-- [ ] `GET /v1/dubbing` — dubbing.list
-- [ ] `POST /v1/dubbing` — dubbing.create
-- [ ] `GET /v1/dubbing/{dubbing_id}` — dubbing.get
-- [ ] `DELETE /v1/dubbing/{dubbing_id}` — dubbing.delete
-- [ ] `GET /v1/dubbing/{dubbing_id}/audio/{language_code}` — dubbing.audio.get (stream/binary)
-- [ ] `GET /v1/dubbing/project` — dubbing.project.list
-- [ ] `POST /v1/dubbing/project` — dubbing.project.create
-- [ ] `GET /v1/dubbing/project/{project_id}` — dubbing.project.get
-- [ ] `DELETE /v1/dubbing/project/{project_id}` — dubbing.project.delete
-- [ ] `GET /v1/dubbing/project/{project_id}/language` — dubbing.project.language.list
-- [ ] `POST /v1/dubbing/project/{project_id}/language` — dubbing.project.language.create
-- [ ] `GET /v1/dubbing/project/{project_id}/language/{language_id}` — dubbing.project.language.get
-- [ ] `DELETE /v1/dubbing/project/{project_id}/language/{language_id}` — dubbing.project.language.delete
-- [ ] `GET /v1/dubbing/project/{project_id}/language/{language_id}/transcript` — dubbing.project.language.transcript.get
-- [ ] `PATCH /v1/dubbing/project/{project_id}/language/{language_id}/transcript/segment/{segment_id}` — dubbing.project.language.transcript.updateSegment
-- [ ] `PATCH /v1/dubbing/project/{project_id}/language/{language_id}/transcript/segments` — dubbing.project.language.transcript.updateSegments
-- [ ] `POST /v1/dubbing/project/{project_id}/language/{language_id}/transcript/regenerate` — dubbing.project.language.transcript.regenerate
-- [ ] `GET /v1/dubbing/project/{project_id}/transcript` — dubbing.project.transcript.get
-- [ ] `DELETE /v1/dubbing/project/{project_id}/transcript/segment/{segment_id}` — dubbing.project.transcript.deleteSegment
-- [ ] `PATCH /v1/dubbing/project/{project_id}/transcript/segment/{segment_id}` — dubbing.project.transcript.updateSegment
-- [ ] `PATCH /v1/dubbing/project/{project_id}/transcript/segments` — dubbing.project.transcript.updateSegments
-- [ ] `POST /v1/dubbing/project/{project_id}/transcript/segment` — dubbing.project.transcript.createSegment
-- [ ] `GET /v1/dubbing/resource/{dubbing_id}` — dubbing.resource.get
-- [ ] `POST /v1/dubbing/resource/{dubbing_id}/migrate-segments` — dubbing.resource.migrateSegments
-- [ ] `POST /v1/dubbing/resource/{dubbing_id}/transcribe` — dubbing.resource.transcribe
-- [ ] `POST /v1/dubbing/resource/{dubbing_id}/translate` — dubbing.resource.translate
-- [ ] `POST /v1/dubbing/resource/{dubbing_id}/dub` — dubbing.resource.dub
-- [ ] `POST /v1/dubbing/resource/{dubbing_id}/render/{language}` — dubbing.resource.render
-- [ ] `POST /v1/dubbing/resource/{dubbing_id}/language` — dubbing.resource.language.add
-- [ ] `PATCH /v1/dubbing/resource/{dubbing_id}/segment/{segment_id}/{language}` — dubbing.resource.segment.update
-- [ ] `DELETE /v1/dubbing/resource/{dubbing_id}/segment/{segment_id}` — dubbing.resource.segment.delete
-- [ ] `PATCH /v1/dubbing/resource/{dubbing_id}/speaker/{speaker_id}` — dubbing.resource.speaker.update
-- [ ] `POST /v1/dubbing/resource/{dubbing_id}/speaker` — dubbing.resource.speaker.create
-- [ ] `GET /v1/dubbing/resource/{dubbing_id}/speaker/{speaker_id}/similar-voices` — dubbing.resource.speaker.findSimilarVoices
-- [ ] `POST /v1/dubbing/resource/{dubbing_id}/speaker/{speaker_id}/segment` — dubbing.resource.speaker.segment.create
-- [ ] `GET /v1/dubbing/{dubbing_id}/transcript/{language_code}` — dubbing.transcript.getTranscriptForDub
-- [ ] `GET /v1/dubbing/{dubbing_id}/transcripts/{language_code}/format/${core.url.encodePathParam(serializers.dubbing.TranscriptsGetRequestFormatType.jsonOrThrow(format_type))}` — dubbing.transcripts.get
+- [x] `GET /v1/dubbing` — dubbing.list
+- [x] `POST /v1/dubbing` — dubbing.create
+- [x] `GET /v1/dubbing/{dubbing_id}` — dubbing.get
+- [x] `DELETE /v1/dubbing/{dubbing_id}` — dubbing.delete
+- [x] `GET /v1/dubbing/{dubbing_id}/audio/{language_code}` — dubbing.audio.get (stream/binary)
+- [x] `GET /v1/dubbing/project` — dubbing.project.list
+- [x] `POST /v1/dubbing/project` — dubbing.project.create
+- [x] `GET /v1/dubbing/project/{project_id}` — dubbing.project.get
+- [x] `DELETE /v1/dubbing/project/{project_id}` — dubbing.project.delete
+- [x] `GET /v1/dubbing/project/{project_id}/language` — dubbing.project.language.list
+- [x] `POST /v1/dubbing/project/{project_id}/language` — dubbing.project.language.create
+- [x] `GET /v1/dubbing/project/{project_id}/language/{language_id}` — dubbing.project.language.get
+- [x] `DELETE /v1/dubbing/project/{project_id}/language/{language_id}` — dubbing.project.language.delete
+- [x] `GET /v1/dubbing/project/{project_id}/language/{language_id}/transcript` — dubbing.project.language.transcript.get
+- [x] `PATCH /v1/dubbing/project/{project_id}/language/{language_id}/transcript/segment/{segment_id}` — dubbing.project.language.transcript.updateSegment
+- [x] `PATCH /v1/dubbing/project/{project_id}/language/{language_id}/transcript/segments` — dubbing.project.language.transcript.updateSegments
+- [x] `POST /v1/dubbing/project/{project_id}/language/{language_id}/transcript/regenerate` — dubbing.project.language.transcript.regenerate
+- [x] `GET /v1/dubbing/project/{project_id}/transcript` — dubbing.project.transcript.get
+- [x] `DELETE /v1/dubbing/project/{project_id}/transcript/segment/{segment_id}` — dubbing.project.transcript.deleteSegment
+- [x] `PATCH /v1/dubbing/project/{project_id}/transcript/segment/{segment_id}` — dubbing.project.transcript.updateSegment
+- [x] `PATCH /v1/dubbing/project/{project_id}/transcript/segments` — dubbing.project.transcript.updateSegments
+- [x] `POST /v1/dubbing/project/{project_id}/transcript/segment` — dubbing.project.transcript.createSegment
+- [x] `GET /v1/dubbing/resource/{dubbing_id}` — dubbing.resource.get
+- [x] `POST /v1/dubbing/resource/{dubbing_id}/migrate-segments` — dubbing.resource.migrateSegments
+- [x] `POST /v1/dubbing/resource/{dubbing_id}/transcribe` — dubbing.resource.transcribe
+- [x] `POST /v1/dubbing/resource/{dubbing_id}/translate` — dubbing.resource.translate
+- [x] `POST /v1/dubbing/resource/{dubbing_id}/dub` — dubbing.resource.dub
+- [x] `POST /v1/dubbing/resource/{dubbing_id}/render/{language}` — dubbing.resource.render
+- [x] `POST /v1/dubbing/resource/{dubbing_id}/language` — dubbing.resource.language.add
+- [x] `PATCH /v1/dubbing/resource/{dubbing_id}/segment/{segment_id}/{language}` — dubbing.resource.segment.update
+- [x] `DELETE /v1/dubbing/resource/{dubbing_id}/segment/{segment_id}` — dubbing.resource.segment.delete
+- [x] `PATCH /v1/dubbing/resource/{dubbing_id}/speaker/{speaker_id}` — dubbing.resource.speaker.update
+- [x] `POST /v1/dubbing/resource/{dubbing_id}/speaker` — dubbing.resource.speaker.create
+- [x] `GET /v1/dubbing/resource/{dubbing_id}/speaker/{speaker_id}/similar-voices` — dubbing.resource.speaker.findSimilarVoices
+- [x] `POST /v1/dubbing/resource/{dubbing_id}/speaker/{speaker_id}/segment` — dubbing.resource.speaker.segment.create
+- [x] `GET /v1/dubbing/{dubbing_id}/transcript/{language_code}` — dubbing.transcript.getTranscriptForDub
+- [x] `GET /v1/dubbing/{dubbing_id}/transcripts/{language_code}/format/${core.url.encodePathParam(serializers.dubbing.TranscriptsGetRequestFormatType.jsonOrThrow(format_type))}` — dubbing.transcripts.get
 
 ## environmentVariables (5)
-- [ ] `GET /v1/convai/environment-variables` — environmentVariables.list
-- [ ] `POST /v1/convai/environment-variables` — environmentVariables.create
-- [ ] `GET /v1/convai/environment-variables/{env_var_id}` — environmentVariables.get
-- [ ] `DELETE /v1/convai/environment-variables/{env_var_id}` — environmentVariables.delete
-- [ ] `PATCH /v1/convai/environment-variables/{env_var_id}` — environmentVariables.update
+- [x] `GET /v1/convai/environment-variables` — environmentVariables.list
+- [x] `POST /v1/convai/environment-variables` — environmentVariables.create
+- [x] `GET /v1/convai/environment-variables/{env_var_id}` — environmentVariables.get
+- [x] `DELETE /v1/convai/environment-variables/{env_var_id}` — environmentVariables.delete
+- [x] `PATCH /v1/convai/environment-variables/{env_var_id}` — environmentVariables.update
 
 ## environments (3)
-- [ ] `GET /v1/convai/environments` — environments.list
-- [ ] `POST /v1/convai/environments` — environments.create
-- [ ] `DELETE /v1/convai/environments/{environment}` — environments.delete
+- [x] `GET /v1/convai/environments` — environments.list
+- [x] `POST /v1/convai/environments` — environments.create
+- [x] `DELETE /v1/convai/environments/{environment}` — environments.delete
 
 ## flows (14)
-- [ ] `GET /v1/flows/image` — flows.image.list
-- [ ] `POST /v1/flows/image` — flows.image.create
-- [ ] `GET /v1/flows/image/{generation_id}` — flows.image.get
-- [ ] `GET /v1/flows/templates` — flows.templates.list
-- [ ] `GET /v1/flows/templates/{template_id}` — flows.templates.get
-- [ ] `GET /v1/flows/templates/{template_id}/runs` — flows.templates.runs.list
-- [ ] `POST /v1/flows/templates/{template_id}/runs` — flows.templates.runs.create
-- [ ] `GET /v1/flows/templates/{template_id}/runs/{run_id}` — flows.templates.runs.get
-- [ ] `GET /v1/flows/text-to-speech` — flows.textToSpeech.list
-- [ ] `POST /v1/flows/text-to-speech` — flows.textToSpeech.create
-- [ ] `GET /v1/flows/text-to-speech/{generation_id}` — flows.textToSpeech.get
-- [ ] `GET /v1/flows/video` — flows.video.list
-- [ ] `POST /v1/flows/video` — flows.video.create
-- [ ] `GET /v1/flows/video/{generation_id}` — flows.video.get
+- [x] `GET /v1/flows/image` — flows.image.list
+- [x] `POST /v1/flows/image` — flows.image.create
+- [x] `GET /v1/flows/image/{generation_id}` — flows.image.get
+- [x] `GET /v1/flows/templates` — flows.templates.list
+- [x] `GET /v1/flows/templates/{template_id}` — flows.templates.get
+- [x] `GET /v1/flows/templates/{template_id}/runs` — flows.templates.runs.list
+- [x] `POST /v1/flows/templates/{template_id}/runs` — flows.templates.runs.create
+- [x] `GET /v1/flows/templates/{template_id}/runs/{run_id}` — flows.templates.runs.get
+- [x] `GET /v1/flows/text-to-speech` — flows.textToSpeech.list
+- [x] `POST /v1/flows/text-to-speech` — flows.textToSpeech.create
+- [x] `GET /v1/flows/text-to-speech/{generation_id}` — flows.textToSpeech.get
+- [x] `GET /v1/flows/video` — flows.video.list
+- [x] `POST /v1/flows/video` — flows.video.create
+- [x] `GET /v1/flows/video/{generation_id}` — flows.video.get
 
 ## forcedAlignment (1)
 - [x] `POST /v1/forced-alignment` — forcedAlignment.create
@@ -322,17 +324,17 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `PATCH /v1/music/finetunes/{finetune_id}` — music.finetunes.update
 
 ## productions (11)
-- [ ] `GET /v1/productions/orders` — productions.orders.list
-- [ ] `POST /v1/productions/orders` — productions.orders.create
-- [ ] `GET /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}` — productions.orders.get
-- [ ] `PATCH /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}` — productions.orders.update
-- [ ] `POST /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/submit` — productions.orders.submit
-- [ ] `GET /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/deliverables` — productions.orders.deliverables.list
-- [ ] `POST /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/items` — productions.orders.items.upsert
-- [ ] `DELETE /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/items/${core.url.encodePathParam(serializers.ItemId.jsonOrThrow(item_id))}` — productions.orders.items.remove
-- [ ] `GET /v1/productions/orders/languages/${core.url.encodePathParam(serializers.OrderItemKind.jsonOrThrow(order_item_kind))}` — productions.orders.languages.list
-- [ ] `POST /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/media` — productions.orders.media.register
-- [ ] `GET /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/media/${core.url.encodePathParam(serializers.MediaId.jsonOrThrow(media_id))}` — productions.orders.media.get
+- [x] `GET /v1/productions/orders` — productions.orders.list
+- [x] `POST /v1/productions/orders` — productions.orders.create
+- [x] `GET /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}` — productions.orders.get
+- [x] `PATCH /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}` — productions.orders.update
+- [x] `POST /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/submit` — productions.orders.submit
+- [x] `GET /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/deliverables` — productions.orders.deliverables.list
+- [x] `POST /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/items` — productions.orders.items.upsert
+- [x] `DELETE /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/items/${core.url.encodePathParam(serializers.ItemId.jsonOrThrow(item_id))}` — productions.orders.items.remove
+- [x] `GET /v1/productions/orders/languages/${core.url.encodePathParam(serializers.OrderItemKind.jsonOrThrow(order_item_kind))}` — productions.orders.languages.list
+- [x] `POST /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/media` — productions.orders.media.register
+- [x] `GET /v1/productions/orders/${core.url.encodePathParam(serializers.OrderId.jsonOrThrow(order_id))}/media/${core.url.encodePathParam(serializers.MediaId.jsonOrThrow(media_id))}` — productions.orders.media.get
 
 ## pronunciationDictionaries (9)
 - [x] `POST /v1/pronunciation-dictionaries/add-from-file` — pronunciationDictionaries.createFromFile
@@ -349,21 +351,21 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `DELETE /v1/voices/{voice_id}/samples/{sample_id}` — samples.delete
 
 ## serviceAccounts (7)
-- [ ] `GET /v1/service-accounts` — serviceAccounts.list
-- [ ] `POST /v1/service-accounts` — serviceAccounts.create
-- [ ] `GET /v1/service-accounts/{service_account_user_id}/api-keys` — serviceAccounts.apiKeys.list
-- [ ] `POST /v1/service-accounts/{service_account_user_id}/api-keys` — serviceAccounts.apiKeys.create
-- [ ] `DELETE /v1/service-accounts/{service_account_user_id}/api-keys/{api_key_id}` — serviceAccounts.apiKeys.delete
-- [ ] `PATCH /v1/service-accounts/{service_account_user_id}/api-keys/{api_key_id}` — serviceAccounts.apiKeys.update
-- [ ] `POST /v1/service-accounts/{service_account_user_id}/api-keys/{api_key_id}/disable` — serviceAccounts.apiKeys.disable
+- [x] `GET /v1/service-accounts` — serviceAccounts.list
+- [x] `POST /v1/service-accounts` — serviceAccounts.create
+- [x] `GET /v1/service-accounts/{service_account_user_id}/api-keys` — serviceAccounts.apiKeys.list
+- [x] `POST /v1/service-accounts/{service_account_user_id}/api-keys` — serviceAccounts.apiKeys.create
+- [x] `DELETE /v1/service-accounts/{service_account_user_id}/api-keys/{api_key_id}` — serviceAccounts.apiKeys.delete
+- [x] `PATCH /v1/service-accounts/{service_account_user_id}/api-keys/{api_key_id}` — serviceAccounts.apiKeys.update
+- [x] `POST /v1/service-accounts/{service_account_user_id}/api-keys/{api_key_id}/disable` — serviceAccounts.apiKeys.disable
 
 ## speechEngine (6)
-- [ ] `GET /v1/speech-engine` — speechEngine.list
-- [ ] `POST /v1/speech-engine` — speechEngine.create
-- [ ] `GET /v1/speech-engine/{speech_engine_id}` — speechEngine.get
-- [ ] `DELETE /v1/speech-engine/{speech_engine_id}` — speechEngine.delete
-- [ ] `PATCH /v1/speech-engine/{speech_engine_id}` — speechEngine.update
-- [ ] `POST /v1/speech-engine/{speech_engine_id}/duplicate` — speechEngine.duplicate
+- [x] `GET /v1/speech-engine` — speechEngine.list
+- [x] `POST /v1/speech-engine` — speechEngine.create
+- [x] `GET /v1/speech-engine/{speech_engine_id}` — speechEngine.get
+- [x] `DELETE /v1/speech-engine/{speech_engine_id}` — speechEngine.delete
+- [x] `PATCH /v1/speech-engine/{speech_engine_id}` — speechEngine.update
+- [x] `POST /v1/speech-engine/{speech_engine_id}/duplicate` — speechEngine.duplicate
 
 ## speechToSpeech (2)
 - [x] `POST /v1/voice-changer/{voice_id}` — speechToSpeech.convert (stream/binary)
@@ -375,29 +377,29 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `DELETE /v1/speech-to-text/transcripts/{transcription_id}` — speechToText.transcripts.delete
 
 ## studio (23)
-- [ ] `POST /v1/studio/podcasts` — studio.createPodcast
-- [ ] `GET /v1/studio/projects` — studio.projects.list
-- [ ] `POST /v1/studio/projects` — studio.projects.create
-- [ ] `GET /v1/studio/projects/{project_id}` — studio.projects.get
-- [ ] `POST /v1/studio/projects/{project_id}` — studio.projects.update
-- [ ] `DELETE /v1/studio/projects/{project_id}` — studio.projects.delete
-- [ ] `POST /v1/studio/projects/{project_id}/convert` — studio.projects.convert
-- [ ] `GET /v1/studio/projects/{project_id}/muted-tracks` — studio.projects.getMutedTracks
-- [ ] `GET /v1/studio/projects/{project_id}/chapters` — studio.projects.chapters.list
-- [ ] `POST /v1/studio/projects/{project_id}/chapters` — studio.projects.chapters.create
-- [ ] `GET /v1/studio/projects/{project_id}/chapters/{chapter_id}` — studio.projects.chapters.get
-- [ ] `POST /v1/studio/projects/{project_id}/chapters/{chapter_id}` — studio.projects.chapters.update
-- [ ] `DELETE /v1/studio/projects/{project_id}/chapters/{chapter_id}` — studio.projects.chapters.delete
-- [ ] `POST /v1/studio/projects/{project_id}/chapters/{chapter_id}/convert` — studio.projects.chapters.convert
-- [ ] `GET /v1/studio/projects/{project_id}/chapters/{chapter_id}/snapshots` — studio.projects.chapters.snapshots.list
-- [ ] `GET /v1/studio/projects/{project_id}/chapters/{chapter_id}/snapshots/{chapter_snapshot_id}` — studio.projects.chapters.snapshots.get
-- [ ] `POST /v1/studio/projects/{project_id}/chapters/{chapter_id}/snapshots/{chapter_snapshot_id}/stream` — studio.projects.chapters.snapshots.stream (stream/binary)
-- [ ] `POST /v1/studio/projects/{project_id}/content` — studio.projects.content.update
-- [ ] `POST /v1/studio/projects/{project_id}/pronunciation-dictionaries` — studio.projects.pronunciationDictionaries.create
-- [ ] `GET /v1/studio/projects/{project_id}/snapshots` — studio.projects.snapshots.list
-- [ ] `GET /v1/studio/projects/{project_id}/snapshots/{project_snapshot_id}` — studio.projects.snapshots.get
-- [ ] `POST /v1/studio/projects/{project_id}/snapshots/{project_snapshot_id}/stream` — studio.projects.snapshots.stream (stream/binary)
-- [ ] `POST /v1/studio/projects/{project_id}/snapshots/{project_snapshot_id}/archive` — studio.projects.snapshots.streamArchive (stream/binary)
+- [x] `POST /v1/studio/podcasts` — studio.createPodcast
+- [x] `GET /v1/studio/projects` — studio.projects.list
+- [x] `POST /v1/studio/projects` — studio.projects.create
+- [x] `GET /v1/studio/projects/{project_id}` — studio.projects.get
+- [x] `POST /v1/studio/projects/{project_id}` — studio.projects.update
+- [x] `DELETE /v1/studio/projects/{project_id}` — studio.projects.delete
+- [x] `POST /v1/studio/projects/{project_id}/convert` — studio.projects.convert
+- [x] `GET /v1/studio/projects/{project_id}/muted-tracks` — studio.projects.getMutedTracks
+- [x] `GET /v1/studio/projects/{project_id}/chapters` — studio.projects.chapters.list
+- [x] `POST /v1/studio/projects/{project_id}/chapters` — studio.projects.chapters.create
+- [x] `GET /v1/studio/projects/{project_id}/chapters/{chapter_id}` — studio.projects.chapters.get
+- [x] `POST /v1/studio/projects/{project_id}/chapters/{chapter_id}` — studio.projects.chapters.update
+- [x] `DELETE /v1/studio/projects/{project_id}/chapters/{chapter_id}` — studio.projects.chapters.delete
+- [x] `POST /v1/studio/projects/{project_id}/chapters/{chapter_id}/convert` — studio.projects.chapters.convert
+- [x] `GET /v1/studio/projects/{project_id}/chapters/{chapter_id}/snapshots` — studio.projects.chapters.snapshots.list
+- [x] `GET /v1/studio/projects/{project_id}/chapters/{chapter_id}/snapshots/{chapter_snapshot_id}` — studio.projects.chapters.snapshots.get
+- [x] `POST /v1/studio/projects/{project_id}/chapters/{chapter_id}/snapshots/{chapter_snapshot_id}/stream` — studio.projects.chapters.snapshots.stream (stream/binary)
+- [x] `POST /v1/studio/projects/{project_id}/content` — studio.projects.content.update
+- [x] `POST /v1/studio/projects/{project_id}/pronunciation-dictionaries` — studio.projects.pronunciationDictionaries.create
+- [x] `GET /v1/studio/projects/{project_id}/snapshots` — studio.projects.snapshots.list
+- [x] `GET /v1/studio/projects/{project_id}/snapshots/{project_snapshot_id}` — studio.projects.snapshots.get
+- [x] `POST /v1/studio/projects/{project_id}/snapshots/{project_snapshot_id}/stream` — studio.projects.snapshots.stream (stream/binary)
+- [x] `POST /v1/studio/projects/{project_id}/snapshots/{project_snapshot_id}/archive` — studio.projects.snapshots.streamArchive (stream/binary)
 
 ## textToDialogue (4)
 - [x] `POST /v1/text-to-dialogue` — textToDialogue.convert (stream/binary)
@@ -470,32 +472,32 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `POST /v1/voices/{voice_id}/settings/edit` — voices.settings.update
 
 ## webhooks (4)
-- [ ] `GET /v1/workspace/webhooks` — webhooks.list
-- [ ] `POST /v1/workspace/webhooks` — webhooks.create
-- [ ] `DELETE /v1/workspace/webhooks/{webhook_id}` — webhooks.delete
-- [ ] `PATCH /v1/workspace/webhooks/{webhook_id}` — webhooks.update
+- [x] `GET /v1/workspace/webhooks` — webhooks.list
+- [x] `POST /v1/workspace/webhooks` — webhooks.create
+- [x] `DELETE /v1/workspace/webhooks/{webhook_id}` — webhooks.delete
+- [x] `PATCH /v1/workspace/webhooks/{webhook_id}` — webhooks.update
 
 ## workspace (20)
-- [ ] `POST /v1/workspaces/api-keys/third-party-disabling` — workspace.setThirdPartyDisablingPolicy
-- [ ] `POST /v1/workspace/analytics/requests` — workspace.analytics.requests.get
-- [ ] `GET /v1/workspace/audit-logs` — workspace.auditLogs.list
-- [ ] `GET /v1/workspace/auth-connections` — workspace.authConnections.list
-- [ ] `POST /v1/workspace/auth-connections` — workspace.authConnections.create
-- [ ] `DELETE /v1/workspace/auth-connections/{auth_connection_id}` — workspace.authConnections.delete
-- [ ] `PATCH /v1/workspace/auth-connections/{auth_connection_id}` — workspace.authConnections.update
-- [ ] `GET /v1/workspace/groups` — workspace.groups.list
-- [ ] `GET /v1/workspace/groups/search` — workspace.groups.search
-- [ ] `POST /v1/workspace/groups/{group_id}/members/remove` — workspace.groups.members.remove
-- [ ] `POST /v1/workspace/groups/{group_id}/members` — workspace.groups.members.add
-- [ ] `POST /v1/workspace/invites/add` — workspace.invites.create
-- [ ] `POST /v1/workspace/invites/add-bulk` — workspace.invites.createBatch
-- [ ] `DELETE /v1/workspace/invites` — workspace.invites.delete
-- [ ] `GET /v1/workspace/members` — workspace.members.list
-- [ ] `POST /v1/workspace/members` — workspace.members.update
-- [ ] `GET /v1/workspace/resources/{resource_id}` — workspace.resources.get
-- [ ] `POST /v1/workspace/resources/{resource_id}/share` — workspace.resources.share
-- [ ] `POST /v1/workspace/resources/{resource_id}/unshare` — workspace.resources.unshare
-- [ ] `POST /v1/workspace/analytics/query/usage-by-product-over-time` — workspace.usage.getUsageByProductOverTime
+- [x] `POST /v1/workspaces/api-keys/third-party-disabling` — workspace.setThirdPartyDisablingPolicy
+- [x] `POST /v1/workspace/analytics/requests` — workspace.analytics.requests.get
+- [x] `GET /v1/workspace/audit-logs` — workspace.auditLogs.list
+- [x] `GET /v1/workspace/auth-connections` — workspace.authConnections.list
+- [x] `POST /v1/workspace/auth-connections` — workspace.authConnections.create
+- [x] `DELETE /v1/workspace/auth-connections/{auth_connection_id}` — workspace.authConnections.delete
+- [x] `PATCH /v1/workspace/auth-connections/{auth_connection_id}` — workspace.authConnections.update
+- [x] `GET /v1/workspace/groups` — workspace.groups.list
+- [x] `GET /v1/workspace/groups/search` — workspace.groups.search
+- [x] `POST /v1/workspace/groups/{group_id}/members/remove` — workspace.groups.members.remove
+- [x] `POST /v1/workspace/groups/{group_id}/members` — workspace.groups.members.add
+- [x] `POST /v1/workspace/invites/add` — workspace.invites.create
+- [x] `POST /v1/workspace/invites/add-bulk` — workspace.invites.createBatch
+- [x] `DELETE /v1/workspace/invites` — workspace.invites.delete
+- [x] `GET /v1/workspace/members` — workspace.members.list
+- [x] `POST /v1/workspace/members` — workspace.members.update
+- [x] `GET /v1/workspace/resources/{resource_id}` — workspace.resources.get
+- [x] `POST /v1/workspace/resources/{resource_id}/share` — workspace.resources.share
+- [x] `POST /v1/workspace/resources/{resource_id}/unshare` — workspace.resources.unshare
+- [x] `POST /v1/workspace/analytics/query/usage-by-product-over-time` — workspace.usage.getUsageByProductOverTime
 
 ## workspaces (1)
-- [ ] `POST /v1/workspaces/api-keys/disable` — workspaces.apiKeys.disable
+- [x] `POST /v1/workspaces/api-keys/disable` — workspaces.apiKeys.disable

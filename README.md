@@ -180,6 +180,49 @@ if err != nil {
 _, err = client.PronunciationDictionaries.Rules.Add(ctx, dict.ID, []elevenlabs.PronunciationRule{elevenlabs.AliasRule("SQL", "sequel")})
 ```
 
+### Dubbing Example
+
+```go
+f, _ := os.Open("talk.mp4")
+defer f.Close()
+dub, err := client.Dubbing.Create(ctx, &elevenlabs.DubbingCreateRequest{
+        File:       &elevenlabs.File{Reader: f, Name: "talk.mp4", ContentType: "video/mp4"},
+        TargetLang: "es",
+})
+if err != nil {
+        log.Fatal(err)
+}
+// once client.Dubbing.Get reports status "dubbed":
+audio, err := client.Dubbing.Audio.Get(ctx, dub.DubbingID, "es")
+```
+
+### Flows Example
+
+```go
+generation, err := client.Flows.Image.CreateAndWait(ctx, &elevenlabs.ImageGenerationRequest{
+        ModelID: "bytedance-seedream-5-lite",
+        Prompt:  "A corgi on a surfboard",
+}, &elevenlabs.FlowsWaitOptions{WaitTimeout: 5 * time.Minute})
+if err != nil {
+        log.Fatal(err)
+}
+fmt.Println(generation.Status, generation.ContentURL)
+```
+
+### Webhook Verification Example
+
+```go
+http.HandleFunc("/webhooks/elevenlabs", func(w http.ResponseWriter, r *http.Request) {
+        payload, _ := io.ReadAll(r.Body)
+        event, err := elevenlabs.ConstructWebhookEvent(payload, r.Header.Get(elevenlabs.WebhookSignatureHeader), secret)
+        if err != nil {
+                http.Error(w, "invalid signature", http.StatusUnauthorized)
+                return
+        }
+        log.Println(event.Type, string(event.Data))
+})
+```
+
 ### Pagination
 
 ```go

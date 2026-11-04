@@ -49,4 +49,22 @@
 // Cursor-paginated endpoints offer both the raw page call (e.g.
 // History.List) and an iterator over every item (e.g. History.ListAll)
 // usable with range-over-func.
+//
+// # Webhooks
+//
+// Workspace webhooks are managed through client.Webhooks. Deliveries are
+// signed with the webhook secret; verify them with ConstructWebhookEvent (or
+// client.Webhooks.ConstructEvent), passing the raw request body and the
+// ElevenLabs-Signature header. Verification failures match
+// ErrWebhookMissingSignature, ErrWebhookMissingSecret,
+// ErrWebhookInvalidHeader, ErrWebhookTimestamp or ErrWebhookSignature.
+//
+// # Long-running work
+//
+// Flows generations and template runs are asynchronous. Each create call has
+// a CreateAndWait variant that polls, honoring the server's Retry-After,
+// until the work is completed or failed. A failed result is returned rather
+// than reported as an error; exceeding FlowsWaitOptions.WaitTimeout returns a
+// *FlowsWaitTimeoutError (matching ErrFlowsWaitTimeout). In production prefer
+// a webhook over polling.
 package elevenlabs
