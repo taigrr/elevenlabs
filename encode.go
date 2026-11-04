@@ -71,6 +71,12 @@ func walkTagged(v any, tag string, fn func(name string, field reflect.Value) err
 	for i := range rt.NumField() {
 		sf := rt.Field(i)
 		name, _, _ := strings.Cut(sf.Tag.Get(tag), ",")
+		if name == "" && sf.Anonymous && sf.IsExported() && sf.Type.Kind() == reflect.Struct {
+			if err := walkTagged(rv.Field(i).Addr().Interface(), tag, fn); err != nil {
+				return err
+			}
+			continue
+		}
 		if name == "" || name == "-" || !sf.IsExported() {
 			continue
 		}

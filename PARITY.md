@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 232/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 0/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
+**Totals:** 277/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 45/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -45,51 +45,51 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `GET /v1/convai/knowledge-base/rag-index` — conversationalAi.ragIndexOverview
 - [ ] `GET /v1/convai/knowledge-base/{documentation_id}/rag-index` — conversationalAi.getDocumentRagIndexes
 - [ ] `DELETE /v1/convai/knowledge-base/{documentation_id}/rag-index/{rag_index_id}` — conversationalAi.deleteDocumentRagIndex
-- [ ] `POST /v1/convai/agents/create` — conversationalAi.agents.create
-- [ ] `GET /v1/convai/agents/{agent_id}` — conversationalAi.agents.get
-- [ ] `DELETE /v1/convai/agents/{agent_id}` — conversationalAi.agents.delete
-- [ ] `PATCH /v1/convai/agents/{agent_id}` — conversationalAi.agents.update
-- [ ] `GET /v1/convai/agents` — conversationalAi.agents.list
-- [ ] `POST /v1/convai/agents/{agent_id}/duplicate` — conversationalAi.agents.duplicate
-- [ ] `POST /v1/convai/agents/{agent_id}/simulate-conversation` — conversationalAi.agents.simulateConversation
-- [ ] `POST /v1/convai/agents/{agent_id}/simulate-conversation/stream` — conversationalAi.agents.simulateConversationStream (stream/binary)
-- [ ] `POST /v1/convai/agents/{agent_id}/run-tests` — conversationalAi.agents.runTests
-- [ ] `GET /v1/convai/agents/{agent_id}/branches` — conversationalAi.agents.branches.list
-- [ ] `POST /v1/convai/agents/{agent_id}/branches` — conversationalAi.agents.branches.create
-- [ ] `GET /v1/convai/agents/{agent_id}/branches/{branch_id}` — conversationalAi.agents.branches.get
-- [ ] `PATCH /v1/convai/agents/{agent_id}/branches/{branch_id}` — conversationalAi.agents.branches.update
-- [ ] `GET /v1/convai/agents/{agent_id}/branches/{source_branch_id}/merge-preview` — conversationalAi.agents.branches.previewMerge
-- [ ] `POST /v1/convai/agents/{agent_id}/branches/{source_branch_id}/merge` — conversationalAi.agents.branches.merge
-- [ ] `GET /v1/convai/agents/{agent_id}/branches/{branch_id}/rebase-preview` — conversationalAi.agents.branches.previewRebase
-- [ ] `POST /v1/convai/agents/{agent_id}/branches/{branch_id}/rebase` — conversationalAi.agents.branches.rebase
-- [ ] `GET /v1/convai/agents/{agent_id}/deployments` — conversationalAi.agents.deployments.list
-- [ ] `POST /v1/convai/agents/{agent_id}/deployments` — conversationalAi.agents.deployments.create
-- [ ] `POST /v1/convai/agents/{agent_id}/drafts` — conversationalAi.agents.drafts.create
-- [ ] `DELETE /v1/convai/agents/{agent_id}/drafts` — conversationalAi.agents.drafts.delete
-- [ ] `POST /v1/convai/agents/{agent_id}/hold-audio` — conversationalAi.agents.holdAudio.create
-- [ ] `DELETE /v1/convai/agents/{agent_id}/hold-audio` — conversationalAi.agents.holdAudio.delete
-- [ ] `GET /v1/convai/agent/{agent_id}/knowledge-base/size` — conversationalAi.agents.knowledgeBase.size
-- [ ] `GET /v1/convai/agents/{agent_id}/link` — conversationalAi.agents.link.get
-- [ ] `POST /v1/convai/agent/{agent_id}/llm-usage/calculate` — conversationalAi.agents.llmUsage.calculate
-- [ ] `GET /v1/convai/agents/{agent_id}/merge-proposals` — conversationalAi.agents.mergeProposals.list
-- [ ] `POST /v1/convai/agents/{agent_id}/merge-proposals` — conversationalAi.agents.mergeProposals.create
-- [ ] `GET /v1/convai/agents/{agent_id}/merge-proposals/{merge_proposal_id}` — conversationalAi.agents.mergeProposals.get
-- [ ] `PATCH /v1/convai/agents/{agent_id}/merge-proposals/{merge_proposal_id}` — conversationalAi.agents.mergeProposals.update
-- [ ] `POST /v1/convai/agents/{agent_id}/merge-proposals/{merge_proposal_id}/reviews` — conversationalAi.agents.mergeProposals.submitReview
-- [ ] `POST /v1/convai/agents/{agent_id}/merge-proposals/{merge_proposal_id}/comments` — conversationalAi.agents.mergeProposals.addComment
-- [ ] `POST /v1/convai/agents/{agent_id}/merge-proposals/{merge_proposal_id}/merge` — conversationalAi.agents.mergeProposals.merge
-- [ ] `GET /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures` — conversationalAi.agents.procedures.list
-- [ ] `POST /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures` — conversationalAi.agents.procedures.create
-- [ ] `POST /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/compile` — conversationalAi.agents.procedures.compile
-- [ ] `GET /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/{procedure_id}` — conversationalAi.agents.procedures.get
-- [ ] `DELETE /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/{procedure_id}` — conversationalAi.agents.procedures.remove
-- [ ] `GET /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/{procedure_id}/draft` — conversationalAi.agents.procedures.drafts.get
-- [ ] `DELETE /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/{procedure_id}/draft` — conversationalAi.agents.procedures.drafts.delete
-- [ ] `PATCH /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/{procedure_id}/draft` — conversationalAi.agents.procedures.drafts.update
-- [ ] `GET /v1/convai/agents/summaries` — conversationalAi.agents.summaries.get
-- [ ] `GET /v1/convai/agents/{agent_id}/versions/{version_id}` — conversationalAi.agents.versions.get
-- [ ] `GET /v1/convai/agents/{agent_id}/widget` — conversationalAi.agents.widget.get
-- [ ] `POST /v1/convai/agents/{agent_id}/avatar` — conversationalAi.agents.widget.avatar.create
+- [x] `POST /v1/convai/agents/create` — conversationalAi.agents.create
+- [x] `GET /v1/convai/agents/{agent_id}` — conversationalAi.agents.get
+- [x] `DELETE /v1/convai/agents/{agent_id}` — conversationalAi.agents.delete
+- [x] `PATCH /v1/convai/agents/{agent_id}` — conversationalAi.agents.update
+- [x] `GET /v1/convai/agents` — conversationalAi.agents.list
+- [x] `POST /v1/convai/agents/{agent_id}/duplicate` — conversationalAi.agents.duplicate
+- [x] `POST /v1/convai/agents/{agent_id}/simulate-conversation` — conversationalAi.agents.simulateConversation
+- [x] `POST /v1/convai/agents/{agent_id}/simulate-conversation/stream` — conversationalAi.agents.simulateConversationStream (stream/binary)
+- [x] `POST /v1/convai/agents/{agent_id}/run-tests` — conversationalAi.agents.runTests
+- [x] `GET /v1/convai/agents/{agent_id}/branches` — conversationalAi.agents.branches.list
+- [x] `POST /v1/convai/agents/{agent_id}/branches` — conversationalAi.agents.branches.create
+- [x] `GET /v1/convai/agents/{agent_id}/branches/{branch_id}` — conversationalAi.agents.branches.get
+- [x] `PATCH /v1/convai/agents/{agent_id}/branches/{branch_id}` — conversationalAi.agents.branches.update
+- [x] `GET /v1/convai/agents/{agent_id}/branches/{source_branch_id}/merge-preview` — conversationalAi.agents.branches.previewMerge
+- [x] `POST /v1/convai/agents/{agent_id}/branches/{source_branch_id}/merge` — conversationalAi.agents.branches.merge
+- [x] `GET /v1/convai/agents/{agent_id}/branches/{branch_id}/rebase-preview` — conversationalAi.agents.branches.previewRebase
+- [x] `POST /v1/convai/agents/{agent_id}/branches/{branch_id}/rebase` — conversationalAi.agents.branches.rebase
+- [x] `GET /v1/convai/agents/{agent_id}/deployments` — conversationalAi.agents.deployments.list
+- [x] `POST /v1/convai/agents/{agent_id}/deployments` — conversationalAi.agents.deployments.create
+- [x] `POST /v1/convai/agents/{agent_id}/drafts` — conversationalAi.agents.drafts.create
+- [x] `DELETE /v1/convai/agents/{agent_id}/drafts` — conversationalAi.agents.drafts.delete
+- [x] `POST /v1/convai/agents/{agent_id}/hold-audio` — conversationalAi.agents.holdAudio.create
+- [x] `DELETE /v1/convai/agents/{agent_id}/hold-audio` — conversationalAi.agents.holdAudio.delete
+- [x] `GET /v1/convai/agent/{agent_id}/knowledge-base/size` — conversationalAi.agents.knowledgeBase.size
+- [x] `GET /v1/convai/agents/{agent_id}/link` — conversationalAi.agents.link.get
+- [x] `POST /v1/convai/agent/{agent_id}/llm-usage/calculate` — conversationalAi.agents.llmUsage.calculate
+- [x] `GET /v1/convai/agents/{agent_id}/merge-proposals` — conversationalAi.agents.mergeProposals.list
+- [x] `POST /v1/convai/agents/{agent_id}/merge-proposals` — conversationalAi.agents.mergeProposals.create
+- [x] `GET /v1/convai/agents/{agent_id}/merge-proposals/{merge_proposal_id}` — conversationalAi.agents.mergeProposals.get
+- [x] `PATCH /v1/convai/agents/{agent_id}/merge-proposals/{merge_proposal_id}` — conversationalAi.agents.mergeProposals.update
+- [x] `POST /v1/convai/agents/{agent_id}/merge-proposals/{merge_proposal_id}/reviews` — conversationalAi.agents.mergeProposals.submitReview
+- [x] `POST /v1/convai/agents/{agent_id}/merge-proposals/{merge_proposal_id}/comments` — conversationalAi.agents.mergeProposals.addComment
+- [x] `POST /v1/convai/agents/{agent_id}/merge-proposals/{merge_proposal_id}/merge` — conversationalAi.agents.mergeProposals.merge
+- [x] `GET /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures` — conversationalAi.agents.procedures.list
+- [x] `POST /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures` — conversationalAi.agents.procedures.create
+- [x] `POST /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/compile` — conversationalAi.agents.procedures.compile
+- [x] `GET /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/{procedure_id}` — conversationalAi.agents.procedures.get
+- [x] `DELETE /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/{procedure_id}` — conversationalAi.agents.procedures.remove
+- [x] `GET /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/{procedure_id}/draft` — conversationalAi.agents.procedures.drafts.get
+- [x] `DELETE /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/{procedure_id}/draft` — conversationalAi.agents.procedures.drafts.delete
+- [x] `PATCH /v1/convai/agents/{agent_id}/branches/{branch_id}/procedures/{procedure_id}/draft` — conversationalAi.agents.procedures.drafts.update
+- [x] `GET /v1/convai/agents/summaries` — conversationalAi.agents.summaries.get
+- [x] `GET /v1/convai/agents/{agent_id}/versions/{version_id}` — conversationalAi.agents.versions.get
+- [x] `GET /v1/convai/agents/{agent_id}/widget` — conversationalAi.agents.widget.get
+- [x] `POST /v1/convai/agents/{agent_id}/avatar` — conversationalAi.agents.widget.avatar.create
 - [ ] `GET /v1/convai/analytics/live-count` — conversationalAi.analytics.liveCount.get
 - [ ] `POST /v1/convai/batch-calling/submit` — conversationalAi.batchCalls.create
 - [ ] `GET /v1/convai/batch-calling/workspace` — conversationalAi.batchCalls.list

@@ -147,6 +147,9 @@ type Client struct {
 	Dubbing *DubbingService
 	// Studio manages Studio projects, chapters, snapshots and podcasts.
 	Studio *StudioService
+	// ConversationalAI manages agents, conversations, knowledge bases, tools,
+	// tests, secrets and workspace settings.
+	ConversationalAI *ConversationalAIService
 }
 
 // NewClient returns a Client configured by opts. Without WithAPIKey the key
@@ -202,6 +205,7 @@ func newClient(cfg *config) *Client {
 		Studio:                    newStudioService(cfg),
 		Dubbing:                   newDubbingService(cfg),
 		Productions:               newProductionsService(cfg),
+		ConversationalAI:          newConversationalAIService(cfg),
 		Workspaces:                &WorkspacesService{APIKeys: &WorkspacesAPIKeysService{cfg: cfg}},
 	}
 }

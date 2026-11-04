@@ -13,6 +13,7 @@ import (
 func endpointCases() []endpointCase {
 	cases := append(append(coreEndpointCases(), audioEndpointCases()...), libraryEndpointCases()...)
 	cases = append(cases, platformEndpointCases()...)
+	cases = append(cases, convaiEndpointCases()...)
 	return append(cases, productionEndpointCases()...)
 }
 
