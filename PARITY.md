@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 332/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 100/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
+**Totals:** 339/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 107/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -200,13 +200,13 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [ ] `PATCH /v1/convai/test-invocations/{test_invocation_id}` — conversationalAi.tests.invocations.update
 - [ ] `POST /v1/convai/test-invocations/{test_invocation_id}/cancel` — conversationalAi.tests.invocations.cancel
 - [ ] `POST /v1/convai/test-invocations/{test_invocation_id}/resubmit` — conversationalAi.tests.invocations.resubmit
-- [ ] `GET /v1/convai/tools` — conversationalAi.tools.list
-- [ ] `POST /v1/convai/tools` — conversationalAi.tools.create
-- [ ] `GET /v1/convai/tools/{tool_id}` — conversationalAi.tools.get
-- [ ] `DELETE /v1/convai/tools/{tool_id}` — conversationalAi.tools.delete
-- [ ] `PATCH /v1/convai/tools/{tool_id}` — conversationalAi.tools.update
-- [ ] `GET /v1/convai/tools/{tool_id}/dependent-agents` — conversationalAi.tools.getDependentAgents
-- [ ] `GET /v1/convai/tools/{tool_id}/executions` — conversationalAi.tools.executions.get
+- [x] `GET /v1/convai/tools` — conversationalAi.tools.list
+- [x] `POST /v1/convai/tools` — conversationalAi.tools.create
+- [x] `GET /v1/convai/tools/{tool_id}` — conversationalAi.tools.get
+- [x] `DELETE /v1/convai/tools/{tool_id}` — conversationalAi.tools.delete
+- [x] `PATCH /v1/convai/tools/{tool_id}` — conversationalAi.tools.update
+- [x] `GET /v1/convai/tools/{tool_id}/dependent-agents` — conversationalAi.tools.getDependentAgents
+- [x] `GET /v1/convai/tools/{tool_id}/executions` — conversationalAi.tools.executions.get
 - [ ] `GET /v1/convai/agents/{agent_id}/triage-tickets` — conversationalAi.triageTickets.list
 - [ ] `POST /v1/convai/agents/{agent_id}/triage-tickets` — conversationalAi.triageTickets.createManual
 - [ ] `GET /v1/convai/triage-tickets` — conversationalAi.triageTickets.listForWorkspace

@@ -11,6 +11,7 @@ func convaiEndpointCases() []endpointCase {
 	cases := convaiAgentEndpointCases()
 	cases = append(cases, convaiConversationEndpointCases()...)
 	cases = append(cases, convaiKnowledgeBaseEndpointCases()...)
+	cases = append(cases, convaiToolEndpointCases()...)
 	return cases
 }
 
