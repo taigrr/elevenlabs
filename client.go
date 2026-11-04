@@ -106,7 +106,9 @@ func WithUserAgent(ua string) Option {
 type Client struct {
 	cfg *config
 
-	Assets                    *AssetsService
+	Assets *AssetsService
+	// AudioEffects lists the presets usable in audio_effects.
+	AudioEffects              *AudioEffectsService
 	AudioIsolation            *AudioIsolationService
 	AudioNative               *AudioNativeService
 	ForcedAlignment           *ForcedAlignmentService
@@ -179,6 +181,7 @@ func newClient(cfg *config) *Client {
 	return &Client{
 		cfg:                       cfg,
 		Assets:                    &AssetsService{cfg: cfg},
+		AudioEffects:              &AudioEffectsService{cfg: cfg},
 		AudioIsolation:            &AudioIsolationService{cfg: cfg},
 		AudioNative:               &AudioNativeService{cfg: cfg},
 		ForcedAlignment:           &ForcedAlignmentService{cfg: cfg},
