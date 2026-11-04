@@ -59,6 +59,16 @@
 // ErrWebhookMissingSignature, ErrWebhookMissingSecret,
 // ErrWebhookInvalidHeader, ErrWebhookTimestamp or ErrWebhookSignature.
 //
+// # Conversational AI
+//
+// client.ConversationalAI groups the agents platform: Agents (with Branches,
+// Deployments, Drafts, MergeProposals, Procedures, Widget, ...),
+// Conversations (audio, feedback, files, messages, tags), KnowledgeBase
+// (documents, chunks, crawl jobs, RAG indexes), Tools, Tests, Settings,
+// Secrets and Dashboard. Frequently used configuration fields are typed;
+// deeply nested or polymorphic sections are json.RawMessage. Batch
+// endpoints return map[string]BatchResult[T] keyed by the requested ID.
+//
 // # Long-running work
 //
 // Flows generations and template runs are asynchronous. Each create call has

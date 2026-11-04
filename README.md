@@ -209,6 +209,47 @@ if err != nil {
 fmt.Println(generation.Status, generation.ContentURL)
 ```
 
+### Conversational AI Example
+
+```go
+agent, err := client.ConversationalAI.Agents.Create(ctx, &elevenlabs.AgentCreateRequest{
+        Name: "Support",
+        ConversationConfig: elevenlabs.ConversationalConfig{
+                Agent: &elevenlabs.AgentConfig{
+                        FirstMessage: "Hi, how can I help?",
+                        Prompt:       &elevenlabs.AgentPrompt{Prompt: "You are a helpful agent.", LLM: elevenlabs.LLMGPT4oMini},
+                },
+                TTS: &elevenlabs.AgentTTSConfig{VoiceID: "21m00Tcm4TlvDq8ikWAM"},
+        },
+})
+if err != nil {
+        log.Fatal(err)
+}
+
+f, _ := os.Open("faq.pdf")
+defer f.Close()
+doc, err := client.ConversationalAI.KnowledgeBase.Documents.CreateFromFile(ctx, &elevenlabs.DocumentFromFileRequest{
+        File: elevenlabs.NewFile(f, "faq.pdf"),
+})
+if err != nil {
+        log.Fatal(err)
+}
+fmt.Println("document", doc.ID)
+
+for conv, err := range client.ConversationalAI.Conversations.ListAll(ctx, &elevenlabs.ConversationListRequest{
+        ConversationFilter: elevenlabs.ConversationFilter{AgentID: agent.AgentID},
+}) {
+        if err != nil {
+                log.Fatal(err)
+        }
+        audio, err := client.ConversationalAI.Conversations.Audio.Get(ctx, conv.ConversationID)
+        // ... copy audio somewhere, then audio.Close()
+}
+```
+
+Large agent configuration sections (platform settings, workflows, tool
+schemas) are exposed as `json.RawMessage` so they round-trip unchanged.
+
 ### Webhook Verification Example
 
 ```go
