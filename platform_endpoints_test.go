@@ -96,8 +96,10 @@ func platformEndpointCases() []endpointCase {
 			},
 		},
 		{
-			name:   "serviceAccounts.apiKeys.delete",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.ServiceAccounts.APIKeys.Delete(ctx, "s", "k") },
+			name: "serviceAccounts.apiKeys.delete",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.ServiceAccounts.APIKeys.Delete(ctx, "s", "k")
+			},
 			method: http.MethodDelete, path: "/v1/service-accounts/s/api-keys/k", respBody: `{}`,
 		},
 		{
@@ -113,8 +115,10 @@ func platformEndpointCases() []endpointCase {
 			respBody: `{}`,
 		},
 		{
-			name:   "serviceAccounts.apiKeys.disable",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.ServiceAccounts.APIKeys.Disable(ctx, "s", "k") },
+			name: "serviceAccounts.apiKeys.disable",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.ServiceAccounts.APIKeys.Disable(ctx, "s", "k")
+			},
 			method: http.MethodPost, path: "/v1/service-accounts/s/api-keys/k/disable", respBody: `{}`,
 		},
 		// environment variables
@@ -146,8 +150,10 @@ func platformEndpointCases() []endpointCase {
 			method: http.MethodGet, path: "/v1/convai/environment-variables/e", respBody: `{"id":"e"}`,
 		},
 		{
-			name:   "environmentVariables.delete",
-			call:   func(ctx context.Context, c *Client) (any, error) { return voidCall(c.EnvironmentVariables.Delete(ctx, "e")) },
+			name: "environmentVariables.delete",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return voidCall(c.EnvironmentVariables.Delete(ctx, "e"))
+			},
 			method: http.MethodDelete, path: "/v1/convai/environment-variables/e",
 		},
 		{
@@ -314,13 +320,17 @@ func platformEndpointCases() []endpointCase {
 			respBody: `[{"name":"eng","id":"g","members_emails":["a@b"]}]`,
 		},
 		{
-			name:   "workspace.groups.members.remove",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Workspace.Groups.Members.Remove(ctx, "g", "a@b") },
+			name: "workspace.groups.members.remove",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Workspace.Groups.Members.Remove(ctx, "g", "a@b")
+			},
 			method: http.MethodPost, path: "/v1/workspace/groups/g/members/remove", body: `{"email":"a@b"}`, respBody: `{"status":"ok"}`,
 		},
 		{
-			name:   "workspace.groups.members.add",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Workspace.Groups.Members.Add(ctx, "g", "a@b") },
+			name: "workspace.groups.members.add",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Workspace.Groups.Members.Add(ctx, "g", "a@b")
+			},
 			method: http.MethodPost, path: "/v1/workspace/groups/g/members", body: `{"email":"a@b"}`, respBody: `{"status":"ok"}`,
 		},
 		{
@@ -461,8 +471,10 @@ func platformEndpointCases() []endpointCase {
 			method: http.MethodGet, path: "/v1/flows/video/v", respBody: `{"id":"v","status":"generating"}`,
 		},
 		{
-			name:   "flows.textToSpeech.list",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Flows.TextToSpeech.List(ctx, &MediaGenerationListRequest{Cursor: "c"}) },
+			name: "flows.textToSpeech.list",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Flows.TextToSpeech.List(ctx, &MediaGenerationListRequest{Cursor: "c"})
+			},
 			method: http.MethodGet, path: "/v1/flows/text-to-speech", query: "cursor=c", respBody: `{"generations":[]}`,
 		},
 		{

@@ -56,8 +56,10 @@ func productionEndpointCases() []endpointCase {
 			respBody: `{"order_id":"o","state":"submitted","submitted_at":"2026-01-02T03:04:05Z"}`,
 		},
 		{
-			name:   "productions.orders.deliverables.list",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Productions.Orders.Deliverables.List(ctx, "o") },
+			name: "productions.orders.deliverables.list",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Productions.Orders.Deliverables.List(ctx, "o")
+			},
 			method: http.MethodGet, path: "/v1/productions/orders/o/deliverables",
 			respBody: `{"deliverables":[{"signed_url":"u","content_type":"audio/mpeg","name":"n"}]}`,
 		},
@@ -76,8 +78,10 @@ func productionEndpointCases() []endpointCase {
 			},
 		},
 		{
-			name:   "productions.orders.items.remove",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Productions.Orders.Items.Remove(ctx, "o", "i") },
+			name: "productions.orders.items.remove",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Productions.Orders.Items.Remove(ctx, "o", "i")
+			},
 			method: http.MethodDelete, path: "/v1/productions/orders/o/items/i", respBody: `{"success":true}`,
 		},
 		{
@@ -104,8 +108,10 @@ func productionEndpointCases() []endpointCase {
 			respBody: `{"media_id":"m"}`,
 		},
 		{
-			name:   "productions.orders.media.get",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Productions.Orders.Media.Get(ctx, "o", "m") },
+			name: "productions.orders.media.get",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Productions.Orders.Media.Get(ctx, "o", "m")
+			},
 			method: http.MethodGet, path: "/v1/productions/orders/o/media/m",
 			respBody: `{"media_id":"m","name":"n","content_type":"video/mp4","signed_url":"u"}`,
 		},
@@ -231,19 +237,25 @@ func productionEndpointCases() []endpointCase {
 			respBody: `{"language_id":"l","project_id":"p","target_language":"es","status":"queued","revision":0,"created_at":"2026-01-02T03:04:05Z","updated_at":"2026-01-02T03:04:05Z"}`,
 		},
 		{
-			name:   "dubbing.project.language.get",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Dubbing.Project.Language.Get(ctx, "p", "l") },
+			name: "dubbing.project.language.get",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Dubbing.Project.Language.Get(ctx, "p", "l")
+			},
 			method: http.MethodGet, path: "/v1/dubbing/project/p/language/l",
 			respBody: `{"language_id":"l","status":"completed","outputs":{"lossless_audio":"u"},"revision":1,"created_at":"2026-01-02T03:04:05Z","updated_at":"2026-01-02T03:04:05Z"}`,
 		},
 		{
-			name:   "dubbing.project.language.delete",
-			call:   func(ctx context.Context, c *Client) (any, error) { return voidCall(c.Dubbing.Project.Language.Delete(ctx, "p", "l")) },
+			name: "dubbing.project.language.delete",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return voidCall(c.Dubbing.Project.Language.Delete(ctx, "p", "l"))
+			},
 			method: http.MethodDelete, path: "/v1/dubbing/project/p/language/l",
 		},
 		{
-			name:   "dubbing.project.language.transcript.get",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Dubbing.Project.Language.Transcript.Get(ctx, "p", "l") },
+			name: "dubbing.project.language.transcript.get",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Dubbing.Project.Language.Transcript.Get(ctx, "p", "l")
+			},
 			method: http.MethodGet, path: "/v1/dubbing/project/p/language/l/transcript",
 			respBody: `{"target_language":"es","segments":[{"id":"s","speaker_id":"a","start_s":0,"end_s":1,"source_text":"hi","translation":"hola"}],"revision":2}`,
 		},
@@ -329,8 +341,10 @@ func productionEndpointCases() []endpointCase {
 			body: `{"segment_ids":["a"],"speaker_id":"sp"}`, respBody: `{"version":4}`,
 		},
 		{
-			name:   "dubbing.resource.transcribe",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Dubbing.Resource.Transcribe(ctx, "d", []string{"a"}) },
+			name: "dubbing.resource.transcribe",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Dubbing.Resource.Transcribe(ctx, "d", []string{"a"})
+			},
 			method: http.MethodPost, path: "/v1/dubbing/resource/d/transcribe", body: `{"segments":["a"]}`, respBody: `{"version":4}`,
 		},
 		{
@@ -354,8 +368,10 @@ func productionEndpointCases() []endpointCase {
 			body: `{"render_type":"mp3","normalize_volume":true}`, respBody: `{"version":5,"render_id":"r"}`,
 		},
 		{
-			name:   "dubbing.resource.language.add",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Dubbing.Resource.Language.Add(ctx, "d", "fr") },
+			name: "dubbing.resource.language.add",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Dubbing.Resource.Language.Add(ctx, "d", "fr")
+			},
 			method: http.MethodPost, path: "/v1/dubbing/resource/d/language", body: `{"language":"fr"}`, respBody: `{"version":6}`,
 		},
 		{
@@ -367,8 +383,10 @@ func productionEndpointCases() []endpointCase {
 			body: `{"start_time":0.5,"text":"hola"}`, respBody: `{"version":7}`,
 		},
 		{
-			name:   "dubbing.resource.segment.delete",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Dubbing.Resource.Segment.Delete(ctx, "d", "s") },
+			name: "dubbing.resource.segment.delete",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Dubbing.Resource.Segment.Delete(ctx, "d", "s")
+			},
 			method: http.MethodDelete, path: "/v1/dubbing/resource/d/segment/s", respBody: `{"version":8}`,
 		},
 		{
@@ -489,8 +507,10 @@ func productionEndpointCases() []endpointCase {
 			body: `{"name":"c","from_url":"https://x"}`, respBody: `{"chapter":{"chapter_id":"c","content":{"blocks":[]}}}`,
 		},
 		{
-			name:   "studio.projects.chapters.get",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Studio.Projects.Chapters.Get(ctx, "p", "c") },
+			name: "studio.projects.chapters.get",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Studio.Projects.Chapters.Get(ctx, "p", "c")
+			},
 			method: http.MethodGet, path: "/v1/studio/projects/p/chapters/c",
 			respBody: `{"chapter_id":"c","name":"n","state":"converting","content":{"blocks":[{"block_id":"b","nodes":[{"type":"tts_node","text":"hi","voice_id":"v","project_voice_ref_id":"r"}]}]}}`,
 			check: func(t *testing.T, r any) {
@@ -510,13 +530,17 @@ func productionEndpointCases() []endpointCase {
 			respBody: `{"chapter":{"chapter_id":"c"}}`,
 		},
 		{
-			name:   "studio.projects.chapters.delete",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Studio.Projects.Chapters.Delete(ctx, "p", "c") },
+			name: "studio.projects.chapters.delete",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Studio.Projects.Chapters.Delete(ctx, "p", "c")
+			},
 			method: http.MethodDelete, path: "/v1/studio/projects/p/chapters/c", respBody: `{"status":"ok"}`,
 		},
 		{
-			name:   "studio.projects.chapters.convert",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Studio.Projects.Chapters.Convert(ctx, "p", "c") },
+			name: "studio.projects.chapters.convert",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Studio.Projects.Chapters.Convert(ctx, "p", "c")
+			},
 			method: http.MethodPost, path: "/v1/studio/projects/p/chapters/c/convert", respBody: `{"status":"ok"}`,
 		},
 		{
@@ -570,8 +594,10 @@ func productionEndpointCases() []endpointCase {
 			method: http.MethodGet, path: "/v1/studio/projects/p/snapshots", respBody: `{"snapshots":[]}`,
 		},
 		{
-			name:   "studio.projects.snapshots.get",
-			call:   func(ctx context.Context, c *Client) (any, error) { return c.Studio.Projects.Snapshots.Get(ctx, "p", "s") },
+			name: "studio.projects.snapshots.get",
+			call: func(ctx context.Context, c *Client) (any, error) {
+				return c.Studio.Projects.Snapshots.Get(ctx, "p", "s")
+			},
 			method: http.MethodGet, path: "/v1/studio/projects/p/snapshots/s",
 			respBody: `{"project_snapshot_id":"s","audio_duration_secs":12.5,"character_alignments":[]}`,
 			check: func(t *testing.T, r any) {
