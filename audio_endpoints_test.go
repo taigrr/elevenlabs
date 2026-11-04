@@ -11,7 +11,8 @@ import (
 )
 
 func endpointCases() []endpointCase {
-	return append(append(coreEndpointCases(), audioEndpointCases()...), libraryEndpointCases()...)
+	cases := append(append(coreEndpointCases(), audioEndpointCases()...), libraryEndpointCases()...)
+	return append(cases, platformEndpointCases()...)
 }
 
 func testFile(name, data string) File {
