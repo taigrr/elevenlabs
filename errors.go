@@ -77,6 +77,7 @@ func (v *ValidationError) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// String formats the validation error as "loc: msg".
 func (v ValidationError) String() string {
 	if len(v.Loc) == 0 {
 		return v.Msg

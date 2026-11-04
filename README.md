@@ -355,6 +355,21 @@ http.HandleFunc("/webhooks/elevenlabs", func(w http.ResponseWriter, r *http.Requ
 })
 ```
 
+### Speech Engine Server Example
+
+ElevenLabs connects to your server over a WebSocket and sends user
+transcripts; you reply with LLM output. `Handler` verifies the signed
+`X-Elevenlabs-Speech-Engine-Authorization` JWT with your API key.
+
+```go
+http.Handle("/api/speech-engine/ws", client.SpeechEngine.Handler(elevenlabs.SpeechEngineCallbacks{
+        OnTranscript: func(ctx context.Context, s *elevenlabs.SpeechEngineSession, t []elevenlabs.SpeechEngineTranscriptMessage) error {
+                // ctx is cancelled when the user interrupts with a new transcript.
+                return s.SendResponse(ctx, "You said: "+t[len(t)-1].Content)
+        },
+}))
+```
+
 ### Pagination
 
 ```go

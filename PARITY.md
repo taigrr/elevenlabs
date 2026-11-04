@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 418/419 endpoints covered; realtime WebSocket sockets: 8/8.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 186/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
+**Totals:** 419/419 endpoints covered; realtime WebSocket sockets: 8/8.  assets: 4/4; audioEffects: 1/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 186/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -13,7 +13,7 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] Streaming multipart uploads and streaming binary / NDJSON responses
 - [x] WebSocket realtime: TTS stream-input, multi-stream-input, dialogue stream-input, STT realtime, dubbing/translation realtime (see realtime section)
 - [x] Conversational AI websocket (see realtime section)
-- [ ] Speech engine WebSocket server / session helpers (src/wrapper/speech-engine; deferred to the realtime batch, needs a WebSocket dependency)
+- [x] Speech engine WebSocket server / session helpers (src/wrapper/speech-engine) — `SpeechEngine.Handler`, `SpeechEngine.VerifyRequest`, `VerifySpeechEngineToken`, `SpeechEngineSession`, `ExtractLLMText`
 - [x] Webhooks signature verification (src/wrapper/webhooks.ts)
 - [x] Flows `createAndWait` polling helpers (src/wrapper/flows.ts)
 - [x] Music multipart helper (src/wrapper/music.ts)
@@ -36,7 +36,7 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `DELETE /v1/assets/{asset_id}` — assets.delete
 
 ## audioEffects (1)
-- [ ] `GET /v1/audio-effects/catalog` — audioEffects.getCatalog
+- [x] `GET /v1/audio-effects/catalog` — audioEffects.getCatalog
 
 ## audioIsolation (4)
 - [x] `POST /v1/audio-isolation` — audioIsolation.convert (stream/binary)

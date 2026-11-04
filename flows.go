@@ -242,6 +242,7 @@ type FlowsWaitTimeoutError struct {
 	LastStatus  GenerationStatus
 }
 
+// Error implements error.
 func (e *FlowsWaitTimeoutError) Error() string {
 	if e.TemplateID != "" {
 		return fmt.Sprintf("elevenlabs: template run %s of template %s is still %s after %s", e.ID, e.TemplateID, e.LastStatus, e.WaitTimeout)
