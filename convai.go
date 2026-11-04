@@ -26,6 +26,8 @@ type ConversationalAIService struct {
 	KnowledgeBase *KnowledgeBaseService
 	// Tools manages workspace tools.
 	Tools *ToolsService
+	// Tests manages agent tests, test folders and test invocations.
+	Tests *AgentTestsService
 	// Settings reads and updates workspace conversational AI settings.
 	Settings *ConvAISettingsService
 	// Secrets manages workspace secrets.
@@ -41,6 +43,7 @@ func newConversationalAIService(cfg *config) *ConversationalAIService {
 		Conversations: newConversationsService(cfg),
 		KnowledgeBase: newKnowledgeBaseService(cfg),
 		Tools:         &ToolsService{cfg: cfg, Executions: &ToolExecutionsService{cfg: cfg}},
+		Tests:         &AgentTestsService{cfg: cfg, Folders: &AgentTestFoldersService{cfg: cfg}, Invocations: &TestInvocationsService{cfg: cfg}},
 		Settings:      &ConvAISettingsService{cfg: cfg},
 		Secrets:       &ConvAISecretsService{cfg: cfg},
 		Dashboard:     &ConvAIDashboardService{Settings: &ConvAIDashboardSettingsService{cfg: cfg}},

@@ -13,6 +13,7 @@ func convaiEndpointCases() []endpointCase {
 	cases = append(cases, convaiKnowledgeBaseEndpointCases()...)
 	cases = append(cases, convaiToolEndpointCases()...)
 	cases = append(cases, convaiSettingsEndpointCases()...)
+	cases = append(cases, convaiTestingEndpointCases()...)
 	return cases
 }
 

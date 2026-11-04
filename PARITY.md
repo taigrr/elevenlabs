@@ -2,7 +2,7 @@
 
 Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `src/api/resources/**/client/Client.ts`. `[x]` = implemented on the `parity` branch (package `github.com/taigrr/elevenlabs/v2`).
 
-**Totals:** 349/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 117/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
+**Totals:** 365/419 endpoints covered.  assets: 4/4; audioEffects: 0/1; audioIsolation: 4/4; audioNative: 4/4; conversationalAi: 133/186; dubbing: 37/37; environmentVariables: 5/5; environments: 3/3; flows: 14/14; forcedAlignment: 1/1; history: 5/5; models: 1/1; music: 13/13; productions: 11/11; pronunciationDictionaries: 9/9; samples: 1/1; serviceAccounts: 7/7; speechEngine: 6/6; speechToSpeech: 2/2; speechToText: 3/3; studio: 23/23; textToDialogue: 4/4; textToSoundEffects: 1/1; textToSpeech: 4/4; textToVoice: 5/5; tokens: 1/1; usage: 1/1; user: 2/2; voices: 36/36; webhooks: 4/4; workspace: 20/20; workspaces: 1/1
 
 ## core (beyond REST, not counted in totals)
 - [x] Typed `*APIError` + sentinels (400/401/403/404/409/422/425/429/5xx) and `ErrTimeout` (ElevenLabsError/ElevenLabsTimeoutError)
@@ -184,22 +184,22 @@ Generated from elevenlabs-js fe015f4 (Mon Nov 2 17:14:23 2026 +0100) v2.75.0, `s
 - [x] `GET /v1/convai/settings` — conversationalAi.settings.get
 - [x] `PATCH /v1/convai/settings` — conversationalAi.settings.update
 - [ ] `POST /v1/convai/sip-trunk/outbound-call` — conversationalAi.sipTrunk.outboundCall
-- [ ] `POST /v1/convai/agent-testing/create` — conversationalAi.tests.create
-- [ ] `POST /v1/convai/agent-testing/bulk-move` — conversationalAi.tests.move
-- [ ] `GET /v1/convai/agent-testing/{test_id}` — conversationalAi.tests.get
-- [ ] `PUT /v1/convai/agent-testing/{test_id}` — conversationalAi.tests.update
-- [ ] `DELETE /v1/convai/agent-testing/{test_id}` — conversationalAi.tests.delete
-- [ ] `POST /v1/convai/agent-testing/summaries` — conversationalAi.tests.summaries
-- [ ] `GET /v1/convai/agent-testing` — conversationalAi.tests.list
-- [ ] `POST /v1/convai/agent-testing/folders` — conversationalAi.tests.folders.create
-- [ ] `GET /v1/convai/agent-testing/folders/{folder_id}` — conversationalAi.tests.folders.get
-- [ ] `DELETE /v1/convai/agent-testing/folders/{folder_id}` — conversationalAi.tests.folders.delete
-- [ ] `PATCH /v1/convai/agent-testing/folders/{folder_id}` — conversationalAi.tests.folders.update
-- [ ] `GET /v1/convai/test-invocations` — conversationalAi.tests.invocations.list
-- [ ] `GET /v1/convai/test-invocations/{test_invocation_id}` — conversationalAi.tests.invocations.get
-- [ ] `PATCH /v1/convai/test-invocations/{test_invocation_id}` — conversationalAi.tests.invocations.update
-- [ ] `POST /v1/convai/test-invocations/{test_invocation_id}/cancel` — conversationalAi.tests.invocations.cancel
-- [ ] `POST /v1/convai/test-invocations/{test_invocation_id}/resubmit` — conversationalAi.tests.invocations.resubmit
+- [x] `POST /v1/convai/agent-testing/create` — conversationalAi.tests.create
+- [x] `POST /v1/convai/agent-testing/bulk-move` — conversationalAi.tests.move
+- [x] `GET /v1/convai/agent-testing/{test_id}` — conversationalAi.tests.get
+- [x] `PUT /v1/convai/agent-testing/{test_id}` — conversationalAi.tests.update
+- [x] `DELETE /v1/convai/agent-testing/{test_id}` — conversationalAi.tests.delete
+- [x] `POST /v1/convai/agent-testing/summaries` — conversationalAi.tests.summaries
+- [x] `GET /v1/convai/agent-testing` — conversationalAi.tests.list
+- [x] `POST /v1/convai/agent-testing/folders` — conversationalAi.tests.folders.create
+- [x] `GET /v1/convai/agent-testing/folders/{folder_id}` — conversationalAi.tests.folders.get
+- [x] `DELETE /v1/convai/agent-testing/folders/{folder_id}` — conversationalAi.tests.folders.delete
+- [x] `PATCH /v1/convai/agent-testing/folders/{folder_id}` — conversationalAi.tests.folders.update
+- [x] `GET /v1/convai/test-invocations` — conversationalAi.tests.invocations.list
+- [x] `GET /v1/convai/test-invocations/{test_invocation_id}` — conversationalAi.tests.invocations.get
+- [x] `PATCH /v1/convai/test-invocations/{test_invocation_id}` — conversationalAi.tests.invocations.update
+- [x] `POST /v1/convai/test-invocations/{test_invocation_id}/cancel` — conversationalAi.tests.invocations.cancel
+- [x] `POST /v1/convai/test-invocations/{test_invocation_id}/resubmit` — conversationalAi.tests.invocations.resubmit
 - [x] `GET /v1/convai/tools` — conversationalAi.tools.list
 - [x] `POST /v1/convai/tools` — conversationalAi.tools.create
 - [x] `GET /v1/convai/tools/{tool_id}` — conversationalAi.tools.get
