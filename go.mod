@@ -4,7 +4,10 @@ go 1.27.2
 
 toolchain go1.27.3
 
-require github.com/gopxl/beep/v2 v2.1.1
+require (
+	github.com/coder/websocket v1.8.15
+	github.com/gopxl/beep/v2 v2.1.1
+)
 
 require (
 	github.com/ebitengine/oto/v3 v3.4.1 // indirect

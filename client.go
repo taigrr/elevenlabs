@@ -122,9 +122,11 @@ type Client struct {
 	TextToSpeech              *TextToSpeechService
 	TextToVoice               *TextToVoiceService
 	Tokens                    *TokensService
-	Usage                     *UsageService
-	User                      *UserService
-	Voices                    *VoicesService
+	// Translation holds the realtime translation WebSocket.
+	Translation *TranslationService
+	Usage       *UsageService
+	User        *UserService
+	Voices      *VoicesService
 	// Webhooks manages workspace webhooks and verifies webhook deliveries.
 	Webhooks *WebhooksService
 	// ServiceAccounts manages service accounts and their API keys.
@@ -192,6 +194,7 @@ func newClient(cfg *config) *Client {
 		TextToSpeech:              &TextToSpeechService{cfg: cfg},
 		TextToVoice:               newTextToVoiceService(cfg),
 		Tokens:                    newTokensService(cfg),
+		Translation:               &TranslationService{cfg: cfg},
 		Usage:                     &UsageService{cfg: cfg},
 		User:                      newUserService(cfg),
 		Voices:                    newVoicesService(cfg),

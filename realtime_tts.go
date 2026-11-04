@@ -1,0 +1,403 @@
+package elevenlabs
+
+import (
+	"context"
+	"encoding/json"
+	"io"
+)
+
+// TextToSpeechStreamInputRequest holds the query parameters of the
+// text-to-speech WebSocket endpoints (stream-input and multi-stream-input).
+type TextToSpeechStreamInputRequest struct {
+	// ModelID defaults to eleven_multilingual_v2 on the server.
+	ModelID string `query:"model_id"`
+	// LanguageCode is an ISO 639-1 code enforcing a language.
+	LanguageCode string `query:"language_code"`
+	// EnableLogging set to false enables zero retention mode.
+	EnableLogging *bool `query:"enable_logging"`
+	// EnableSSMLParsing enables SSML parsing of the input text.
+	EnableSSMLParsing *bool `query:"enable_ssml_parsing"`
+	// OutputFormat selects the audio encoding of the returned chunks.
+	OutputFormat OutputFormat `query:"output_format"`
+	// InactivityTimeout is the number of seconds (max 180) the connection
+	// stays open without input.
+	InactivityTimeout *int `query:"inactivity_timeout"`
+	// SyncAlignment includes alignment data with every audio chunk.
+	SyncAlignment *bool `query:"sync_alignment"`
+	// AutoMode reduces latency by disabling chunk scheduling and buffering.
+	AutoMode *bool `query:"auto_mode"`
+	// ApplyTextNormalization controls text normalization.
+	ApplyTextNormalization TextNormalization `query:"apply_text_normalization"`
+	// Seed makes generation deterministic (0..4294967295).
+	Seed *uint32 `query:"seed"`
+	// Authorization is a bearer token used instead of the API key.
+	Authorization string `query:"authorization"`
+	// SingleUseToken authenticates with a token from Tokens.SingleUse.Create
+	// instead of the API key; when set the xi-api-key header is not sent.
+	SingleUseToken string `query:"single_use_token"`
+}
+
+func (r *TextToSpeechStreamInputRequest) usesToken() bool {
+	return r != nil && (r.SingleUseToken != "" || r.Authorization != "")
+}
+
+// RealtimeVoiceSettings overrides voice settings for a streaming session.
+type RealtimeVoiceSettings struct {
+	Stability       *float64 `json:"stability,omitempty"`
+	SimilarityBoost *float64 `json:"similarity_boost,omitempty"`
+	Style           *float64 `json:"style,omitempty"`
+	UseSpeakerBoost *bool    `json:"use_speaker_boost,omitempty"`
+	Speed           *float64 `json:"speed,omitempty"`
+}
+
+// GenerationConfig tunes when the server starts generating audio.
+type GenerationConfig struct {
+	// ChunkLengthSchedule lists the character thresholds that trigger
+	// generation, each between 50 and 500.
+	ChunkLengthSchedule []float64 `json:"chunk_length_schedule,omitempty"`
+}
+
+// StreamAlignment is character-level timing for a streamed audio chunk.
+type StreamAlignment struct {
+	CharStartTimesMs []float64 `json:"charStartTimesMs,omitempty"`
+	CharDurationsMs  []float64 `json:"charDurationsMs,omitempty"`
+	Chars            []string  `json:"chars,omitempty"`
+}
+
+// TextToSpeechStreamInputMessage is a message sent on a TextToSpeechStream:
+// *InitializeConnection, *SendText or *CloseConnection.
+type TextToSpeechStreamInputMessage interface {
+	textToSpeechStreamInputMessage()
+}
+
+// InitializeConnection is the first message of a stream-input session. Its
+// text is always a single space.
+type InitializeConnection struct {
+	VoiceSettings                   *RealtimeVoiceSettings           `json:"voice_settings,omitempty"`
+	GenerationConfig                *GenerationConfig                `json:"generation_config,omitempty"`
+	PronunciationDictionaryLocators []PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
+	// XIAPIKey authenticates in-band when the header cannot be set.
+	XIAPIKey string `json:"xi-api-key,omitempty"`
+	// Authorization is a bearer token used for in-band authentication.
+	Authorization string `json:"authorization,omitempty"`
+}
+
+// MarshalJSON adds the mandatory single-space text.
+func (m InitializeConnection) MarshalJSON() ([]byte, error) {
+	type alias InitializeConnection
+	return json.Marshal(struct {
+		Text string `json:"text"`
+		alias
+	}{" ", alias(m)})
+}
+
+// SendText streams text to be synthesized. Text should end with a space.
+type SendText struct {
+	Text string `json:"text"`
+	// TryTriggerGeneration asks the server to start generating immediately.
+	TryTriggerGeneration *bool                  `json:"try_trigger_generation,omitempty"`
+	VoiceSettings        *RealtimeVoiceSettings `json:"voice_settings,omitempty"`
+	GeneratorConfig      *GenerationConfig      `json:"generator_config,omitempty"`
+	// Flush forces generation of all buffered text.
+	Flush bool `json:"flush,omitempty"`
+}
+
+// CloseConnection signals the end of input (an empty text message). The
+// server finishes generating and then closes the connection.
+type CloseConnection struct{}
+
+// MarshalJSON encodes the empty-text close message.
+func (CloseConnection) MarshalJSON() ([]byte, error) { return []byte(`{"text":""}`), nil }
+
+func (*InitializeConnection) textToSpeechStreamInputMessage() {}
+func (*SendText) textToSpeechStreamInputMessage()             {}
+func (*CloseConnection) textToSpeechStreamInputMessage()      {}
+
+// TextToSpeechStreamOutput is a message received on a TextToSpeechStream:
+// either an audio chunk or the final message.
+type TextToSpeechStreamOutput struct {
+	// Audio is the decoded audio chunk; empty in the final message.
+	Audio               []byte           `json:"audio,omitempty"`
+	NormalizedAlignment *StreamAlignment `json:"normalizedAlignment,omitempty"`
+	Alignment           *StreamAlignment `json:"alignment,omitempty"`
+	// IsFinal is true for the last message of the generation.
+	IsFinal bool `json:"isFinal,omitempty"`
+	// Error fields are set when the server reports a failure in-band.
+	Message   string `json:"message,omitempty"`
+	ErrorType string `json:"error,omitempty"`
+	Code      int    `json:"code,omitempty"`
+}
+
+// Err returns a *RealtimeError if the message reports a failure.
+func (o *TextToSpeechStreamOutput) Err() error {
+	if o.ErrorType == "" {
+		return nil
+	}
+	return &RealtimeError{MessageType: o.ErrorType, Message: o.Message, Code: o.Code}
+}
+
+// TextToSpeechStream is a text-to-speech stream-input WebSocket session.
+// Send and Recv may be called from different goroutines.
+type TextToSpeechStream struct{ s *socket }
+
+// StreamInput opens a WebSocket that converts text streamed in chunks to
+// audio (wss://…/v1/text-to-speech/{voice_id}/stream-input). Send an
+// *InitializeConnection first, then *SendText messages, then a
+// *CloseConnection. Call Close when done. req may be nil.
+func (s *TextToSpeechService) StreamInput(ctx context.Context, voiceID string, req *TextToSpeechStreamInputRequest, opts ...RequestOption) (*TextToSpeechStream, error) {
+	sock, err := s.cfg.dial(ctx, dialConfig{
+		path:     pathf("/v1/text-to-speech/%s/stream-input", voiceID),
+		query:    req,
+		opts:     opts,
+		noAPIKey: req.usesToken(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &TextToSpeechStream{s: sock}, nil
+}
+
+// Send writes msg to the connection.
+func (c *TextToSpeechStream) Send(ctx context.Context, msg TextToSpeechStreamInputMessage) error {
+	return c.s.writeJSON(ctx, msg)
+}
+
+// SendText is shorthand for Send with a *SendText message.
+func (c *TextToSpeechStream) SendText(ctx context.Context, text string) error {
+	return c.Send(ctx, &SendText{Text: text})
+}
+
+// Flush forces the server to generate audio for all buffered text.
+func (c *TextToSpeechStream) Flush(ctx context.Context) error {
+	return c.Send(ctx, &SendText{Text: " ", Flush: true})
+}
+
+// CloseSend signals the end of input by sending a *CloseConnection. Keep
+// calling Recv to drain the remaining audio.
+func (c *TextToSpeechStream) CloseSend(ctx context.Context) error {
+	return c.Send(ctx, &CloseConnection{})
+}
+
+// Recv reads the next message. It returns io.EOF once the server closes the
+// connection normally. Server-reported failures are returned as
+// *RealtimeError. Cancelling ctx closes the connection.
+func (c *TextToSpeechStream) Recv(ctx context.Context) (*TextToSpeechStreamOutput, error) {
+	var out TextToSpeechStreamOutput
+	if err := c.s.readJSON(ctx, &out); err != nil {
+		return nil, err
+	}
+	if err := out.Err(); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// AudioReader returns a reader over the decoded audio of successive Recv
+// calls. It reports io.EOF after the final message or a normal closure.
+func (c *TextToSpeechStream) AudioReader(ctx context.Context) io.Reader {
+	return &audioReader{next: func() ([]byte, error) {
+		out, err := c.Recv(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if out.IsFinal {
+			return out.Audio, io.EOF
+		}
+		return out.Audio, nil
+	}}
+}
+
+// Close performs a normal WebSocket closure.
+func (c *TextToSpeechStream) Close() error { return c.s.close() }
+
+// TextToSpeechMultiStreamInputMessage is a message sent on a
+// TextToSpeechMultiStream: *InitializeConnectionMulti, *InitializeContext,
+// *SendTextMulti, *FlushContext, *CloseContext, *CloseSocket or
+// *KeepContextAlive.
+type TextToSpeechMultiStreamInputMessage interface {
+	textToSpeechMultiStreamInputMessage()
+}
+
+// InitializeConnectionMulti initializes the connection and, optionally, its
+// first context. Its text is always a single space.
+type InitializeConnectionMulti struct {
+	VoiceSettings                   *RealtimeVoiceSettings           `json:"voice_settings,omitempty"`
+	GenerationConfig                *GenerationConfig                `json:"generation_config,omitempty"`
+	PronunciationDictionaryLocators []PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
+	XIAPIKey                        string                           `json:"xi_api_key,omitempty"`
+	Authorization                   string                           `json:"authorization,omitempty"`
+	ContextID                       string                           `json:"context_id,omitempty"`
+}
+
+// MarshalJSON adds the mandatory single-space text.
+func (m InitializeConnectionMulti) MarshalJSON() ([]byte, error) {
+	type alias InitializeConnectionMulti
+	return json.Marshal(struct {
+		Text string `json:"text"`
+		alias
+	}{" ", alias(m)})
+}
+
+// InitializeContext creates a new context, optionally with initial text
+// (InitialiseContext in the official SDK).
+type InitializeContext struct {
+	Text                            string                           `json:"text"`
+	VoiceSettings                   *RealtimeVoiceSettings           `json:"voice_settings,omitempty"`
+	GenerationConfig                *GenerationConfig                `json:"generation_config,omitempty"`
+	PronunciationDictionaryLocators []PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
+	XIAPIKey                        string                           `json:"xi_api_key,omitempty"`
+	Authorization                   string                           `json:"authorization,omitempty"`
+	ContextID                       string                           `json:"context_id,omitempty"`
+}
+
+// SendTextMulti sends text to a context.
+type SendTextMulti struct {
+	Text      string `json:"text"`
+	ContextID string `json:"context_id,omitempty"`
+	Flush     bool   `json:"flush,omitempty"`
+}
+
+// FlushContext forces generation of a context's buffered text.
+type FlushContext struct {
+	ContextID string `json:"context_id"`
+	Text      string `json:"text,omitempty"`
+}
+
+// MarshalJSON adds flush=true.
+func (m FlushContext) MarshalJSON() ([]byte, error) {
+	type alias FlushContext
+	return json.Marshal(struct {
+		alias
+		Flush bool `json:"flush"`
+	}{alias(m), true})
+}
+
+// CloseContext closes one context.
+type CloseContext struct {
+	ContextID string `json:"context_id"`
+}
+
+// MarshalJSON adds close_context=true.
+func (m CloseContext) MarshalJSON() ([]byte, error) {
+	type alias CloseContext
+	return json.Marshal(struct {
+		alias
+		CloseContext bool `json:"close_context"`
+	}{alias(m), true})
+}
+
+// CloseSocket closes all contexts and the connection.
+type CloseSocket struct{}
+
+// MarshalJSON encodes close_socket=true.
+func (CloseSocket) MarshalJSON() ([]byte, error) { return []byte(`{"close_socket":true}`), nil }
+
+// KeepContextAlive resets a context's inactivity timeout.
+type KeepContextAlive struct {
+	ContextID string `json:"context_id"`
+}
+
+// MarshalJSON adds the empty text.
+func (m KeepContextAlive) MarshalJSON() ([]byte, error) {
+	type alias KeepContextAlive
+	return json.Marshal(struct {
+		Text string `json:"text"`
+		alias
+	}{"", alias(m)})
+}
+
+func (*InitializeConnectionMulti) textToSpeechMultiStreamInputMessage() {}
+func (*InitializeContext) textToSpeechMultiStreamInputMessage()         {}
+func (*SendTextMulti) textToSpeechMultiStreamInputMessage()             {}
+func (*FlushContext) textToSpeechMultiStreamInputMessage()              {}
+func (*CloseContext) textToSpeechMultiStreamInputMessage()              {}
+func (*CloseSocket) textToSpeechMultiStreamInputMessage()               {}
+func (*KeepContextAlive) textToSpeechMultiStreamInputMessage()          {}
+
+// TextToSpeechMultiStreamOutput is a message received on a
+// TextToSpeechMultiStream.
+type TextToSpeechMultiStreamOutput struct {
+	Audio               []byte           `json:"audio,omitempty"`
+	NormalizedAlignment *StreamAlignment `json:"normalizedAlignment,omitempty"`
+	Alignment           *StreamAlignment `json:"alignment,omitempty"`
+	// IsFinal is true when the context identified by ContextID is done.
+	IsFinal bool `json:"isFinal,omitempty"`
+	// ContextID identifies the context the message belongs to.
+	ContextID string `json:"contextId,omitempty"`
+	Message   string `json:"message,omitempty"`
+	ErrorType string `json:"error,omitempty"`
+	Code      int    `json:"code,omitempty"`
+}
+
+// Err returns a *RealtimeError if the message reports a failure.
+func (o *TextToSpeechMultiStreamOutput) Err() error {
+	if o.ErrorType == "" {
+		return nil
+	}
+	return &RealtimeError{MessageType: o.ErrorType, Message: o.Message, Code: o.Code}
+}
+
+// TextToSpeechMultiStream is a multi-context text-to-speech WebSocket
+// session. Send and Recv may be called from different goroutines.
+type TextToSpeechMultiStream struct{ s *socket }
+
+// MultiStreamInput opens a multi-context text-to-speech WebSocket
+// (wss://…/v1/text-to-speech/{voice_id}/multi-stream-input). req may be nil.
+func (s *TextToSpeechService) MultiStreamInput(ctx context.Context, voiceID string, req *TextToSpeechStreamInputRequest, opts ...RequestOption) (*TextToSpeechMultiStream, error) {
+	sock, err := s.cfg.dial(ctx, dialConfig{
+		path:     pathf("/v1/text-to-speech/%s/multi-stream-input", voiceID),
+		query:    req,
+		opts:     opts,
+		noAPIKey: req.usesToken(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &TextToSpeechMultiStream{s: sock}, nil
+}
+
+// Send writes msg to the connection.
+func (c *TextToSpeechMultiStream) Send(ctx context.Context, msg TextToSpeechMultiStreamInputMessage) error {
+	return c.s.writeJSON(ctx, msg)
+}
+
+// SendText sends text to the given context.
+func (c *TextToSpeechMultiStream) SendText(ctx context.Context, contextID, text string) error {
+	return c.Send(ctx, &SendTextMulti{Text: text, ContextID: contextID})
+}
+
+// FlushContext forces generation of a context's buffered text.
+func (c *TextToSpeechMultiStream) FlushContext(ctx context.Context, contextID string) error {
+	return c.Send(ctx, &FlushContext{ContextID: contextID})
+}
+
+// CloseContext closes one context.
+func (c *TextToSpeechMultiStream) CloseContext(ctx context.Context, contextID string) error {
+	return c.Send(ctx, &CloseContext{ContextID: contextID})
+}
+
+// KeepContextAlive resets a context's inactivity timeout.
+func (c *TextToSpeechMultiStream) KeepContextAlive(ctx context.Context, contextID string) error {
+	return c.Send(ctx, &KeepContextAlive{ContextID: contextID})
+}
+
+// CloseSend asks the server to close all contexts and the socket.
+func (c *TextToSpeechMultiStream) CloseSend(ctx context.Context) error {
+	return c.Send(ctx, &CloseSocket{})
+}
+
+// Recv reads the next message. It returns io.EOF once the server closes the
+// connection normally. Cancelling ctx closes the connection.
+func (c *TextToSpeechMultiStream) Recv(ctx context.Context) (*TextToSpeechMultiStreamOutput, error) {
+	var out TextToSpeechMultiStreamOutput
+	if err := c.s.readJSON(ctx, &out); err != nil {
+		return nil, err
+	}
+	if err := out.Err(); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// Close performs a normal WebSocket closure.
+func (c *TextToSpeechMultiStream) Close() error { return c.s.close() }
