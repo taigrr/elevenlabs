@@ -19,6 +19,12 @@ const (
 	OutputFormatMP3_44100_96  OutputFormat = "mp3_44100_96"
 	OutputFormatMP3_44100_128 OutputFormat = "mp3_44100_128"
 	OutputFormatMP3_44100_192 OutputFormat = "mp3_44100_192"
+	OutputFormatMP3_48000_128 OutputFormat = "mp3_48000_128"
+	OutputFormatMP3_48000_192 OutputFormat = "mp3_48000_192"
+	OutputFormatMP3_48000_240 OutputFormat = "mp3_48000_240"
+	OutputFormatMP3_48000_320 OutputFormat = "mp3_48000_320"
+	// OutputFormatAuto lets the server pick the format (music endpoints only).
+	OutputFormatAuto          OutputFormat = "auto"
 	OutputFormatOpus48000_32  OutputFormat = "opus_48000_32"
 	OutputFormatOpus48000_64  OutputFormat = "opus_48000_64"
 	OutputFormatOpus48000_96  OutputFormat = "opus_48000_96"

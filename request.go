@@ -377,6 +377,29 @@ func doJSON(ctx context.Context, cfg *config, req *request, out any) error {
 	return nil
 }
 
+// doRaw sends req and returns the response body as raw JSON, or nil when
+// the body is empty.
+func doRaw(ctx context.Context, cfg *config, req *request) (json.RawMessage, error) {
+	resp, cancel, err := cfg.send(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	defer cancel()
+	defer resp.Body.Close()
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("elevenlabs: read %s %s response: %w", req.method, req.path, err)
+	}
+	b = bytes.TrimSpace(b)
+	if len(b) == 0 {
+		return nil, nil
+	}
+	if !json.Valid(b) {
+		return nil, fmt.Errorf("elevenlabs: decode %s %s response: invalid JSON", req.method, req.path)
+	}
+	return json.RawMessage(b), nil
+}
+
 // doValue is doJSON returning a freshly allocated T.
 func doValue[T any](ctx context.Context, cfg *config, req *request) (*T, error) {
 	out := new(T)

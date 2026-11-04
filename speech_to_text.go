@@ -8,7 +8,20 @@ import (
 )
 
 // SpeechToTextService groups the /v1/speech-to-text endpoints.
-type SpeechToTextService struct{ cfg *config }
+//
+// Convert returns a SpeechToTextConvertResponse union whose populated field
+// depends on the request, mirroring the typed overloads of the official SDK:
+// Webhook when Webhook is true, Multichannel when UseMultiChannel is true and
+// Chunk otherwise.
+type SpeechToTextService struct {
+	cfg *config
+
+	Transcripts *SpeechToTextTranscriptsService
+}
+
+func newSpeechToTextService(cfg *config) *SpeechToTextService {
+	return &SpeechToTextService{cfg: cfg, Transcripts: &SpeechToTextTranscriptsService{cfg: cfg}}
+}
 
 // TimestampsGranularity controls transcript timestamp granularity.
 type TimestampsGranularity string
@@ -257,4 +270,50 @@ func (s *SpeechToTextService) Convert(ctx context.Context, req *SpeechToTextConv
 		return nil, fmt.Errorf("elevenlabs: speech to text: model id is required")
 	}
 	return doValue[SpeechToTextConvertResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/speech-to-text", query: req, form: req, opts: opts})
+}
+
+// SpeechToTextTranscriptsService groups the /v1/speech-to-text/transcripts endpoints.
+type SpeechToTextTranscriptsService struct{ cfg *config }
+
+// Transcript is a stored transcript: exactly one field is non-nil.
+type Transcript struct {
+	Chunk        *SpeechToTextChunk
+	Multichannel *MultichannelSpeechToText
+}
+
+// UnmarshalJSON selects the union variant from the keys present.
+func (t *Transcript) UnmarshalJSON(data []byte) error {
+	var keys map[string]json.RawMessage
+	if err := json.Unmarshal(data, &keys); err != nil {
+		return err
+	}
+	*t = Transcript{}
+	if _, ok := keys["transcripts"]; ok {
+		t.Multichannel = new(MultichannelSpeechToText)
+		return json.Unmarshal(data, t.Multichannel)
+	}
+	t.Chunk = new(SpeechToTextChunk)
+	return json.Unmarshal(data, t.Chunk)
+}
+
+// MarshalJSON encodes the populated variant.
+func (t Transcript) MarshalJSON() ([]byte, error) {
+	switch {
+	case t.Chunk != nil:
+		return json.Marshal(t.Chunk)
+	case t.Multichannel != nil:
+		return json.Marshal(t.Multichannel)
+	}
+	return []byte("null"), nil
+}
+
+// Get returns a previously generated transcript.
+func (s *SpeechToTextTranscriptsService) Get(ctx context.Context, transcriptionID string, opts ...RequestOption) (*Transcript, error) {
+	return doValue[Transcript](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/speech-to-text/transcripts/%s", transcriptionID), opts: opts})
+}
+
+// Delete deletes a transcript. The API's response body is untyped and is
+// returned as raw JSON (nil when empty).
+func (s *SpeechToTextTranscriptsService) Delete(ctx context.Context, transcriptionID string, opts ...RequestOption) (json.RawMessage, error) {
+	return doRaw(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/speech-to-text/transcripts/%s", transcriptionID), opts: opts})
 }
