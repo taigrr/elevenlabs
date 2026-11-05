@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"time"
 
 	"github.com/taigrr/elevenlabs/v2"
 )
@@ -42,64 +41,6 @@ func ExampleAPIError() {
 	// Output:
 	// true
 	// 404 voice_not_found
-}
-
-func ExampleConstructWebhookEvent() {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		payload, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "bad body", http.StatusBadRequest)
-			return
-		}
-		event, err := elevenlabs.ConstructWebhookEvent(payload, r.Header.Get(elevenlabs.WebhookSignatureHeader), os.Getenv("WEBHOOK_SECRET"))
-		if err != nil {
-			http.Error(w, "invalid signature", http.StatusUnauthorized)
-			return
-		}
-		fmt.Println(event.Type)
-	})
-	mux := http.NewServeMux()
-	mux.Handle("/webhooks/elevenlabs", handler)
-}
-
-func ExampleFlowsImageService_CreateAndWait() {
-	ctx := context.Background()
-	client := elevenlabs.NewClient()
-
-	generation, err := client.Flows.Image.CreateAndWait(ctx, &elevenlabs.ImageGenerationRequest{
-		ModelID: "bytedance-seedream-5-lite",
-		Prompt:  "A corgi in a tiny lifeguard chair on a sunlit beach at golden hour, photorealistic",
-	}, &elevenlabs.FlowsWaitOptions{WaitTimeout: 5 * time.Minute})
-	if errors.Is(err, elevenlabs.ErrFlowsWaitTimeout) {
-		log.Fatal("still generating; resume later with client.Flows.Image.Get")
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-	if generation.Status == elevenlabs.GenerationStatusFailed {
-		log.Fatal(generation.ErrorMessage)
-	}
-	fmt.Println(generation.ContentURL)
-}
-
-func ExampleDubbingService_Create() {
-	ctx := context.Background()
-	client := elevenlabs.NewClient()
-
-	f, err := os.Open("talk.mp4")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	dub, err := client.Dubbing.Create(ctx, &elevenlabs.DubbingCreateRequest{
-		File:       &elevenlabs.File{Reader: f, Name: "talk.mp4", ContentType: "video/mp4"},
-		TargetLang: "es",
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(dub.DubbingID, dub.ExpectedDurationSec)
 }
 
 func ExampleAgentsService_Create() {

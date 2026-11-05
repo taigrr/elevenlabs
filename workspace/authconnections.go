@@ -1,13 +1,17 @@
-package elevenlabs
+package workspace
 
 import (
 	"context"
 	"encoding/json"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
 )
 
-// WorkspaceAuthConnectionsService groups the /v1/workspace/auth-connections endpoints.
-type WorkspaceAuthConnectionsService struct{ cfg *config }
+// AuthConnectionsService groups the /v1/workspace/auth-connections endpoints.
+type AuthConnectionsService struct{ cfg *requestconfig.Config }
 
 // AuthType discriminates auth connection variants.
 type AuthType string
@@ -74,14 +78,14 @@ func (a *AuthConnection) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// AuthConnectionList is the response of WorkspaceAuthConnectionsService.List.
+// AuthConnectionList is the response of AuthConnectionsService.List.
 type AuthConnectionList struct {
 	AuthConnections []AuthConnection `json:"auth_connections"`
 }
 
 // List returns the workspace auth connections.
-func (s *WorkspaceAuthConnectionsService) List(ctx context.Context, opts ...Option) (*AuthConnectionList, error) {
-	return doValue[AuthConnectionList](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/workspace/auth-connections", opts: opts})
+func (s *AuthConnectionsService) List(ctx context.Context, opts ...option.RequestOption) (*AuthConnectionList, error) {
+	return transport.DoValue[AuthConnectionList](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: "/v1/workspace/auth-connections", Opts: opts})
 }
 
 // AuthConnectionCreateRequest is a create body for one auth connection
@@ -255,24 +259,24 @@ type authBody struct {
 func (a authBody) MarshalJSON() ([]byte, error) { return withAuthType(a.authType, a.v) }
 
 // Create creates an auth connection.
-func (s *WorkspaceAuthConnectionsService) Create(ctx context.Context, req AuthConnectionCreateRequest, opts ...Option) (*AuthConnection, error) {
+func (s *AuthConnectionsService) Create(ctx context.Context, req AuthConnectionCreateRequest, opts ...option.RequestOption) (*AuthConnection, error) {
 	var body any = struct{}{}
 	if req != nil {
 		body = authBody{req.authConnectionAuthType(), req}
 	}
-	return doValue[AuthConnection](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/workspace/auth-connections", body: body, opts: opts})
+	return transport.DoValue[AuthConnection](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/workspace/auth-connections", Body: body, Opts: opts})
 }
 
 // Update edits an auth connection.
-func (s *WorkspaceAuthConnectionsService) Update(ctx context.Context, authConnectionID string, req AuthConnectionUpdateRequest, opts ...Option) (*AuthConnection, error) {
+func (s *AuthConnectionsService) Update(ctx context.Context, authConnectionID string, req AuthConnectionUpdateRequest, opts ...option.RequestOption) (*AuthConnection, error) {
 	var body any = struct{}{}
 	if req != nil {
 		body = authBody{req.authConnectionUpdateAuthType(), req}
 	}
-	return doValue[AuthConnection](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/workspace/auth-connections/%s", authConnectionID), body: body, opts: opts})
+	return transport.DoValue[AuthConnection](ctx, s.cfg, &transport.Request{Method: http.MethodPatch, Path: transport.Pathf("/v1/workspace/auth-connections/%s", authConnectionID), Body: body, Opts: opts})
 }
 
 // Delete deletes an auth connection.
-func (s *WorkspaceAuthConnectionsService) Delete(ctx context.Context, authConnectionID string, opts ...Option) (json.RawMessage, error) {
-	return doRaw(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/workspace/auth-connections/%s", authConnectionID), opts: opts})
+func (s *AuthConnectionsService) Delete(ctx context.Context, authConnectionID string, opts ...option.RequestOption) (json.RawMessage, error) {
+	return transport.DoRaw(ctx, s.cfg, &transport.Request{Method: http.MethodDelete, Path: transport.Pathf("/v1/workspace/auth-connections/%s", authConnectionID), Opts: opts})
 }

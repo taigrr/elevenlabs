@@ -12,9 +12,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/taigrr/elevenlabs/v2/dubbing"
 	"github.com/taigrr/elevenlabs/v2/speechtotext"
 	"github.com/taigrr/elevenlabs/v2/texttodialogue"
 	"github.com/taigrr/elevenlabs/v2/texttospeech"
+	"github.com/taigrr/elevenlabs/v2/translation"
 )
 
 // Live tests against api.elevenlabs.io. Run with:
@@ -262,7 +264,7 @@ func TestLiveSpeechToTextRealtime(t *testing.T) {
 type liveTranslateConn interface {
 	SendAudio(context.Context, []byte) error
 	EndOfStream(context.Context) error
-	Recv(context.Context) (*RealtimeTranslateMessage, error)
+	Recv(context.Context) (*dubbing.RealtimeMessage, error)
 	Close() error
 }
 
@@ -304,18 +306,18 @@ func runLiveTranslate(t *testing.T, ctx context.Context, conn liveTranslateConn,
 		if err != nil {
 			t.Fatalf("recv: %v", err)
 		}
-		if msg.MessageType == TranslateAudio {
+		if msg.MessageType == dubbing.RealtimeAudio {
 			t.Logf("%s: %d bytes", msg.MessageType, len(msg.Data))
 		} else {
 			t.Logf("%s: %q %s", msg.MessageType, msg.Text, msg.Status)
 		}
 		switch msg.MessageType {
-		case TranslateSessionStarted:
+		case dubbing.RealtimeSessionStarted:
 			gotSession = true
-		case TranslateTranslation, TranslateAudio:
+		case dubbing.RealtimeTranslation, dubbing.RealtimeAudio:
 			gotOutput = true
 		}
-		if gotOutput && msg.MessageType == TranslateAudio {
+		if gotOutput && msg.MessageType == dubbing.RealtimeAudio {
 			break
 		}
 	}
@@ -328,7 +330,7 @@ func TestLiveTranslationRealtime(t *testing.T) {
 	c := liveClient(t)
 	pcm := livePCM(t, c, "Good morning, how are you today?")
 	ctx := liveCtx(t)
-	conn, err := c.Translation.Realtime(ctx, &TranslationRealtimeRequest{
+	conn, err := c.Translation.Realtime(ctx, &translation.RealtimeRequest{
 		SourceLanguage: "en", TargetLanguage: "es", VoiceID: liveVoiceA,
 		InputFormat: speechtotext.RealtimeAudioPCM16000, OutputFormat: "pcm_16000",
 	})
@@ -342,7 +344,7 @@ func TestLiveDubbingRealtime(t *testing.T) {
 	c := liveClient(t)
 	pcm := livePCM(t, c, "Good morning, how are you today?")
 	ctx := liveCtx(t)
-	conn, err := c.Dubbing.Realtime(ctx, &DubbingRealtimeRequest{
+	conn, err := c.Dubbing.Realtime(ctx, &dubbing.RealtimeRequest{
 		SourceLanguage: "en", TargetLanguage: "es",
 		InputFormat: speechtotext.RealtimeAudioPCM16000, OutputFormat: speechtotext.RealtimeAudioPCM16000,
 	})

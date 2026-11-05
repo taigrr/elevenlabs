@@ -1,4 +1,4 @@
-package elevenlabs
+package flows
 
 import (
 	"context"
@@ -11,29 +11,36 @@ import (
 	"strings"
 	"time"
 
+	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/internal/stream"
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
 	"github.com/taigrr/elevenlabs/v2/types"
 )
 
-// FlowsService groups the /v1/flows endpoints: asynchronous image, video and
+// Service groups the /v1/flows endpoints: asynchronous image, video and
 // speech generations and template runs. Each create endpoint has a
 // CreateAndWait helper that polls until the work finishes.
-type FlowsService struct {
+type Service struct {
 	// Image generates images.
-	Image *FlowsImageService
+	Image *ImageService
 	// Video generates videos.
-	Video *FlowsVideoService
+	Video *VideoService
 	// TextToSpeech generates speech.
-	TextToSpeech *FlowsTextToSpeechService
+	TextToSpeech *TextToSpeechService
 	// Templates lists templates and runs them.
-	Templates *FlowsTemplatesService
+	Templates *TemplatesService
 }
 
-func newFlowsService(cfg *config) *FlowsService {
-	return &FlowsService{
-		Image:        &FlowsImageService{cfg: cfg},
-		Video:        &FlowsVideoService{cfg: cfg},
-		TextToSpeech: &FlowsTextToSpeechService{cfg: cfg},
-		Templates:    &FlowsTemplatesService{cfg: cfg, Runs: &FlowsTemplateRunsService{cfg: cfg}},
+// NewService returns a Service configured by opts. Without option.WithAPIKey
+// the key is read from the ELEVENLABS_API_KEY environment variable.
+func NewService(opts ...option.RequestOption) *Service {
+	cfg := requestconfig.Build(opts...)
+	return &Service{
+		Image:        &ImageService{cfg: cfg},
+		Video:        &VideoService{cfg: cfg},
+		TextToSpeech: &TextToSpeechService{cfg: cfg},
+		Templates:    &TemplatesService{cfg: cfg, Runs: &TemplateRunsService{cfg: cfg}},
 	}
 }
 
@@ -66,7 +73,7 @@ func AllWebhooks() *WebhookTarget { return &WebhookTarget{Type: "all"} }
 
 // WebhookIDs notifies only the given webhooks.
 func WebhookIDs(ids ...string) *WebhookTarget {
-	return &WebhookTarget{Type: "ids", IDs: nonNil(ids)}
+	return &WebhookTarget{Type: "ids", IDs: transport.NonNil(ids)}
 }
 
 // MediaReference references input media: an asset, a previous generation,
@@ -135,7 +142,7 @@ type MediaGenerationListRequest struct {
 	ModelID  string           `query:"model_id"`
 }
 
-// ImageGenerationRequest is the body of FlowsImageService.Create. Which
+// ImageGenerationRequest is the body of ImageService.Create. Which
 // optional fields are accepted depends on ModelID.
 type ImageGenerationRequest struct {
 	// ModelID selects the image model, e.g. "gpt-image-2". Required.
@@ -159,7 +166,7 @@ type VeoImageReference struct {
 	Role  string         `json:"role"`
 }
 
-// VideoGenerationRequest is the body of FlowsVideoService.Create. Which
+// VideoGenerationRequest is the body of VideoService.Create. Which
 // optional fields are accepted depends on ModelID.
 type VideoGenerationRequest struct {
 	// ModelID selects the video model, e.g. "veo-3.1-generate-001". Required.
@@ -187,8 +194,8 @@ type VideoGenerationRequest struct {
 	Images any `json:"images,omitempty"`
 }
 
-// FlowsVoiceSettings tunes a flows speech generation.
-type FlowsVoiceSettings struct {
+// VoiceSettings tunes a flows speech generation.
+type VoiceSettings struct {
 	Stability       *float64 `json:"stability,omitempty"`
 	SimilarityBoost *float64 `json:"similarity_boost,omitempty"`
 	Style           *float64 `json:"style,omitempty"`
@@ -196,7 +203,7 @@ type FlowsVoiceSettings struct {
 	Speed           *float64 `json:"speed,omitempty"`
 }
 
-// TextToSpeechGenerationRequest is the body of FlowsTextToSpeechService.Create.
+// TextToSpeechGenerationRequest is the body of TextToSpeechService.Create.
 type TextToSpeechGenerationRequest struct {
 	// ModelID is "eleven_v3", "eleven_multilingual_v2" or "eleven_flash_v2_5". Required.
 	ModelID string `json:"model_id"`
@@ -208,12 +215,12 @@ type TextToSpeechGenerationRequest struct {
 	OutputFormat                    types.OutputFormat                     `json:"output_format,omitempty"`
 	PronunciationDictionaryLocators []types.PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
 	LanguageCode                    string                                 `json:"language_code,omitempty"`
-	VoiceSettings                   *FlowsVoiceSettings                    `json:"voice_settings,omitempty"`
+	VoiceSettings                   *VoiceSettings                         `json:"voice_settings,omitempty"`
 }
 
-// FlowsWaitOptions controls CreateAndWait polling. A nil *FlowsWaitOptions
+// WaitOptions controls CreateAndWait polling. A nil *WaitOptions
 // uses the defaults.
-type FlowsWaitOptions struct {
+type WaitOptions struct {
 	// WaitTimeout bounds the total wait; zero waits until ctx is done.
 	WaitTimeout time.Duration
 	// MinPollInterval is the shortest wait between status checks and the
@@ -228,16 +235,16 @@ const (
 	flowsPollJitter           = 0.2
 )
 
-// ErrFlowsWaitTimeout is matched by *FlowsWaitTimeoutError.
-var ErrFlowsWaitTimeout = errors.New("elevenlabs: flows wait timed out")
+// ErrWaitTimeout is matched by *WaitTimeoutError.
+var ErrWaitTimeout = errors.New("elevenlabs: flows wait timed out")
 
-// ErrInvalidWaitOptions is returned for out-of-range FlowsWaitOptions.
+// ErrInvalidWaitOptions is returned for out-of-range WaitOptions.
 var ErrInvalidWaitOptions = errors.New("elevenlabs: invalid flows wait options")
 
-// FlowsWaitTimeoutError is returned by CreateAndWait when the work is still
+// WaitTimeoutError is returned by CreateAndWait when the work is still
 // unfinished after WaitTimeout. The work keeps running on the server; resume
 // with Get using ID (and TemplateID for template runs).
-type FlowsWaitTimeoutError struct {
+type WaitTimeoutError struct {
 	ID          string
 	TemplateID  string
 	WaitTimeout time.Duration
@@ -245,21 +252,21 @@ type FlowsWaitTimeoutError struct {
 }
 
 // Error implements error.
-func (e *FlowsWaitTimeoutError) Error() string {
+func (e *WaitTimeoutError) Error() string {
 	if e.TemplateID != "" {
 		return fmt.Sprintf("elevenlabs: template run %s of template %s is still %s after %s", e.ID, e.TemplateID, e.LastStatus, e.WaitTimeout)
 	}
 	return fmt.Sprintf("elevenlabs: generation %s is still %s after %s", e.ID, e.LastStatus, e.WaitTimeout)
 }
 
-// Is makes errors.Is(err, ErrFlowsWaitTimeout) match.
-func (e *FlowsWaitTimeoutError) Is(target error) bool { return target == ErrFlowsWaitTimeout }
+// Is makes errors.Is(err, ErrWaitTimeout) match.
+func (e *WaitTimeoutError) Is(target error) bool { return target == ErrWaitTimeout }
 
 // pollDelay is the server's Retry-After (never below minInterval) plus up to
 // 20% positive jitter.
-func pollDelay(cfg *config, h http.Header, minInterval time.Duration) time.Duration {
+func pollDelay(cfg *requestconfig.Config, h http.Header, minInterval time.Duration) time.Duration {
 	d := minInterval
-	if ra := strings.TrimSpace(h.Get(headerRetryAfter)); ra != "" {
+	if ra := strings.TrimSpace(h.Get(transport.HeaderRetryAfter)); ra != "" {
 		if secs, err := strconv.Atoi(ra); err == nil && secs >= 0 {
 			d = max(time.Duration(secs)*time.Second, minInterval)
 		} else if at, err := http.ParseTime(ra); err == nil {
@@ -271,11 +278,11 @@ func pollDelay(cfg *config, h http.Header, minInterval time.Duration) time.Durat
 
 // waitTerminal polls get until status is terminal. create may return a nil
 // result, in which case get is called even if the status is terminal.
-func waitTerminal[T any](ctx context.Context, cfg *config, w *FlowsWaitOptions, templateID string,
+func waitTerminal[T any](ctx context.Context, cfg *requestconfig.Config, w *WaitOptions, templateID string,
 	create func() (*T, string, GenerationStatus, http.Header, error),
 	get func(id string) (*T, GenerationStatus, http.Header, error),
 ) (*T, error) {
-	opts := FlowsWaitOptions{MinPollInterval: defaultFlowsPollInterval}
+	opts := WaitOptions{MinPollInterval: defaultFlowsPollInterval}
 	if w != nil {
 		opts.WaitTimeout = w.WaitTimeout
 		if w.MinPollInterval != 0 {
@@ -299,7 +306,7 @@ func waitTerminal[T any](ctx context.Context, cfg *config, w *FlowsWaitOptions, 
 			if opts.WaitTimeout > 0 {
 				remaining := opts.WaitTimeout - cfg.Now().Sub(started)
 				if remaining <= 0 {
-					return nil, &FlowsWaitTimeoutError{ID: id, TemplateID: templateID, WaitTimeout: opts.WaitTimeout, LastStatus: status}
+					return nil, &WaitTimeoutError{ID: id, TemplateID: templateID, WaitTimeout: opts.WaitTimeout, LastStatus: status}
 				}
 				delay = min(delay, remaining)
 			}
@@ -314,31 +321,31 @@ func waitTerminal[T any](ctx context.Context, cfg *config, w *FlowsWaitOptions, 
 	return result, nil
 }
 
-func listGenerations(ctx context.Context, cfg *config, path string, req *MediaGenerationListRequest, opts []Option) (*MediaGenerationPage, error) {
-	return doValue[MediaGenerationPage](ctx, cfg, &request{method: http.MethodGet, path: path, query: req, opts: opts})
+func listGenerations(ctx context.Context, cfg *requestconfig.Config, path string, req *MediaGenerationListRequest, opts []option.RequestOption) (*MediaGenerationPage, error) {
+	return transport.DoValue[MediaGenerationPage](ctx, cfg, &transport.Request{Method: http.MethodGet, Path: path, Query: req, Opts: opts})
 }
 
-func allGenerations(ctx context.Context, cfg *config, path string, req *MediaGenerationListRequest, opts []Option) iter.Seq2[MediaGeneration, error] {
-	params := *orEmpty(req)
-	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[MediaGeneration], error) {
+func allGenerations(ctx context.Context, cfg *requestconfig.Config, path string, req *MediaGenerationListRequest, opts []option.RequestOption) iter.Seq2[MediaGeneration, error] {
+	params := *transport.OrEmpty(req)
+	return stream.Paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (stream.Page[MediaGeneration], error) {
 		params.Cursor = cursor
 		resp, err := listGenerations(ctx, cfg, path, &params, opts)
 		if err != nil {
-			return page[MediaGeneration]{}, err
+			return stream.Page[MediaGeneration]{}, err
 		}
-		return page[MediaGeneration]{items: resp.Generations, next: deref(resp.NextCursor), hasMore: resp.HasMore == nil || *resp.HasMore}, nil
+		return stream.Page[MediaGeneration]{Items: resp.Generations, Next: transport.Deref(resp.NextCursor), HasMore: resp.HasMore == nil || *resp.HasMore}, nil
 	})
 }
 
-func createGeneration(ctx context.Context, cfg *config, path string, body any, opts []Option) (*MediaGenerationCreateResponse, http.Header, error) {
-	return doValueHeader[MediaGenerationCreateResponse](ctx, cfg, &request{method: http.MethodPost, path: path, body: body, opts: opts})
+func createGeneration(ctx context.Context, cfg *requestconfig.Config, path string, body any, opts []option.RequestOption) (*MediaGenerationCreateResponse, http.Header, error) {
+	return transport.DoValueHeader[MediaGenerationCreateResponse](ctx, cfg, &transport.Request{Method: http.MethodPost, Path: path, Body: body, Opts: opts})
 }
 
-func getGeneration(ctx context.Context, cfg *config, path, id string, opts []Option) (*MediaGeneration, http.Header, error) {
-	return doValueHeader[MediaGeneration](ctx, cfg, &request{method: http.MethodGet, path: path + "/" + pathf("%s", id), opts: opts})
+func getGeneration(ctx context.Context, cfg *requestconfig.Config, path, id string, opts []option.RequestOption) (*MediaGeneration, http.Header, error) {
+	return transport.DoValueHeader[MediaGeneration](ctx, cfg, &transport.Request{Method: http.MethodGet, Path: path + "/" + transport.Pathf("%s", id), Opts: opts})
 }
 
-func createGenerationAndWait(ctx context.Context, cfg *config, path string, body any, w *FlowsWaitOptions, opts []Option) (*MediaGeneration, error) {
+func createGenerationAndWait(ctx context.Context, cfg *requestconfig.Config, path string, body any, w *WaitOptions, opts []option.RequestOption) (*MediaGeneration, error) {
 	return waitTerminal(ctx, cfg, w, "",
 		func() (*MediaGeneration, string, GenerationStatus, http.Header, error) {
 			r, h, err := createGeneration(ctx, cfg, path, body, opts)
@@ -362,107 +369,107 @@ const (
 	flowsTTSPath   = "/v1/flows/text-to-speech"
 )
 
-// FlowsImageService groups the /v1/flows/image endpoints.
-type FlowsImageService struct{ cfg *config }
+// ImageService groups the /v1/flows/image endpoints.
+type ImageService struct{ cfg *requestconfig.Config }
 
 // List returns one page of image generations. req may be nil.
-func (s *FlowsImageService) List(ctx context.Context, req *MediaGenerationListRequest, opts ...Option) (*MediaGenerationPage, error) {
+func (s *ImageService) List(ctx context.Context, req *MediaGenerationListRequest, opts ...option.RequestOption) (*MediaGenerationPage, error) {
 	return listGenerations(ctx, s.cfg, flowsImagePath, req, opts)
 }
 
 // ListAll iterates over every image generation.
-func (s *FlowsImageService) ListAll(ctx context.Context, req *MediaGenerationListRequest, opts ...Option) iter.Seq2[MediaGeneration, error] {
+func (s *ImageService) ListAll(ctx context.Context, req *MediaGenerationListRequest, opts ...option.RequestOption) iter.Seq2[MediaGeneration, error] {
 	return allGenerations(ctx, s.cfg, flowsImagePath, req, opts)
 }
 
 // Create starts an image generation.
-func (s *FlowsImageService) Create(ctx context.Context, req *ImageGenerationRequest, opts ...Option) (*MediaGenerationCreateResponse, error) {
-	r, _, err := createGeneration(ctx, s.cfg, flowsImagePath, orEmpty(req), opts)
+func (s *ImageService) Create(ctx context.Context, req *ImageGenerationRequest, opts ...option.RequestOption) (*MediaGenerationCreateResponse, error) {
+	r, _, err := createGeneration(ctx, s.cfg, flowsImagePath, transport.OrEmpty(req), opts)
 	return r, err
 }
 
 // Get returns an image generation.
-func (s *FlowsImageService) Get(ctx context.Context, generationID string, opts ...Option) (*MediaGeneration, error) {
+func (s *ImageService) Get(ctx context.Context, generationID string, opts ...option.RequestOption) (*MediaGeneration, error) {
 	g, _, err := getGeneration(ctx, s.cfg, flowsImagePath, generationID, opts)
 	return g, err
 }
 
 // CreateAndWait starts an image generation and polls until it is completed
 // or failed. A failed generation is returned, not reported as an error. In
-// production prefer a webhook. Returns *FlowsWaitTimeoutError if
+// production prefer a webhook. Returns *WaitTimeoutError if
 // w.WaitTimeout elapses first. w may be nil.
-func (s *FlowsImageService) CreateAndWait(ctx context.Context, req *ImageGenerationRequest, w *FlowsWaitOptions, opts ...Option) (*MediaGeneration, error) {
-	return createGenerationAndWait(ctx, s.cfg, flowsImagePath, orEmpty(req), w, opts)
+func (s *ImageService) CreateAndWait(ctx context.Context, req *ImageGenerationRequest, w *WaitOptions, opts ...option.RequestOption) (*MediaGeneration, error) {
+	return createGenerationAndWait(ctx, s.cfg, flowsImagePath, transport.OrEmpty(req), w, opts)
 }
 
-// FlowsVideoService groups the /v1/flows/video endpoints.
-type FlowsVideoService struct{ cfg *config }
+// VideoService groups the /v1/flows/video endpoints.
+type VideoService struct{ cfg *requestconfig.Config }
 
 // List returns one page of video generations. req may be nil.
-func (s *FlowsVideoService) List(ctx context.Context, req *MediaGenerationListRequest, opts ...Option) (*MediaGenerationPage, error) {
+func (s *VideoService) List(ctx context.Context, req *MediaGenerationListRequest, opts ...option.RequestOption) (*MediaGenerationPage, error) {
 	return listGenerations(ctx, s.cfg, flowsVideoPath, req, opts)
 }
 
 // ListAll iterates over every video generation.
-func (s *FlowsVideoService) ListAll(ctx context.Context, req *MediaGenerationListRequest, opts ...Option) iter.Seq2[MediaGeneration, error] {
+func (s *VideoService) ListAll(ctx context.Context, req *MediaGenerationListRequest, opts ...option.RequestOption) iter.Seq2[MediaGeneration, error] {
 	return allGenerations(ctx, s.cfg, flowsVideoPath, req, opts)
 }
 
 // Create starts a video generation.
-func (s *FlowsVideoService) Create(ctx context.Context, req *VideoGenerationRequest, opts ...Option) (*MediaGenerationCreateResponse, error) {
-	r, _, err := createGeneration(ctx, s.cfg, flowsVideoPath, orEmpty(req), opts)
+func (s *VideoService) Create(ctx context.Context, req *VideoGenerationRequest, opts ...option.RequestOption) (*MediaGenerationCreateResponse, error) {
+	r, _, err := createGeneration(ctx, s.cfg, flowsVideoPath, transport.OrEmpty(req), opts)
 	return r, err
 }
 
 // Get returns a video generation.
-func (s *FlowsVideoService) Get(ctx context.Context, generationID string, opts ...Option) (*MediaGeneration, error) {
+func (s *VideoService) Get(ctx context.Context, generationID string, opts ...option.RequestOption) (*MediaGeneration, error) {
 	g, _, err := getGeneration(ctx, s.cfg, flowsVideoPath, generationID, opts)
 	return g, err
 }
 
 // CreateAndWait starts a video generation and polls until it is completed
-// or failed. See FlowsImageService.CreateAndWait.
-func (s *FlowsVideoService) CreateAndWait(ctx context.Context, req *VideoGenerationRequest, w *FlowsWaitOptions, opts ...Option) (*MediaGeneration, error) {
-	return createGenerationAndWait(ctx, s.cfg, flowsVideoPath, orEmpty(req), w, opts)
+// or failed. See ImageService.CreateAndWait.
+func (s *VideoService) CreateAndWait(ctx context.Context, req *VideoGenerationRequest, w *WaitOptions, opts ...option.RequestOption) (*MediaGeneration, error) {
+	return createGenerationAndWait(ctx, s.cfg, flowsVideoPath, transport.OrEmpty(req), w, opts)
 }
 
-// FlowsTextToSpeechService groups the /v1/flows/text-to-speech endpoints.
-type FlowsTextToSpeechService struct{ cfg *config }
+// TextToSpeechService groups the /v1/flows/text-to-speech endpoints.
+type TextToSpeechService struct{ cfg *requestconfig.Config }
 
 // List returns one page of speech generations. req may be nil.
-func (s *FlowsTextToSpeechService) List(ctx context.Context, req *MediaGenerationListRequest, opts ...Option) (*MediaGenerationPage, error) {
+func (s *TextToSpeechService) List(ctx context.Context, req *MediaGenerationListRequest, opts ...option.RequestOption) (*MediaGenerationPage, error) {
 	return listGenerations(ctx, s.cfg, flowsTTSPath, req, opts)
 }
 
 // ListAll iterates over every speech generation.
-func (s *FlowsTextToSpeechService) ListAll(ctx context.Context, req *MediaGenerationListRequest, opts ...Option) iter.Seq2[MediaGeneration, error] {
+func (s *TextToSpeechService) ListAll(ctx context.Context, req *MediaGenerationListRequest, opts ...option.RequestOption) iter.Seq2[MediaGeneration, error] {
 	return allGenerations(ctx, s.cfg, flowsTTSPath, req, opts)
 }
 
 // Create starts a speech generation.
-func (s *FlowsTextToSpeechService) Create(ctx context.Context, req *TextToSpeechGenerationRequest, opts ...Option) (*MediaGenerationCreateResponse, error) {
-	r, _, err := createGeneration(ctx, s.cfg, flowsTTSPath, orEmpty(req), opts)
+func (s *TextToSpeechService) Create(ctx context.Context, req *TextToSpeechGenerationRequest, opts ...option.RequestOption) (*MediaGenerationCreateResponse, error) {
+	r, _, err := createGeneration(ctx, s.cfg, flowsTTSPath, transport.OrEmpty(req), opts)
 	return r, err
 }
 
 // Get returns a speech generation.
-func (s *FlowsTextToSpeechService) Get(ctx context.Context, generationID string, opts ...Option) (*MediaGeneration, error) {
+func (s *TextToSpeechService) Get(ctx context.Context, generationID string, opts ...option.RequestOption) (*MediaGeneration, error) {
 	g, _, err := getGeneration(ctx, s.cfg, flowsTTSPath, generationID, opts)
 	return g, err
 }
 
 // CreateAndWait starts a speech generation and polls until it is completed
-// or failed. See FlowsImageService.CreateAndWait.
-func (s *FlowsTextToSpeechService) CreateAndWait(ctx context.Context, req *TextToSpeechGenerationRequest, w *FlowsWaitOptions, opts ...Option) (*MediaGeneration, error) {
-	return createGenerationAndWait(ctx, s.cfg, flowsTTSPath, orEmpty(req), w, opts)
+// or failed. See ImageService.CreateAndWait.
+func (s *TextToSpeechService) CreateAndWait(ctx context.Context, req *TextToSpeechGenerationRequest, w *WaitOptions, opts ...option.RequestOption) (*MediaGeneration, error) {
+	return createGenerationAndWait(ctx, s.cfg, flowsTTSPath, transport.OrEmpty(req), w, opts)
 }
 
-// FlowsTemplatesService groups the /v1/flows/templates endpoints.
-type FlowsTemplatesService struct {
-	cfg *config
+// TemplatesService groups the /v1/flows/templates endpoints.
+type TemplatesService struct {
+	cfg *requestconfig.Config
 
 	// Runs starts and inspects template runs.
-	Runs *FlowsTemplateRunsService
+	Runs *TemplateRunsService
 }
 
 // TemplatePort is a template input or output with its JSON content schema.
@@ -489,7 +496,7 @@ type TemplateSummary struct {
 	HasMoreVersions bool              `json:"has_more_versions"`
 }
 
-// TemplatesListRequest holds the optional parameters of FlowsTemplatesService.List.
+// TemplatesListRequest holds the optional parameters of TemplatesService.List.
 type TemplatesListRequest struct {
 	Cursor              string `query:"cursor"`
 	PageSize            *int   `query:"page_size"`
@@ -505,35 +512,35 @@ type TemplatePage struct {
 }
 
 // List returns one page of templates. req may be nil.
-func (s *FlowsTemplatesService) List(ctx context.Context, req *TemplatesListRequest, opts ...Option) (*TemplatePage, error) {
-	return doValue[TemplatePage](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/flows/templates", query: req, opts: opts})
+func (s *TemplatesService) List(ctx context.Context, req *TemplatesListRequest, opts ...option.RequestOption) (*TemplatePage, error) {
+	return transport.DoValue[TemplatePage](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: "/v1/flows/templates", Query: req, Opts: opts})
 }
 
 // ListAll iterates over every template.
-func (s *FlowsTemplatesService) ListAll(ctx context.Context, req *TemplatesListRequest, opts ...Option) iter.Seq2[TemplateSummary, error] {
-	params := *orEmpty(req)
-	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[TemplateSummary], error) {
+func (s *TemplatesService) ListAll(ctx context.Context, req *TemplatesListRequest, opts ...option.RequestOption) iter.Seq2[TemplateSummary, error] {
+	params := *transport.OrEmpty(req)
+	return stream.Paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (stream.Page[TemplateSummary], error) {
 		params.Cursor = cursor
 		resp, err := s.List(ctx, &params, opts...)
 		if err != nil {
-			return page[TemplateSummary]{}, err
+			return stream.Page[TemplateSummary]{}, err
 		}
-		return page[TemplateSummary]{items: resp.Templates, next: deref(resp.NextCursor), hasMore: resp.HasMore == nil || *resp.HasMore}, nil
+		return stream.Page[TemplateSummary]{Items: resp.Templates, Next: transport.Deref(resp.NextCursor), HasMore: resp.HasMore == nil || *resp.HasMore}, nil
 	})
 }
 
-// TemplatesGetRequest holds the optional parameters of FlowsTemplatesService.Get.
+// TemplatesGetRequest holds the optional parameters of TemplatesService.Get.
 type TemplatesGetRequest struct {
 	VersionsPerTemplate *int `query:"versions_per_template"`
 }
 
 // Get returns a template. req may be nil.
-func (s *FlowsTemplatesService) Get(ctx context.Context, templateID string, req *TemplatesGetRequest, opts ...Option) (*TemplateSummary, error) {
-	return doValue[TemplateSummary](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/flows/templates/%s", templateID), query: req, opts: opts})
+func (s *TemplatesService) Get(ctx context.Context, templateID string, req *TemplatesGetRequest, opts ...option.RequestOption) (*TemplateSummary, error) {
+	return transport.DoValue[TemplateSummary](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/flows/templates/%s", templateID), Query: req, Opts: opts})
 }
 
-// FlowsTemplateRunsService groups the /v1/flows/templates/{id}/runs endpoints.
-type FlowsTemplateRunsService struct{ cfg *config }
+// TemplateRunsService groups the /v1/flows/templates/{id}/runs endpoints.
+type TemplateRunsService struct{ cfg *requestconfig.Config }
 
 // TemplateOutput is one output of a template run. Which content field is
 // set depends on Type: ContentURL/ContentMimeType for audio, image and
@@ -561,7 +568,7 @@ type TemplateRun struct {
 	Outputs    map[string]TemplateOutput `json:"outputs"`
 }
 
-// TemplateRunsListRequest holds the optional parameters of FlowsTemplateRunsService.List.
+// TemplateRunsListRequest holds the optional parameters of TemplateRunsService.List.
 type TemplateRunsListRequest struct {
 	Cursor    string `query:"cursor"`
 	PageSize  *int   `query:"page_size"`
@@ -576,24 +583,24 @@ type TemplateRunPage struct {
 }
 
 // List returns one page of runs of a template. req may be nil.
-func (s *FlowsTemplateRunsService) List(ctx context.Context, templateID string, req *TemplateRunsListRequest, opts ...Option) (*TemplateRunPage, error) {
-	return doValue[TemplateRunPage](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/flows/templates/%s/runs", templateID), query: req, opts: opts})
+func (s *TemplateRunsService) List(ctx context.Context, templateID string, req *TemplateRunsListRequest, opts ...option.RequestOption) (*TemplateRunPage, error) {
+	return transport.DoValue[TemplateRunPage](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/flows/templates/%s/runs", templateID), Query: req, Opts: opts})
 }
 
 // ListAll iterates over every run of a template.
-func (s *FlowsTemplateRunsService) ListAll(ctx context.Context, templateID string, req *TemplateRunsListRequest, opts ...Option) iter.Seq2[TemplateRun, error] {
-	params := *orEmpty(req)
-	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[TemplateRun], error) {
+func (s *TemplateRunsService) ListAll(ctx context.Context, templateID string, req *TemplateRunsListRequest, opts ...option.RequestOption) iter.Seq2[TemplateRun, error] {
+	params := *transport.OrEmpty(req)
+	return stream.Paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (stream.Page[TemplateRun], error) {
 		params.Cursor = cursor
 		resp, err := s.List(ctx, templateID, &params, opts...)
 		if err != nil {
-			return page[TemplateRun]{}, err
+			return stream.Page[TemplateRun]{}, err
 		}
-		return page[TemplateRun]{items: resp.Runs, next: deref(resp.NextCursor), hasMore: resp.HasMore == nil || *resp.HasMore}, nil
+		return stream.Page[TemplateRun]{Items: resp.Runs, Next: transport.Deref(resp.NextCursor), HasMore: resp.HasMore == nil || *resp.HasMore}, nil
 	})
 }
 
-// TemplateRunCreateRequest is the body of FlowsTemplateRunsService.Create.
+// TemplateRunCreateRequest is the body of TemplateRunsService.Create.
 type TemplateRunCreateRequest struct {
 	// Inputs maps input port IDs to values: strings, booleans, numbers,
 	// MediaReference values or slices of these. Required.
@@ -603,35 +610,35 @@ type TemplateRunCreateRequest struct {
 	Webhook   *WebhookTarget `json:"webhook,omitempty"`
 }
 
-func (s *FlowsTemplateRunsService) create(ctx context.Context, templateID string, req *TemplateRunCreateRequest, opts []Option) (*TemplateRun, http.Header, error) {
-	body := *orEmpty(req)
+func (s *TemplateRunsService) create(ctx context.Context, templateID string, req *TemplateRunCreateRequest, opts []option.RequestOption) (*TemplateRun, http.Header, error) {
+	body := *transport.OrEmpty(req)
 	if body.Inputs == nil {
 		body.Inputs = map[string]any{}
 	}
-	return doValueHeader[TemplateRun](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/flows/templates/%s/runs", templateID), body: &body, opts: opts})
+	return transport.DoValueHeader[TemplateRun](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/flows/templates/%s/runs", templateID), Body: &body, Opts: opts})
 }
 
-func (s *FlowsTemplateRunsService) get(ctx context.Context, templateID, runID string, opts []Option) (*TemplateRun, http.Header, error) {
-	return doValueHeader[TemplateRun](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/flows/templates/%s/runs/%s", templateID, runID), opts: opts})
+func (s *TemplateRunsService) get(ctx context.Context, templateID, runID string, opts []option.RequestOption) (*TemplateRun, http.Header, error) {
+	return transport.DoValueHeader[TemplateRun](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/flows/templates/%s/runs/%s", templateID, runID), Opts: opts})
 }
 
 // Create starts a run of a template.
-func (s *FlowsTemplateRunsService) Create(ctx context.Context, templateID string, req *TemplateRunCreateRequest, opts ...Option) (*TemplateRun, error) {
+func (s *TemplateRunsService) Create(ctx context.Context, templateID string, req *TemplateRunCreateRequest, opts ...option.RequestOption) (*TemplateRun, error) {
 	r, _, err := s.create(ctx, templateID, req, opts)
 	return r, err
 }
 
 // Get returns a template run.
-func (s *FlowsTemplateRunsService) Get(ctx context.Context, templateID, runID string, opts ...Option) (*TemplateRun, error) {
+func (s *TemplateRunsService) Get(ctx context.Context, templateID, runID string, opts ...option.RequestOption) (*TemplateRun, error) {
 	r, _, err := s.get(ctx, templateID, runID, opts)
 	return r, err
 }
 
 // CreateAndWait starts a template run and polls until its status is
 // completed or failed. A failed run is returned, not reported as an error;
-// each output also has its own status. Returns *FlowsWaitTimeoutError if
+// each output also has its own status. Returns *WaitTimeoutError if
 // w.WaitTimeout elapses first. w may be nil.
-func (s *FlowsTemplateRunsService) CreateAndWait(ctx context.Context, templateID string, req *TemplateRunCreateRequest, w *FlowsWaitOptions, opts ...Option) (*TemplateRun, error) {
+func (s *TemplateRunsService) CreateAndWait(ctx context.Context, templateID string, req *TemplateRunCreateRequest, w *WaitOptions, opts ...option.RequestOption) (*TemplateRun, error) {
 	return waitTerminal(ctx, s.cfg, w, templateID,
 		func() (*TemplateRun, string, GenerationStatus, http.Header, error) {
 			r, h, err := s.create(ctx, templateID, req, opts)

@@ -1,25 +1,33 @@
-package elevenlabs
+package productions
 
 import (
 	"context"
 	"net/http"
 	"time"
+
+	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
-// ProductionsService groups the /v1/productions endpoints for ordering
+// Service groups the /v1/productions endpoints for ordering
 // human-reviewed dubbing, subtitles and transcription.
-type ProductionsService struct {
+type Service struct {
 	// Orders manages production orders.
-	Orders *ProductionOrdersService
+	Orders *OrdersService
 }
 
-func newProductionsService(cfg *config) *ProductionsService {
-	return &ProductionsService{Orders: &ProductionOrdersService{
+// NewService returns a Service configured by opts. Without option.WithAPIKey
+// the key is read from the ELEVENLABS_API_KEY environment variable.
+func NewService(opts ...option.RequestOption) *Service {
+	cfg := requestconfig.Build(opts...)
+	return &Service{Orders: &OrdersService{
 		cfg:          cfg,
-		Deliverables: &ProductionDeliverablesService{cfg: cfg},
-		Items:        &ProductionItemsService{cfg: cfg},
-		Languages:    &ProductionLanguagesService{cfg: cfg},
-		Media:        &ProductionMediaService{cfg: cfg},
+		Deliverables: &DeliverablesService{cfg: cfg},
+		Items:        &ItemsService{cfg: cfg},
+		Languages:    &LanguagesService{cfg: cfg},
+		Media:        &MediaService{cfg: cfg},
 	}}
 }
 
@@ -120,21 +128,21 @@ type Order struct {
 	CancelReason   *string         `json:"cancel_reason,omitempty"`
 }
 
-// ProductionOrdersService groups the /v1/productions/orders endpoints.
-type ProductionOrdersService struct {
-	cfg *config
+// OrdersService groups the /v1/productions/orders endpoints.
+type OrdersService struct {
+	cfg *requestconfig.Config
 
 	// Deliverables lists finished files.
-	Deliverables *ProductionDeliverablesService
+	Deliverables *DeliverablesService
 	// Items edits the items of an order.
-	Items *ProductionItemsService
+	Items *ItemsService
 	// Languages lists supported languages.
-	Languages *ProductionLanguagesService
+	Languages *LanguagesService
 	// Media uploads and inspects source media.
-	Media *ProductionMediaService
+	Media *MediaService
 }
 
-// OrdersListRequest holds the optional parameters of ProductionOrdersService.List.
+// OrdersListRequest holds the optional parameters of OrdersService.List.
 type OrdersListRequest struct {
 	PageSize *int `query:"page_size"`
 	Offset   *int `query:"offset"`
@@ -144,53 +152,57 @@ type OrdersListRequest struct {
 	EndDate   *time.Time   `query:"end_date"`
 }
 
-// OrderList is the response of ProductionOrdersService.List.
+// OrderList is the response of OrdersService.List.
 type OrderList struct {
 	Orders []OrderSummary `json:"orders"`
 }
 
 // List returns orders. req may be nil.
-func (s *ProductionOrdersService) List(ctx context.Context, req *OrdersListRequest, opts ...Option) (*OrderList, error) {
-	return doValue[OrderList](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/productions/orders", query: req, opts: opts})
+func (s *OrdersService) List(ctx context.Context, req *OrdersListRequest, opts ...option.RequestOption) (*OrderList, error) {
+	return transport.DoValue[OrderList](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: "/v1/productions/orders", Query: req, Opts: opts})
 }
 
-// OrderCreateRequest is the body of ProductionOrdersService.Create.
+// OrderCreateRequest is the body of OrdersService.Create.
 type OrderCreateRequest struct {
 	// Sandbox creates a test order that is never fulfilled or charged.
 	Sandbox *bool `json:"sandbox,omitempty"`
 }
 
-// OrderCreateResponse is the response of ProductionOrdersService.Create.
+// OrderCreateResponse is the response of OrdersService.Create.
 type OrderCreateResponse struct {
 	OrderID string `json:"order_id"`
 	Sandbox *bool  `json:"sandbox,omitempty"`
 }
 
 // Create opens a new order. req may be nil.
-func (s *ProductionOrdersService) Create(ctx context.Context, req *OrderCreateRequest, opts ...Option) (*OrderCreateResponse, error) {
-	return doValue[OrderCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/productions/orders", body: orEmpty(req), opts: opts})
+func (s *OrdersService) Create(ctx context.Context, req *OrderCreateRequest, opts ...option.RequestOption) (*OrderCreateResponse, error) {
+	return transport.DoValue[OrderCreateResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/productions/orders", Body: transport.OrEmpty(req), Opts: opts})
 }
 
 // Get returns an order.
-func (s *ProductionOrdersService) Get(ctx context.Context, orderID string, opts ...Option) (*Order, error) {
-	return doValue[Order](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/productions/orders/%s", orderID), opts: opts})
+func (s *OrdersService) Get(ctx context.Context, orderID string, opts ...option.RequestOption) (*Order, error) {
+	return transport.DoValue[Order](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/productions/orders/%s", orderID), Opts: opts})
+}
+
+type nameBody struct {
+	Name string `json:"name"`
 }
 
 type wrappedRequest[T any] struct {
 	Request T `json:"request"`
 }
 
-// OrderUpdateResponse is the response of ProductionOrdersService.Update.
+// OrderUpdateResponse is the response of OrdersService.Update.
 type OrderUpdateResponse struct {
 	Name string `json:"name"`
 }
 
 // Update renames an order.
-func (s *ProductionOrdersService) Update(ctx context.Context, orderID, name string, opts ...Option) (*OrderUpdateResponse, error) {
-	return doValue[OrderUpdateResponse](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/productions/orders/%s", orderID), body: wrappedRequest[nameBody]{nameBody{name}}, opts: opts})
+func (s *OrdersService) Update(ctx context.Context, orderID, name string, opts ...option.RequestOption) (*OrderUpdateResponse, error) {
+	return transport.DoValue[OrderUpdateResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPatch, Path: transport.Pathf("/v1/productions/orders/%s", orderID), Body: wrappedRequest[nameBody]{nameBody{name}}, Opts: opts})
 }
 
-// OrderSubmitResponse is the response of ProductionOrdersService.Submit.
+// OrderSubmitResponse is the response of OrdersService.Submit.
 type OrderSubmitResponse struct {
 	OrderID     string     `json:"order_id"`
 	State       OrderState `json:"state"`
@@ -198,12 +210,12 @@ type OrderSubmitResponse struct {
 }
 
 // Submit submits an order for fulfilment.
-func (s *ProductionOrdersService) Submit(ctx context.Context, orderID string, opts ...Option) (*OrderSubmitResponse, error) {
-	return doValue[OrderSubmitResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/productions/orders/%s/submit", orderID), opts: opts})
+func (s *OrdersService) Submit(ctx context.Context, orderID string, opts ...option.RequestOption) (*OrderSubmitResponse, error) {
+	return transport.DoValue[OrderSubmitResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/productions/orders/%s/submit", orderID), Opts: opts})
 }
 
-// ProductionDeliverablesService groups the order deliverables endpoint.
-type ProductionDeliverablesService struct{ cfg *config }
+// DeliverablesService groups the order deliverables endpoint.
+type DeliverablesService struct{ cfg *requestconfig.Config }
 
 // Deliverable is a finished file of an order.
 type Deliverable struct {
@@ -213,35 +225,35 @@ type Deliverable struct {
 	Version     *int   `json:"version,omitempty"`
 }
 
-// DeliverableList is the response of ProductionDeliverablesService.List.
+// DeliverableList is the response of DeliverablesService.List.
 type DeliverableList struct {
 	Deliverables []Deliverable `json:"deliverables"`
 }
 
 // List returns the deliverables of an order.
-func (s *ProductionDeliverablesService) List(ctx context.Context, orderID string, opts ...Option) (*DeliverableList, error) {
-	return doValue[DeliverableList](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/productions/orders/%s/deliverables", orderID), opts: opts})
+func (s *DeliverablesService) List(ctx context.Context, orderID string, opts ...option.RequestOption) (*DeliverableList, error) {
+	return transport.DoValue[DeliverableList](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/productions/orders/%s/deliverables", orderID), Opts: opts})
 }
 
-// ProductionItemsService groups the order items endpoints.
-type ProductionItemsService struct{ cfg *config }
+// ItemsService groups the order items endpoints.
+type ItemsService struct{ cfg *requestconfig.Config }
 
-// OrderItemUpsertRequest is the body of ProductionItemsService.Upsert.
+// OrderItemUpsertRequest is the body of ItemsService.Upsert.
 type OrderItemUpsertRequest struct {
 	Item OrderItem `json:"item"`
 	// ItemID replaces an existing item; empty adds a new one.
 	ItemID string `json:"item_id,omitempty"`
 }
 
-// OrderItemUpsertResponse is the response of ProductionItemsService.Upsert.
+// OrderItemUpsertResponse is the response of ItemsService.Upsert.
 type OrderItemUpsertResponse struct {
 	ItemID string `json:"item_id"`
 	Quote  *Quote `json:"quote,omitempty"`
 }
 
 // Upsert adds or replaces an order item.
-func (s *ProductionItemsService) Upsert(ctx context.Context, orderID string, req *OrderItemUpsertRequest, opts ...Option) (*OrderItemUpsertResponse, error) {
-	return doValue[OrderItemUpsertResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/productions/orders/%s/items", orderID), body: wrappedRequest[*OrderItemUpsertRequest]{orEmpty(req)}, opts: opts})
+func (s *ItemsService) Upsert(ctx context.Context, orderID string, req *OrderItemUpsertRequest, opts ...option.RequestOption) (*OrderItemUpsertResponse, error) {
+	return transport.DoValue[OrderItemUpsertResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/productions/orders/%s/items", orderID), Body: wrappedRequest[*OrderItemUpsertRequest]{transport.OrEmpty(req)}, Opts: opts})
 }
 
 // SuccessResponse reports whether an operation succeeded.
@@ -250,12 +262,12 @@ type SuccessResponse struct {
 }
 
 // Remove deletes an order item.
-func (s *ProductionItemsService) Remove(ctx context.Context, orderID, itemID string, opts ...Option) (*SuccessResponse, error) {
-	return doValue[SuccessResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/productions/orders/%s/items/%s", orderID, itemID), opts: opts})
+func (s *ItemsService) Remove(ctx context.Context, orderID, itemID string, opts ...option.RequestOption) (*SuccessResponse, error) {
+	return transport.DoValue[SuccessResponse](ctx, s.cfg, &transport.Request{Method: http.MethodDelete, Path: transport.Pathf("/v1/productions/orders/%s/items/%s", orderID, itemID), Opts: opts})
 }
 
-// ProductionLanguagesService groups the supported languages endpoint.
-type ProductionLanguagesService struct{ cfg *config }
+// LanguagesService groups the supported languages endpoint.
+type LanguagesService struct{ cfg *requestconfig.Config }
 
 // LanguageInfo is a supported language.
 type LanguageInfo struct {
@@ -269,44 +281,44 @@ type LanguagePair struct {
 	DestinationLanguages []LanguageInfo `json:"destination_languages"`
 }
 
-// ProductionLanguages lists supported languages: Languages for single
+// Languages lists supported languages: Languages for single
 // language kinds (Kind "single"), LanguagePairs for translation kinds
 // (Kind "pair").
-type ProductionLanguages struct {
+type Languages struct {
 	Kind          string         `json:"kind"`
 	Languages     []LanguageInfo `json:"languages,omitempty"`
 	LanguagePairs []LanguagePair `json:"language_pairs,omitempty"`
 }
 
 // List returns the languages supported for an item kind.
-func (s *ProductionLanguagesService) List(ctx context.Context, kind OrderItemKind, opts ...Option) (*ProductionLanguages, error) {
-	return doValue[ProductionLanguages](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/productions/orders/languages/%s", string(kind)), opts: opts})
+func (s *LanguagesService) List(ctx context.Context, kind OrderItemKind, opts ...option.RequestOption) (*Languages, error) {
+	return transport.DoValue[Languages](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/productions/orders/languages/%s", string(kind)), Opts: opts})
 }
 
-// ProductionMediaService groups the order media endpoints.
-type ProductionMediaService struct{ cfg *config }
+// MediaService groups the order media endpoints.
+type MediaService struct{ cfg *requestconfig.Config }
 
-// MediaRegisterRequest is the body of ProductionMediaService.Register.
+// MediaRegisterRequest is the body of MediaService.Register.
 // Provide either Media or MediaURL.
 type MediaRegisterRequest struct {
 	// DeclaredLanguage is the spoken language of the media. Required.
 	DeclaredLanguage string `form:"declared_language"`
 	// Media is the uploaded file.
-	Media *File `form:"media"`
+	Media *types.File `form:"media"`
 	// MediaURL is a URL to fetch the media from.
 	MediaURL            string `form:"media_url"`
 	MediaURLFilename    string `form:"media_url_filename"`
 	MediaURLContentType string `form:"media_url_content_type"`
 }
 
-// MediaRegisterResponse is the response of ProductionMediaService.Register.
+// MediaRegisterResponse is the response of MediaService.Register.
 type MediaRegisterResponse struct {
 	MediaID string `json:"media_id"`
 }
 
 // Register uploads or links source media for an order.
-func (s *ProductionMediaService) Register(ctx context.Context, orderID string, req *MediaRegisterRequest, opts ...Option) (*MediaRegisterResponse, error) {
-	return doValue[MediaRegisterResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/productions/orders/%s/media", orderID), form: orEmpty(req), opts: opts})
+func (s *MediaService) Register(ctx context.Context, orderID string, req *MediaRegisterRequest, opts ...option.RequestOption) (*MediaRegisterResponse, error) {
+	return transport.DoValue[MediaRegisterResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/productions/orders/%s/media", orderID), Form: transport.OrEmpty(req), Opts: opts})
 }
 
 // OrderMedia describes registered media.
@@ -319,6 +331,6 @@ type OrderMedia struct {
 }
 
 // Get returns registered media.
-func (s *ProductionMediaService) Get(ctx context.Context, orderID, mediaID string, opts ...Option) (*OrderMedia, error) {
-	return doValue[OrderMedia](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/productions/orders/%s/media/%s", orderID, mediaID), opts: opts})
+func (s *MediaService) Get(ctx context.Context, orderID, mediaID string, opts ...option.RequestOption) (*OrderMedia, error) {
+	return transport.DoValue[OrderMedia](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/productions/orders/%s/media/%s", orderID, mediaID), Opts: opts})
 }

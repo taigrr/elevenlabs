@@ -1,4 +1,4 @@
-package elevenlabs
+package speechengine
 
 import (
 	"context"
@@ -15,9 +15,11 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
+	"github.com/taigrr/elevenlabs/v2/internal/testutil"
+	"github.com/taigrr/elevenlabs/v2/option"
 )
 
-func signSpeechEngineToken(t *testing.T, apiKey string, claims map[string]any) string {
+func signToken(t *testing.T, apiKey string, claims map[string]any) string {
 	t.Helper()
 	enc := base64.RawURLEncoding
 	header := enc.EncodeToString([]byte(`{"alg":"HS256","typ":"JWT"}`))
@@ -32,14 +34,14 @@ func signSpeechEngineToken(t *testing.T, apiKey string, claims map[string]any) s
 	return body + "." + enc.EncodeToString(mac.Sum(nil))
 }
 
-func validSpeechEngineClaims(now time.Time) map[string]any {
-	return map[string]any{"iss": speechEngineIssuer, "sub": speechEngineSubject, "iat": now.Unix(), "exp": now.Add(time.Minute).Unix()}
+func validClaims(now time.Time) map[string]any {
+	return map[string]any{"iss": issuer, "sub": subject, "iat": now.Unix(), "exp": now.Add(time.Minute).Unix()}
 }
 
-func TestVerifySpeechEngineToken(t *testing.T) {
+func TestVerifyToken(t *testing.T) {
 	now := time.Unix(1_700_000_000, 0)
 	with := func(k string, v any) map[string]any {
-		c := validSpeechEngineClaims(now)
+		c := validClaims(now)
 		if v == nil {
 			delete(c, k)
 		} else {
@@ -53,31 +55,31 @@ func TestVerifySpeechEngineToken(t *testing.T) {
 		key     string
 		wantErr string
 	}{
-		{"valid", signSpeechEngineToken(t, "sk_test", validSpeechEngineClaims(now)), "sk_test", ""},
-		{"bearer prefix", "Bearer " + signSpeechEngineToken(t, "sk_test", validSpeechEngineClaims(now)), "sk_test", ""},
-		{"residency suffix stripped", signSpeechEngineToken(t, "sk_test", validSpeechEngineClaims(now)), "sk_test_residency_in", ""},
-		{"wrong key", signSpeechEngineToken(t, "sk_other", validSpeechEngineClaims(now)), "sk_test", "signature mismatch"},
+		{"valid", signToken(t, "sk_test", validClaims(now)), "sk_test", ""},
+		{"bearer prefix", "Bearer " + signToken(t, "sk_test", validClaims(now)), "sk_test", ""},
+		{"residency suffix stripped", signToken(t, "sk_test", validClaims(now)), "sk_test_residency_in", ""},
+		{"wrong key", signToken(t, "sk_other", validClaims(now)), "sk_test", "signature mismatch"},
 		{"malformed", "abc", "sk_test", "expected 3 parts"},
-		{"bad issuer", signSpeechEngineToken(t, "k", with("iss", "x")), "k", "issuer"},
-		{"bad subject", signSpeechEngineToken(t, "k", with("sub", "x")), "k", "subject"},
-		{"missing exp", signSpeechEngineToken(t, "k", with("exp", nil)), "k", "missing exp"},
-		{"missing iat", signSpeechEngineToken(t, "k", with("iat", nil)), "k", "missing iat"},
-		{"expired", signSpeechEngineToken(t, "k", with("exp", now.Add(-2*time.Minute).Unix())), "k", "expired"},
-		{"future iat", signSpeechEngineToken(t, "k", with("iat", now.Add(2*time.Minute).Unix())), "k", "future"},
+		{"bad issuer", signToken(t, "k", with("iss", "x")), "k", "issuer"},
+		{"bad subject", signToken(t, "k", with("sub", "x")), "k", "subject"},
+		{"missing exp", signToken(t, "k", with("exp", nil)), "k", "missing exp"},
+		{"missing iat", signToken(t, "k", with("iat", nil)), "k", "missing iat"},
+		{"expired", signToken(t, "k", with("exp", now.Add(-2*time.Minute).Unix())), "k", "expired"},
+		{"future iat", signToken(t, "k", with("iat", now.Add(2*time.Minute).Unix())), "k", "future"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			claims, err := VerifySpeechEngineToken(tt.token, tt.key, now)
+			claims, err := VerifyToken(tt.token, tt.key, now)
 			if tt.wantErr == "" {
 				if err != nil {
 					t.Fatal(err)
 				}
-				if claims["sub"] != speechEngineSubject {
+				if claims["sub"] != subject {
 					t.Fatalf("claims = %v", claims)
 				}
 				return
 			}
-			if !errors.Is(err, ErrSpeechEngineAuth) || !strings.Contains(err.Error(), tt.wantErr) {
+			if !errors.Is(err, ErrAuth) || !strings.Contains(err.Error(), tt.wantErr) {
 				t.Fatalf("err = %v, want %q", err, tt.wantErr)
 			}
 		})
@@ -106,10 +108,9 @@ func TestExtractLLMText(t *testing.T) {
 	}
 }
 
-func TestSpeechEngineHandler(t *testing.T) {
+func TestHandler(t *testing.T) {
 	now := time.Unix(1_700_000_000, 0)
-	client := NewClient(WithAPIKey("sk_test"))
-	client.cfg.Now = func() time.Time { return now }
+	client := NewService(option.WithAPIKey("sk_test"), testutil.WithClock(func() time.Time { return now }))
 
 	var mu sync.Mutex
 	var events []string
@@ -117,9 +118,9 @@ func TestSpeechEngineHandler(t *testing.T) {
 	interrupted := make(chan struct{})
 	disconnected := make(chan struct{})
 
-	handler := client.SpeechEngine.Handler(SpeechEngineCallbacks{
-		OnInit: func(s *SpeechEngineSession, id string) { record("init:" + id + ":" + s.ConversationID()) },
-		OnTranscript: func(ctx context.Context, s *SpeechEngineSession, tr []SpeechEngineTranscriptMessage) error {
+	handler := client.Handler(Callbacks{
+		OnInit: func(s *Session, id string) { record("init:" + id + ":" + s.ConversationID()) },
+		OnTranscript: func(ctx context.Context, s *Session, tr []TranscriptMessage) error {
 			if tr[0].Content == "slow" {
 				<-ctx.Done()
 				close(interrupted)
@@ -129,9 +130,9 @@ func TestSpeechEngineHandler(t *testing.T) {
 				_ = yield("a", nil) && yield("", nil) && yield("b", nil)
 			})
 		},
-		OnClose:      func(*SpeechEngineSession) { record("close") },
-		OnDisconnect: func(*SpeechEngineSession) { close(disconnected) },
-		OnError:      func(_ *SpeechEngineSession, err error) { record("error:" + err.Error()) },
+		OnClose:      func(*Session) { record("close") },
+		OnDisconnect: func(*Session) { close(disconnected) },
+		OnError:      func(_ *Session, err error) { record("error:" + err.Error()) },
 	})
 	srv := httptest.NewServer(handler)
 	defer srv.Close()
@@ -144,7 +145,7 @@ func TestSpeechEngineHandler(t *testing.T) {
 	}
 
 	hdr := http.Header{}
-	hdr.Set(SpeechEngineAuthHeader, signSpeechEngineToken(t, "sk_test", validSpeechEngineClaims(now)))
+	hdr.Set(AuthHeader, signToken(t, "sk_test", validClaims(now)))
 	conn, _, err := websocket.Dial(ctx, wsURL, &websocket.DialOptions{HTTPHeader: hdr})
 	if err != nil {
 		t.Fatal(err)
@@ -193,19 +194,19 @@ func TestSpeechEngineHandler(t *testing.T) {
 	}
 }
 
-func TestSpeechEngineSendResponseOutsideTranscript(t *testing.T) {
-	s := &SpeechEngineSession{}
+func TestSendResponseOutsideTranscript(t *testing.T) {
+	s := &Session{}
 	if err := s.SendResponse(context.Background(), "x"); !errors.Is(err, ErrNoTranscript) {
 		t.Fatalf("err = %v", err)
 	}
 }
 
-func TestSpeechEngineVerifyRequest(t *testing.T) {
+func TestVerifyRequest(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	if err := NewClient(WithAPIKey("")).SpeechEngine.VerifyRequest(r); !errors.Is(err, ErrSpeechEngineAuth) {
+	if err := NewService(option.WithAPIKey("")).VerifyRequest(r); !errors.Is(err, ErrAuth) {
 		t.Fatalf("err = %v", err)
 	}
-	if err := NewClient(WithAPIKey("k")).SpeechEngine.VerifyRequest(r); err == nil || !strings.Contains(err.Error(), "missing") {
+	if err := NewService(option.WithAPIKey("k")).VerifyRequest(r); err == nil || !strings.Contains(err.Error(), "missing") {
 		t.Fatalf("err = %v", err)
 	}
 }

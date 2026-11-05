@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"io"
 	"iter"
-	"net/http"
 
 	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
 	"github.com/taigrr/elevenlabs/v2/internal/stream"
@@ -76,10 +75,6 @@ func (r *request) toTransport() *transport.Request {
 	}
 }
 
-func send(ctx context.Context, cfg *config, req *request) (*http.Response, context.CancelFunc, error) {
-	return transport.Send(ctx, cfg, req.toTransport())
-}
-
 func doJSON(ctx context.Context, cfg *config, req *request, out any) error {
 	return transport.DoJSON(ctx, cfg, req.toTransport(), out)
 }
@@ -90,10 +85,6 @@ func doRaw(ctx context.Context, cfg *config, req *request) (json.RawMessage, err
 
 func doValue[T any](ctx context.Context, cfg *config, req *request) (*T, error) {
 	return transport.DoValue[T](ctx, cfg, req.toTransport())
-}
-
-func doValueHeader[T any](ctx context.Context, cfg *config, req *request) (*T, http.Header, error) {
-	return transport.DoValueHeader[T](ctx, cfg, req.toTransport())
 }
 
 func doStream(ctx context.Context, cfg *config, req *request) (io.ReadCloser, error) {
@@ -120,7 +111,6 @@ func paginate[T any](ctx context.Context, start string, fetch func(ctx context.C
 type socket struct{ *ws.Socket }
 
 func (s *socket) writeJSON(ctx context.Context, v any) error  { return s.WriteJSON(ctx, v) }
-func (s *socket) readJSON(ctx context.Context, v any) error   { return s.ReadJSON(ctx, v) }
 func (s *socket) readRaw(ctx context.Context) ([]byte, error) { return s.ReadRaw(ctx) }
 func (s *socket) close() error                                { return s.Close() }
 
@@ -142,8 +132,6 @@ func dial(ctx context.Context, cfg *config, dc dialConfig) (*socket, error) {
 	return &socket{sock}, nil
 }
 
-type audioReader = ws.AudioReader
-
 type writerFunc = ws.WriterFunc
 
 func nonNilBytes(b []byte) []byte { return ws.NonNilBytes(b) }
@@ -152,3 +140,8 @@ func nonNilBytes(b []byte) []byte { return ws.NonNilBytes(b) }
 type StatusResponse = types.StatusResponse
 
 func nonNil[T any](s []T) []T { return transport.NonNil(s) }
+
+// ResourceAccessInfo describes the caller's access to a resource.
+type ResourceAccessInfo = types.ResourceAccessInfo
+
+func deref[T any](p *T) T { return transport.Deref(p) }

@@ -49,15 +49,6 @@ func readAll(rc io.ReadCloser, err error) (any, error) {
 	return string(b), err
 }
 
-func checkString(want string) func(t *testing.T, r any) {
-	return func(t *testing.T, r any) {
-		t.Helper()
-		if r.(string) != want {
-			t.Errorf("result = %q, want %q", r, want)
-		}
-	}
-}
-
 func TestEndpoints(t *testing.T) {
 	for _, tt := range endpointCases() {
 		t.Run(tt.name, func(t *testing.T) {
@@ -136,13 +127,9 @@ func TestEndpointsMapErrors(t *testing.T) {
 }
 
 func endpointCases() []endpointCase {
-	cases := platformEndpointCases()
-	cases = append(cases, convaiEndpointCases()...)
-	return append(cases, productionEndpointCases()...)
+	return convaiEndpointCases()
 }
 
 func testFile(name, data string) File {
 	return File{Reader: strings.NewReader(data), Name: name}
 }
-
-func voidCall(err error) (any, error) { return nil, err }

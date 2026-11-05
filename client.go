@@ -5,23 +5,34 @@ import (
 	"github.com/taigrr/elevenlabs/v2/audioeffects"
 	"github.com/taigrr/elevenlabs/v2/audioisolation"
 	"github.com/taigrr/elevenlabs/v2/audionative"
+	"github.com/taigrr/elevenlabs/v2/dubbing"
+	"github.com/taigrr/elevenlabs/v2/environments"
+	"github.com/taigrr/elevenlabs/v2/envvars"
+	"github.com/taigrr/elevenlabs/v2/flows"
 	"github.com/taigrr/elevenlabs/v2/forcedalignment"
 	"github.com/taigrr/elevenlabs/v2/history"
 	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
 	"github.com/taigrr/elevenlabs/v2/models"
 	"github.com/taigrr/elevenlabs/v2/music"
+	"github.com/taigrr/elevenlabs/v2/productions"
 	"github.com/taigrr/elevenlabs/v2/pronunciation"
 	"github.com/taigrr/elevenlabs/v2/samples"
+	"github.com/taigrr/elevenlabs/v2/serviceaccounts"
 	"github.com/taigrr/elevenlabs/v2/soundeffects"
+	"github.com/taigrr/elevenlabs/v2/speechengine"
 	"github.com/taigrr/elevenlabs/v2/speechtospeech"
 	"github.com/taigrr/elevenlabs/v2/speechtotext"
+	"github.com/taigrr/elevenlabs/v2/studio"
 	"github.com/taigrr/elevenlabs/v2/texttodialogue"
 	"github.com/taigrr/elevenlabs/v2/texttospeech"
 	"github.com/taigrr/elevenlabs/v2/texttovoice"
 	"github.com/taigrr/elevenlabs/v2/tokens"
+	"github.com/taigrr/elevenlabs/v2/translation"
 	"github.com/taigrr/elevenlabs/v2/usage"
 	"github.com/taigrr/elevenlabs/v2/user"
 	"github.com/taigrr/elevenlabs/v2/voices"
+	"github.com/taigrr/elevenlabs/v2/webhooks"
+	"github.com/taigrr/elevenlabs/v2/workspace"
 )
 
 // Client is the entry point to the ElevenLabs API. Endpoints are grouped into
@@ -51,32 +62,31 @@ type Client struct {
 	TextToVoice               *texttovoice.Service
 	Tokens                    *tokens.Service
 	// Translation holds the realtime translation WebSocket.
-	Translation *TranslationService
+	Translation *translation.Service
 	Usage       *usage.Service
 	User        *user.Service
 	Voices      *voices.Service
 	// Webhooks manages workspace webhooks and verifies webhook deliveries.
-	Webhooks *WebhooksService
+	Webhooks *webhooks.Service
 	// ServiceAccounts manages service accounts and their API keys.
-	ServiceAccounts *ServiceAccountsService
+	ServiceAccounts *serviceaccounts.Service
 	// EnvironmentVariables manages conversational AI environment variables.
-	EnvironmentVariables *EnvironmentVariablesService
+	EnvironmentVariables *envvars.Service
 	// Environments manages conversational AI environments.
-	Environments *EnvironmentsService
+	Environments *environments.Service
 	// SpeechEngine manages speech engines.
-	SpeechEngine *SpeechEngineService
-	// Workspace manages the current workspace.
-	Workspace *WorkspaceService
-	// Workspaces holds cross-workspace endpoints.
-	Workspaces *WorkspacesService
+	SpeechEngine *speechengine.Service
+	// Workspace manages the current workspace, including its auth connections
+	// and API keys.
+	Workspace *workspace.Service
 	// Flows runs asynchronous image, video and speech generations and templates.
-	Flows *FlowsService
+	Flows *flows.Service
 	// Productions orders human-reviewed dubbing, subtitles and transcription.
-	Productions *ProductionsService
+	Productions *productions.Service
 	// Dubbing dubs audio and video and edits dubbing projects and resources.
-	Dubbing *DubbingService
+	Dubbing *dubbing.Service
 	// Studio manages Studio projects, chapters, snapshots and podcasts.
-	Studio *StudioService
+	Studio *studio.Service
 	// ConversationalAI manages agents, conversations, knowledge bases, tools,
 	// tests, secrets and workspace settings.
 	ConversationalAI *ConversationalAIService
@@ -108,22 +118,21 @@ func newClient(cfg *config) *Client {
 		TextToSpeech:              texttospeech.NewService(fromConfig(cfg)),
 		TextToVoice:               texttovoice.NewService(fromConfig(cfg)),
 		Tokens:                    tokens.NewService(fromConfig(cfg)),
-		Translation:               &TranslationService{cfg: cfg},
+		Translation:               translation.NewService(fromConfig(cfg)),
 		Usage:                     usage.NewService(fromConfig(cfg)),
 		User:                      user.NewService(fromConfig(cfg)),
 		Voices:                    voices.NewService(fromConfig(cfg)),
-		Webhooks:                  &WebhooksService{cfg: cfg},
-		ServiceAccounts:           newServiceAccountsService(cfg),
-		EnvironmentVariables:      &EnvironmentVariablesService{cfg: cfg},
-		Environments:              &EnvironmentsService{cfg: cfg},
-		SpeechEngine:              &SpeechEngineService{cfg: cfg},
-		Workspace:                 newWorkspaceService(cfg),
-		Flows:                     newFlowsService(cfg),
-		Studio:                    newStudioService(cfg),
-		Dubbing:                   newDubbingService(cfg),
-		Productions:               newProductionsService(cfg),
+		Webhooks:                  webhooks.NewService(fromConfig(cfg)),
+		ServiceAccounts:           serviceaccounts.NewService(fromConfig(cfg)),
+		EnvironmentVariables:      envvars.NewService(fromConfig(cfg)),
+		Environments:              environments.NewService(fromConfig(cfg)),
+		SpeechEngine:              speechengine.NewService(fromConfig(cfg)),
+		Workspace:                 workspace.NewService(fromConfig(cfg)),
+		Flows:                     flows.NewService(fromConfig(cfg)),
+		Studio:                    studio.NewService(fromConfig(cfg)),
+		Dubbing:                   dubbing.NewService(fromConfig(cfg)),
+		Productions:               productions.NewService(fromConfig(cfg)),
 		ConversationalAI:          newConversationalAIService(cfg),
-		Workspaces:                &WorkspacesService{APIKeys: &WorkspacesAPIKeysService{cfg: cfg}},
 	}
 }
 

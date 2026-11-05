@@ -94,3 +94,14 @@ const (
 	ResourcePermissionCommenter ResourcePermission = "commenter"
 	ResourcePermissionViewer    ResourcePermission = "viewer"
 )
+
+// ResourceAccessInfo describes the caller's access to a resource.
+type ResourceAccessInfo struct {
+	IsCreator                    bool                `json:"is_creator"`
+	CreatorName                  string              `json:"creator_name"`
+	CreatorEmail                 string              `json:"creator_email"`
+	Role                         ResourcePermission  `json:"role"`
+	AnonymousAccessLevelOverride *ResourcePermission `json:"anonymous_access_level_override,omitempty"`
+	// AccessSource is "creator", "explicit", "workspace_admin" or "workspace_default".
+	AccessSource *string `json:"access_source,omitempty"`
+}

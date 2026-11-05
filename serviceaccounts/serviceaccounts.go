@@ -1,21 +1,30 @@
-package elevenlabs
+package serviceaccounts
 
 import (
 	"context"
 	"encoding/json"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
+	"github.com/taigrr/elevenlabs/v2/types"
+	"github.com/taigrr/elevenlabs/v2/workspace"
 )
 
-// ServiceAccountsService groups the /v1/service-accounts endpoints.
-type ServiceAccountsService struct {
-	cfg *config
+// Service groups the /v1/service-accounts endpoints.
+type Service struct {
+	cfg *requestconfig.Config
 
 	// APIKeys manages the API keys of a service account.
-	APIKeys *ServiceAccountAPIKeysService
+	APIKeys *APIKeysService
 }
 
-func newServiceAccountsService(cfg *config) *ServiceAccountsService {
-	return &ServiceAccountsService{cfg: cfg, APIKeys: &ServiceAccountAPIKeysService{cfg: cfg}}
+// NewService returns a Service configured by opts. Without option.WithAPIKey
+// the key is read from the ELEVENLABS_API_KEY environment variable.
+func NewService(opts ...option.RequestOption) *Service {
+	cfg := requestconfig.Build(opts...)
+	return &Service{cfg: cfg, APIKeys: &APIKeysService{cfg: cfg}}
 }
 
 // PermissionType is a scope an API key may be granted.
@@ -61,7 +70,7 @@ func AllPermissions() APIKeyPermissions { return APIKeyPermissions{All: true} }
 
 // Permissions grants exactly the given scopes.
 func Permissions(scopes ...PermissionType) APIKeyPermissions {
-	return APIKeyPermissions{Scopes: nonNil(scopes)}
+	return APIKeyPermissions{Scopes: transport.NonNil(scopes)}
 }
 
 // MarshalJSON implements json.Marshaler.
@@ -69,7 +78,7 @@ func (p APIKeyPermissions) MarshalJSON() ([]byte, error) {
 	if p.All {
 		return []byte(`"all"`), nil
 	}
-	return json.Marshal(nonNil(p.Scopes))
+	return json.Marshal(transport.NonNil(p.Scopes))
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
@@ -108,8 +117,8 @@ type PlatformLimits struct {
 	MusicConcurrency   *PlatformLimit `json:"music_concurrency,omitempty"`
 }
 
-// WorkspaceAPIKey describes an API key of a service account.
-type WorkspaceAPIKey struct {
+// APIKey describes an API key of a service account.
+type APIKey struct {
 	Name                     string           `json:"name"`
 	Hint                     string           `json:"hint"`
 	KeyID                    string           `json:"key_id"`
@@ -129,27 +138,27 @@ type WorkspaceAPIKey struct {
 
 // DefaultSharingGroup is a group resources are shared with by default.
 type DefaultSharingGroup struct {
-	Group           WorkspaceGroup         `json:"group"`
+	Group           workspace.Group        `json:"group"`
 	PermissionLevel SharingPermissionLevel `json:"permission_level"`
 }
 
-// ServiceAccount is a workspace service account.
-type ServiceAccount struct {
+// Account is a workspace service account.
+type Account struct {
 	ServiceAccountUserID string                `json:"service_account_user_id"`
 	Name                 string                `json:"name"`
 	CreatedAtUnix        *int64                `json:"created_at_unix,omitempty"`
-	APIKeys              []WorkspaceAPIKey     `json:"api-keys"`
+	APIKeys              []APIKey              `json:"api-keys"`
 	DefaultSharingGroups []DefaultSharingGroup `json:"default_sharing_groups,omitempty"`
 }
 
-// ServiceAccountList is the response of ServiceAccountsService.List.
-type ServiceAccountList struct {
-	ServiceAccounts []ServiceAccount `json:"service-accounts"`
+// ListResponse is the response of Service.List.
+type ListResponse struct {
+	ServiceAccounts []Account `json:"service-accounts"`
 }
 
 // List returns the workspace's service accounts.
-func (s *ServiceAccountsService) List(ctx context.Context, opts ...Option) (*ServiceAccountList, error) {
-	return doValue[ServiceAccountList](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/service-accounts", opts: opts})
+func (s *Service) List(ctx context.Context, opts ...option.RequestOption) (*ListResponse, error) {
+	return transport.DoValue[ListResponse](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: "/v1/service-accounts", Opts: opts})
 }
 
 // DefaultSharingGroupConfig shares new resources of a service account with a group.
@@ -158,38 +167,38 @@ type DefaultSharingGroupConfig struct {
 	PermissionLevel SharingPermissionLevel `json:"permission_level"`
 }
 
-// ServiceAccountCreateRequest is the body of ServiceAccountsService.Create.
-type ServiceAccountCreateRequest struct {
+// CreateRequest is the body of Service.Create.
+type CreateRequest struct {
 	// Name of the service account. Required.
 	Name string `json:"name"`
 	// DefaultSharingGroups shares new resources with these groups.
 	DefaultSharingGroups []DefaultSharingGroupConfig `json:"default_sharing_groups,omitempty"`
 }
 
-// ServiceAccountCreateResponse is the response of ServiceAccountsService.Create.
-type ServiceAccountCreateResponse struct {
+// CreateResponse is the response of Service.Create.
+type CreateResponse struct {
 	ServiceAccountUserID string `json:"service-account-user-id"`
 }
 
 // Create creates a service account.
-func (s *ServiceAccountsService) Create(ctx context.Context, req *ServiceAccountCreateRequest, opts ...Option) (*ServiceAccountCreateResponse, error) {
-	return doValue[ServiceAccountCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/service-accounts", body: orEmpty(req), opts: opts})
+func (s *Service) Create(ctx context.Context, req *CreateRequest, opts ...option.RequestOption) (*CreateResponse, error) {
+	return transport.DoValue[CreateResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/service-accounts", Body: transport.OrEmpty(req), Opts: opts})
 }
 
-// ServiceAccountAPIKeysService groups the /v1/service-accounts/{id}/api-keys endpoints.
-type ServiceAccountAPIKeysService struct{ cfg *config }
+// APIKeysService groups the /v1/service-accounts/{id}/api-keys endpoints.
+type APIKeysService struct{ cfg *requestconfig.Config }
 
-// WorkspaceAPIKeyList is the response of ServiceAccountAPIKeysService.List.
-type WorkspaceAPIKeyList struct {
-	APIKeys []WorkspaceAPIKey `json:"api-keys"`
+// APIKeyList is the response of APIKeysService.List.
+type APIKeyList struct {
+	APIKeys []APIKey `json:"api-keys"`
 }
 
 // List returns the API keys of a service account.
-func (s *ServiceAccountAPIKeysService) List(ctx context.Context, serviceAccountUserID string, opts ...Option) (*WorkspaceAPIKeyList, error) {
-	return doValue[WorkspaceAPIKeyList](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/service-accounts/%s/api-keys", serviceAccountUserID), opts: opts})
+func (s *APIKeysService) List(ctx context.Context, serviceAccountUserID string, opts ...option.RequestOption) (*APIKeyList, error) {
+	return transport.DoValue[APIKeyList](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/service-accounts/%s/api-keys", serviceAccountUserID), Opts: opts})
 }
 
-// APIKeyCreateRequest is the body of ServiceAccountAPIKeysService.Create.
+// APIKeyCreateRequest is the body of APIKeysService.Create.
 type APIKeyCreateRequest struct {
 	// Name of the key. Required.
 	Name string `json:"name"`
@@ -211,7 +220,7 @@ type APIKeyCreateRequest struct {
 	ExpiresAtUnix *int64 `json:"expires_at_unix,omitempty"`
 }
 
-// APIKeyCreateResponse is the response of ServiceAccountAPIKeysService.Create.
+// APIKeyCreateResponse is the response of APIKeysService.Create.
 type APIKeyCreateResponse struct {
 	// XiAPIKey is the new secret key; it is only returned once.
 	XiAPIKey string `json:"xi-api-key"`
@@ -219,37 +228,37 @@ type APIKeyCreateResponse struct {
 }
 
 // Create creates an API key for a service account.
-func (s *ServiceAccountAPIKeysService) Create(ctx context.Context, serviceAccountUserID string, req *APIKeyCreateRequest, opts ...Option) (*APIKeyCreateResponse, error) {
-	return doValue[APIKeyCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/service-accounts/%s/api-keys", serviceAccountUserID), body: orEmpty(req), opts: opts})
+func (s *APIKeysService) Create(ctx context.Context, serviceAccountUserID string, req *APIKeyCreateRequest, opts ...option.RequestOption) (*APIKeyCreateResponse, error) {
+	return transport.DoValue[APIKeyCreateResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/service-accounts/%s/api-keys", serviceAccountUserID), Body: transport.OrEmpty(req), Opts: opts})
 }
 
 // Delete deletes an API key of a service account. The response body, if
 // any, is returned as raw JSON.
-func (s *ServiceAccountAPIKeysService) Delete(ctx context.Context, serviceAccountUserID, apiKeyID string, opts ...Option) (json.RawMessage, error) {
-	return doRaw(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/service-accounts/%s/api-keys/%s", serviceAccountUserID, apiKeyID), opts: opts})
+func (s *APIKeysService) Delete(ctx context.Context, serviceAccountUserID, apiKeyID string, opts ...option.RequestOption) (json.RawMessage, error) {
+	return transport.DoRaw(ctx, s.cfg, &transport.Request{Method: http.MethodDelete, Path: transport.Pathf("/v1/service-accounts/%s/api-keys/%s", serviceAccountUserID, apiKeyID), Opts: opts})
 }
 
-// APIKeyUpdateRequest is the body of ServiceAccountAPIKeysService.Update.
+// APIKeyUpdateRequest is the body of APIKeysService.Update.
 // Nil fields are left unchanged.
 type APIKeyUpdateRequest struct {
-	IsEnabled                *bool                `json:"is_enabled,omitempty"`
-	Name                     *string              `json:"name,omitempty"`
-	Permissions              *APIKeyPermissions   `json:"permissions,omitempty"`
-	CharacterLimit           *Clearable[int64]    `json:"character_limit,omitempty"`
-	AllowedIPs               *Clearable[[]string] `json:"allowed_ips,omitempty"`
-	ThirdPartyDisableAllowed *Clearable[bool]     `json:"third_party_disable_allowed,omitempty"`
-	TTSConcurrencyLimit      *Clearable[int]      `json:"tts_concurrency_limit,omitempty"`
-	DubbingConcurrencyLimit  *Clearable[int]      `json:"dubbing_concurrency_limit,omitempty"`
-	MusicConcurrencyLimit    *Clearable[int]      `json:"music_concurrency_limit,omitempty"`
-	ExpiresAtUnix            *Clearable[int64]    `json:"expires_at_unix,omitempty"`
+	IsEnabled                *bool                      `json:"is_enabled,omitempty"`
+	Name                     *string                    `json:"name,omitempty"`
+	Permissions              *APIKeyPermissions         `json:"permissions,omitempty"`
+	CharacterLimit           *types.Clearable[int64]    `json:"character_limit,omitempty"`
+	AllowedIPs               *types.Clearable[[]string] `json:"allowed_ips,omitempty"`
+	ThirdPartyDisableAllowed *types.Clearable[bool]     `json:"third_party_disable_allowed,omitempty"`
+	TTSConcurrencyLimit      *types.Clearable[int]      `json:"tts_concurrency_limit,omitempty"`
+	DubbingConcurrencyLimit  *types.Clearable[int]      `json:"dubbing_concurrency_limit,omitempty"`
+	MusicConcurrencyLimit    *types.Clearable[int]      `json:"music_concurrency_limit,omitempty"`
+	ExpiresAtUnix            *types.Clearable[int64]    `json:"expires_at_unix,omitempty"`
 }
 
 // Update edits an API key of a service account. req may be nil.
-func (s *ServiceAccountAPIKeysService) Update(ctx context.Context, serviceAccountUserID, apiKeyID string, req *APIKeyUpdateRequest, opts ...Option) (json.RawMessage, error) {
-	return doRaw(ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/service-accounts/%s/api-keys/%s", serviceAccountUserID, apiKeyID), body: orEmpty(req), opts: opts})
+func (s *APIKeysService) Update(ctx context.Context, serviceAccountUserID, apiKeyID string, req *APIKeyUpdateRequest, opts ...option.RequestOption) (json.RawMessage, error) {
+	return transport.DoRaw(ctx, s.cfg, &transport.Request{Method: http.MethodPatch, Path: transport.Pathf("/v1/service-accounts/%s/api-keys/%s", serviceAccountUserID, apiKeyID), Body: transport.OrEmpty(req), Opts: opts})
 }
 
 // Disable disables an API key of a service account.
-func (s *ServiceAccountAPIKeysService) Disable(ctx context.Context, serviceAccountUserID, apiKeyID string, opts ...Option) (json.RawMessage, error) {
-	return doRaw(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/service-accounts/%s/api-keys/%s/disable", serviceAccountUserID, apiKeyID), opts: opts})
+func (s *APIKeysService) Disable(ctx context.Context, serviceAccountUserID, apiKeyID string, opts ...option.RequestOption) (json.RawMessage, error) {
+	return transport.DoRaw(ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/service-accounts/%s/api-keys/%s/disable", serviceAccountUserID, apiKeyID), Opts: opts})
 }

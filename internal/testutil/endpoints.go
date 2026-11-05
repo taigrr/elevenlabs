@@ -176,3 +176,6 @@ func CheckString(want string) func(t *testing.T, r any) {
 func File(name, data string) types.File {
 	return types.File{Reader: strings.NewReader(data), Name: name}
 }
+
+// VoidCall adapts an error-only call to the Endpoint.Call signature.
+func VoidCall(err error) (any, error) { return nil, err }

@@ -1,4 +1,4 @@
-package elevenlabs
+package studio
 
 import (
 	"context"
@@ -6,28 +6,34 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
 	"github.com/taigrr/elevenlabs/v2/types"
 	"github.com/taigrr/elevenlabs/v2/voices"
 )
 
-// StudioService groups the /v1/studio endpoints.
-type StudioService struct {
-	cfg *config
+// Service groups the /v1/studio endpoints.
+type Service struct {
+	cfg *requestconfig.Config
 
 	// Projects manages Studio projects.
-	Projects *StudioProjectsService
+	Projects *ProjectsService
 }
 
-func newStudioService(cfg *config) *StudioService {
-	return &StudioService{cfg: cfg, Projects: &StudioProjectsService{
+// NewService returns a Service configured by opts. Without option.WithAPIKey
+// the key is read from the ELEVENLABS_API_KEY environment variable.
+func NewService(opts ...option.RequestOption) *Service {
+	cfg := requestconfig.Build(opts...)
+	return &Service{cfg: cfg, Projects: &ProjectsService{
 		cfg: cfg,
-		Chapters: &StudioChaptersService{
+		Chapters: &ChaptersService{
 			cfg:       cfg,
-			Snapshots: &StudioChapterSnapshotsService{cfg: cfg},
+			Snapshots: &ChapterSnapshotsService{cfg: cfg},
 		},
-		Content:                   &StudioContentService{cfg: cfg},
-		PronunciationDictionaries: &StudioPronunciationDictionariesService{cfg: cfg},
-		Snapshots:                 &StudioProjectSnapshotsService{cfg: cfg},
+		Content:                   &ContentService{cfg: cfg},
+		PronunciationDictionaries: &PronunciationDictionariesService{cfg: cfg},
+		Snapshots:                 &ProjectSnapshotsService{cfg: cfg},
 	}}
 }
 
@@ -87,7 +93,7 @@ type Project struct {
 	ISBNNumber                    *string                    `json:"isbn_number,omitempty"`
 	VolumeNormalization           bool                       `json:"volume_normalization"`
 	State                         ProjectState               `json:"state"`
-	AccessLevel                   ResourceRole               `json:"access_level"`
+	AccessLevel                   types.ResourcePermission   `json:"access_level"`
 	Fiction                       *string                    `json:"fiction,omitempty"`
 	QualityCheckOn                bool                       `json:"quality_check_on"`
 	QualityCheckOnWhenBulkConvert bool                       `json:"quality_check_on_when_bulk_convert"`
@@ -275,10 +281,10 @@ func (p PodcastSources) MarshalJSON() ([]byte, error) {
 	if len(p) == 1 {
 		return json.Marshal(p[0])
 	}
-	return json.Marshal([]PodcastSource(nonNil(p)))
+	return json.Marshal([]PodcastSource(transport.NonNil(p)))
 }
 
-// PodcastCreateRequest is the body of StudioService.CreatePodcast.
+// PodcastCreateRequest is the body of Service.CreatePodcast.
 type PodcastCreateRequest struct {
 	// ModelID is the TTS model. Required.
 	ModelID string `json:"model_id"`
@@ -300,35 +306,35 @@ type PodcastCreateRequest struct {
 }
 
 // CreatePodcast creates a podcast Studio project.
-func (s *StudioService) CreatePodcast(ctx context.Context, req *PodcastCreateRequest, opts ...Option) (*ProjectResponse, error) {
-	return doValue[ProjectResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/studio/podcasts", body: orEmpty(req), opts: opts})
+func (s *Service) CreatePodcast(ctx context.Context, req *PodcastCreateRequest, opts ...option.RequestOption) (*ProjectResponse, error) {
+	return transport.DoValue[ProjectResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/studio/podcasts", Body: transport.OrEmpty(req), Opts: opts})
 }
 
-// StudioProjectsService groups the /v1/studio/projects endpoints.
-type StudioProjectsService struct {
-	cfg *config
+// ProjectsService groups the /v1/studio/projects endpoints.
+type ProjectsService struct {
+	cfg *requestconfig.Config
 
 	// Chapters manages project chapters.
-	Chapters *StudioChaptersService
+	Chapters *ChaptersService
 	// Content replaces project content.
-	Content *StudioContentService
+	Content *ContentService
 	// PronunciationDictionaries attaches dictionaries to a project.
-	PronunciationDictionaries *StudioPronunciationDictionariesService
+	PronunciationDictionaries *PronunciationDictionariesService
 	// Snapshots lists and streams project snapshots.
-	Snapshots *StudioProjectSnapshotsService
+	Snapshots *ProjectSnapshotsService
 }
 
-// ProjectList is the response of StudioProjectsService.List.
+// ProjectList is the response of ProjectsService.List.
 type ProjectList struct {
 	Projects []Project `json:"projects"`
 }
 
 // List returns the Studio projects.
-func (s *StudioProjectsService) List(ctx context.Context, opts ...Option) (*ProjectList, error) {
-	return doValue[ProjectList](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/studio/projects", opts: opts})
+func (s *ProjectsService) List(ctx context.Context, opts ...option.RequestOption) (*ProjectList, error) {
+	return transport.DoValue[ProjectList](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: "/v1/studio/projects", Opts: opts})
 }
 
-// ProjectCreateRequest is the body of StudioProjectsService.Create.
+// ProjectCreateRequest is the body of ProjectsService.Create.
 type ProjectCreateRequest struct {
 	// Name of the project. Required.
 	Name                    string `form:"name"`
@@ -338,7 +344,7 @@ type ProjectCreateRequest struct {
 	// FromURL imports content from a web page.
 	FromURL string `form:"from_url"`
 	// FromDocument imports content from an EPUB, PDF, TXT, HTML or DOCX file.
-	FromDocument *File `form:"from_document"`
+	FromDocument *types.File `form:"from_document"`
 	// FromContentJSON imports content from a JSON chapter structure.
 	FromContentJSON         string        `form:"from_content_json"`
 	QualityPreset           QualityPreset `form:"quality_preset"`
@@ -371,8 +377,8 @@ type ProjectCreateRequest struct {
 }
 
 // Create creates a Studio project.
-func (s *StudioProjectsService) Create(ctx context.Context, req *ProjectCreateRequest, opts ...Option) (*ProjectResponse, error) {
-	return doValue[ProjectResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/studio/projects", form: orEmpty(req), opts: opts})
+func (s *ProjectsService) Create(ctx context.Context, req *ProjectCreateRequest, opts ...option.RequestOption) (*ProjectResponse, error) {
+	return transport.DoValue[ProjectResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/studio/projects", Form: transport.OrEmpty(req), Opts: opts})
 }
 
 type shareIDQuery struct {
@@ -380,11 +386,11 @@ type shareIDQuery struct {
 }
 
 // Get returns a project with its chapters. shareID may be empty.
-func (s *StudioProjectsService) Get(ctx context.Context, projectID, shareID string, opts ...Option) (*ProjectExtended, error) {
-	return doValue[ProjectExtended](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s", projectID), query: shareIDQuery{shareID}, opts: opts})
+func (s *ProjectsService) Get(ctx context.Context, projectID, shareID string, opts ...option.RequestOption) (*ProjectExtended, error) {
+	return transport.DoValue[ProjectExtended](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/studio/projects/%s", projectID), Query: shareIDQuery{shareID}, Opts: opts})
 }
 
-// ProjectUpdateRequest is the body of StudioProjectsService.Update.
+// ProjectUpdateRequest is the body of ProjectsService.Update.
 type ProjectUpdateRequest struct {
 	// Name, DefaultTitleVoiceID and DefaultParagraphVoiceID are required.
 	Name                    string `json:"name"`
@@ -397,18 +403,18 @@ type ProjectUpdateRequest struct {
 }
 
 // Update edits a project's metadata.
-func (s *StudioProjectsService) Update(ctx context.Context, projectID string, req *ProjectUpdateRequest, opts ...Option) (*ProjectResponse, error) {
-	return doValue[ProjectResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s", projectID), body: orEmpty(req), opts: opts})
+func (s *ProjectsService) Update(ctx context.Context, projectID string, req *ProjectUpdateRequest, opts ...option.RequestOption) (*ProjectResponse, error) {
+	return transport.DoValue[ProjectResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/studio/projects/%s", projectID), Body: transport.OrEmpty(req), Opts: opts})
 }
 
 // Delete deletes a project.
-func (s *StudioProjectsService) Delete(ctx context.Context, projectID string, opts ...Option) (*StatusResponse, error) {
-	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/studio/projects/%s", projectID), opts: opts})
+func (s *ProjectsService) Delete(ctx context.Context, projectID string, opts ...option.RequestOption) (*types.StatusResponse, error) {
+	return transport.DoValue[types.StatusResponse](ctx, s.cfg, &transport.Request{Method: http.MethodDelete, Path: transport.Pathf("/v1/studio/projects/%s", projectID), Opts: opts})
 }
 
 // Convert starts converting a whole project to audio.
-func (s *StudioProjectsService) Convert(ctx context.Context, projectID string, opts ...Option) (*StatusResponse, error) {
-	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/convert", projectID), opts: opts})
+func (s *ProjectsService) Convert(ctx context.Context, projectID string, opts ...option.RequestOption) (*types.StatusResponse, error) {
+	return transport.DoValue[types.StatusResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/studio/projects/%s/convert", projectID), Opts: opts})
 }
 
 // ProjectMutedTracks lists chapters with muted tracks.
@@ -417,30 +423,30 @@ type ProjectMutedTracks struct {
 }
 
 // GetMutedTracks returns the chapters that contain muted tracks.
-func (s *StudioProjectsService) GetMutedTracks(ctx context.Context, projectID string, opts ...Option) (*ProjectMutedTracks, error) {
-	return doValue[ProjectMutedTracks](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/muted-tracks", projectID), opts: opts})
+func (s *ProjectsService) GetMutedTracks(ctx context.Context, projectID string, opts ...option.RequestOption) (*ProjectMutedTracks, error) {
+	return transport.DoValue[ProjectMutedTracks](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/studio/projects/%s/muted-tracks", projectID), Opts: opts})
 }
 
-// StudioContentService groups the project content endpoint.
-type StudioContentService struct{ cfg *config }
+// ContentService groups the project content endpoint.
+type ContentService struct{ cfg *requestconfig.Config }
 
-// ProjectContentUpdateRequest is the body of StudioContentService.Update.
+// ProjectContentUpdateRequest is the body of ContentService.Update.
 type ProjectContentUpdateRequest struct {
-	FromURL         string `form:"from_url"`
-	FromDocument    *File  `form:"from_document"`
-	FromContentJSON string `form:"from_content_json"`
-	AutoConvert     *bool  `form:"auto_convert"`
+	FromURL         string      `form:"from_url"`
+	FromDocument    *types.File `form:"from_document"`
+	FromContentJSON string      `form:"from_content_json"`
+	AutoConvert     *bool       `form:"auto_convert"`
 }
 
 // Update replaces the content of a project.
-func (s *StudioContentService) Update(ctx context.Context, projectID string, req *ProjectContentUpdateRequest, opts ...Option) (*ProjectResponse, error) {
-	return doValue[ProjectResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/content", projectID), form: orEmpty(req), opts: opts})
+func (s *ContentService) Update(ctx context.Context, projectID string, req *ProjectContentUpdateRequest, opts ...option.RequestOption) (*ProjectResponse, error) {
+	return transport.DoValue[ProjectResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/studio/projects/%s/content", projectID), Form: transport.OrEmpty(req), Opts: opts})
 }
 
-// StudioPronunciationDictionariesService groups the project pronunciation dictionary endpoint.
-type StudioPronunciationDictionariesService struct{ cfg *config }
+// PronunciationDictionariesService groups the project pronunciation dictionary endpoint.
+type PronunciationDictionariesService struct{ cfg *requestconfig.Config }
 
-// ProjectPronunciationDictionariesRequest is the body of StudioPronunciationDictionariesService.Create.
+// ProjectPronunciationDictionariesRequest is the body of PronunciationDictionariesService.Create.
 type ProjectPronunciationDictionariesRequest struct {
 	PronunciationDictionaryLocators []types.PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators"`
 	// InvalidateAffectedText marks affected text for reconversion.
@@ -448,31 +454,31 @@ type ProjectPronunciationDictionariesRequest struct {
 }
 
 // Create attaches pronunciation dictionaries to a project.
-func (s *StudioPronunciationDictionariesService) Create(ctx context.Context, projectID string, req *ProjectPronunciationDictionariesRequest, opts ...Option) (*StatusResponse, error) {
-	body := *orEmpty(req)
-	body.PronunciationDictionaryLocators = nonNil(body.PronunciationDictionaryLocators)
-	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/pronunciation-dictionaries", projectID), body: &body, opts: opts})
+func (s *PronunciationDictionariesService) Create(ctx context.Context, projectID string, req *ProjectPronunciationDictionariesRequest, opts ...option.RequestOption) (*types.StatusResponse, error) {
+	body := *transport.OrEmpty(req)
+	body.PronunciationDictionaryLocators = transport.NonNil(body.PronunciationDictionaryLocators)
+	return transport.DoValue[types.StatusResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/studio/projects/%s/pronunciation-dictionaries", projectID), Body: &body, Opts: opts})
 }
 
-// StudioChaptersService groups the /v1/studio/projects/{id}/chapters endpoints.
-type StudioChaptersService struct {
-	cfg *config
+// ChaptersService groups the /v1/studio/projects/{id}/chapters endpoints.
+type ChaptersService struct {
+	cfg *requestconfig.Config
 
 	// Snapshots lists and streams chapter snapshots.
-	Snapshots *StudioChapterSnapshotsService
+	Snapshots *ChapterSnapshotsService
 }
 
-// ChapterList is the response of StudioChaptersService.List.
+// ChapterList is the response of ChaptersService.List.
 type ChapterList struct {
 	Chapters []Chapter `json:"chapters"`
 }
 
 // List returns the chapters of a project.
-func (s *StudioChaptersService) List(ctx context.Context, projectID string, opts ...Option) (*ChapterList, error) {
-	return doValue[ChapterList](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/chapters", projectID), opts: opts})
+func (s *ChaptersService) List(ctx context.Context, projectID string, opts ...option.RequestOption) (*ChapterList, error) {
+	return transport.DoValue[ChapterList](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/studio/projects/%s/chapters", projectID), Opts: opts})
 }
 
-// ChapterCreateRequest is the body of StudioChaptersService.Create.
+// ChapterCreateRequest is the body of ChaptersService.Create.
 type ChapterCreateRequest struct {
 	Name    string `json:"name"`
 	FromURL string `json:"from_url,omitempty"`
@@ -484,34 +490,34 @@ type ChapterResponse struct {
 }
 
 // Create adds a chapter to a project.
-func (s *StudioChaptersService) Create(ctx context.Context, projectID string, req *ChapterCreateRequest, opts ...Option) (*ChapterResponse, error) {
-	return doValue[ChapterResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/chapters", projectID), body: orEmpty(req), opts: opts})
+func (s *ChaptersService) Create(ctx context.Context, projectID string, req *ChapterCreateRequest, opts ...option.RequestOption) (*ChapterResponse, error) {
+	return transport.DoValue[ChapterResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/studio/projects/%s/chapters", projectID), Body: transport.OrEmpty(req), Opts: opts})
 }
 
 // Get returns a chapter with its content.
-func (s *StudioChaptersService) Get(ctx context.Context, projectID, chapterID string, opts ...Option) (*ChapterWithContent, error) {
-	return doValue[ChapterWithContent](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/chapters/%s", projectID, chapterID), opts: opts})
+func (s *ChaptersService) Get(ctx context.Context, projectID, chapterID string, opts ...option.RequestOption) (*ChapterWithContent, error) {
+	return transport.DoValue[ChapterWithContent](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/studio/projects/%s/chapters/%s", projectID, chapterID), Opts: opts})
 }
 
-// ChapterUpdateRequest is the body of StudioChaptersService.Update.
+// ChapterUpdateRequest is the body of ChaptersService.Update.
 type ChapterUpdateRequest struct {
 	Name    string          `json:"name,omitempty"`
 	Content *ChapterContent `json:"content,omitempty"`
 }
 
 // Update edits a chapter. req may be nil.
-func (s *StudioChaptersService) Update(ctx context.Context, projectID, chapterID string, req *ChapterUpdateRequest, opts ...Option) (*ChapterResponse, error) {
-	return doValue[ChapterResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/chapters/%s", projectID, chapterID), body: orEmpty(req), opts: opts})
+func (s *ChaptersService) Update(ctx context.Context, projectID, chapterID string, req *ChapterUpdateRequest, opts ...option.RequestOption) (*ChapterResponse, error) {
+	return transport.DoValue[ChapterResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/studio/projects/%s/chapters/%s", projectID, chapterID), Body: transport.OrEmpty(req), Opts: opts})
 }
 
 // Delete deletes a chapter.
-func (s *StudioChaptersService) Delete(ctx context.Context, projectID, chapterID string, opts ...Option) (*StatusResponse, error) {
-	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/studio/projects/%s/chapters/%s", projectID, chapterID), opts: opts})
+func (s *ChaptersService) Delete(ctx context.Context, projectID, chapterID string, opts ...option.RequestOption) (*types.StatusResponse, error) {
+	return transport.DoValue[types.StatusResponse](ctx, s.cfg, &transport.Request{Method: http.MethodDelete, Path: transport.Pathf("/v1/studio/projects/%s/chapters/%s", projectID, chapterID), Opts: opts})
 }
 
 // Convert starts converting a chapter to audio.
-func (s *StudioChaptersService) Convert(ctx context.Context, projectID, chapterID string, opts ...Option) (*StatusResponse, error) {
-	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/chapters/%s/convert", projectID, chapterID), opts: opts})
+func (s *ChaptersService) Convert(ctx context.Context, projectID, chapterID string, opts ...option.RequestOption) (*types.StatusResponse, error) {
+	return transport.DoValue[types.StatusResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/studio/projects/%s/chapters/%s/convert", projectID, chapterID), Opts: opts})
 }
 
 // SnapshotStreamRequest holds the options of the snapshot stream endpoints.
@@ -535,27 +541,27 @@ type ChapterSnapshotExtended struct {
 	CharacterAlignments []types.CharacterAlignment `json:"character_alignments"`
 }
 
-// ChapterSnapshotList is the response of StudioChapterSnapshotsService.List.
+// ChapterSnapshotList is the response of ChapterSnapshotsService.List.
 type ChapterSnapshotList struct {
 	Snapshots []ChapterSnapshot `json:"snapshots"`
 }
 
-// StudioChapterSnapshotsService groups the chapter snapshot endpoints.
-type StudioChapterSnapshotsService struct{ cfg *config }
+// ChapterSnapshotsService groups the chapter snapshot endpoints.
+type ChapterSnapshotsService struct{ cfg *requestconfig.Config }
 
 // List returns the snapshots of a chapter.
-func (s *StudioChapterSnapshotsService) List(ctx context.Context, projectID, chapterID string, opts ...Option) (*ChapterSnapshotList, error) {
-	return doValue[ChapterSnapshotList](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/chapters/%s/snapshots", projectID, chapterID), opts: opts})
+func (s *ChapterSnapshotsService) List(ctx context.Context, projectID, chapterID string, opts ...option.RequestOption) (*ChapterSnapshotList, error) {
+	return transport.DoValue[ChapterSnapshotList](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/studio/projects/%s/chapters/%s/snapshots", projectID, chapterID), Opts: opts})
 }
 
 // Get returns a chapter snapshot.
-func (s *StudioChapterSnapshotsService) Get(ctx context.Context, projectID, chapterID, snapshotID string, opts ...Option) (*ChapterSnapshotExtended, error) {
-	return doValue[ChapterSnapshotExtended](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/chapters/%s/snapshots/%s", projectID, chapterID, snapshotID), opts: opts})
+func (s *ChapterSnapshotsService) Get(ctx context.Context, projectID, chapterID, snapshotID string, opts ...option.RequestOption) (*ChapterSnapshotExtended, error) {
+	return transport.DoValue[ChapterSnapshotExtended](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/studio/projects/%s/chapters/%s/snapshots/%s", projectID, chapterID, snapshotID), Opts: opts})
 }
 
 // Stream streams the audio of a chapter snapshot. req may be nil. The caller must close the returned reader.
-func (s *StudioChapterSnapshotsService) Stream(ctx context.Context, projectID, chapterID, snapshotID string, req *SnapshotStreamRequest, opts ...Option) (io.ReadCloser, error) {
-	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/chapters/%s/snapshots/%s/stream", projectID, chapterID, snapshotID), body: orEmpty(req), accept: acceptAny, opts: opts})
+func (s *ChapterSnapshotsService) Stream(ctx context.Context, projectID, chapterID, snapshotID string, req *SnapshotStreamRequest, opts ...option.RequestOption) (io.ReadCloser, error) {
+	return transport.DoStream(ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/studio/projects/%s/chapters/%s/snapshots/%s/stream", projectID, chapterID, snapshotID), Body: transport.OrEmpty(req), Accept: transport.AcceptAny, Opts: opts})
 }
 
 // ProjectSnapshot is a converted version of a project.
@@ -575,30 +581,30 @@ type ProjectSnapshotExtended struct {
 	AudioDurationSecs   float64                    `json:"audio_duration_secs"`
 }
 
-// ProjectSnapshotList is the response of StudioProjectSnapshotsService.List.
+// ProjectSnapshotList is the response of ProjectSnapshotsService.List.
 type ProjectSnapshotList struct {
 	Snapshots []ProjectSnapshot `json:"snapshots"`
 }
 
-// StudioProjectSnapshotsService groups the project snapshot endpoints.
-type StudioProjectSnapshotsService struct{ cfg *config }
+// ProjectSnapshotsService groups the project snapshot endpoints.
+type ProjectSnapshotsService struct{ cfg *requestconfig.Config }
 
 // List returns the snapshots of a project.
-func (s *StudioProjectSnapshotsService) List(ctx context.Context, projectID string, opts ...Option) (*ProjectSnapshotList, error) {
-	return doValue[ProjectSnapshotList](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/snapshots", projectID), opts: opts})
+func (s *ProjectSnapshotsService) List(ctx context.Context, projectID string, opts ...option.RequestOption) (*ProjectSnapshotList, error) {
+	return transport.DoValue[ProjectSnapshotList](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/studio/projects/%s/snapshots", projectID), Opts: opts})
 }
 
 // Get returns a project snapshot.
-func (s *StudioProjectSnapshotsService) Get(ctx context.Context, projectID, snapshotID string, opts ...Option) (*ProjectSnapshotExtended, error) {
-	return doValue[ProjectSnapshotExtended](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/snapshots/%s", projectID, snapshotID), opts: opts})
+func (s *ProjectSnapshotsService) Get(ctx context.Context, projectID, snapshotID string, opts ...option.RequestOption) (*ProjectSnapshotExtended, error) {
+	return transport.DoValue[ProjectSnapshotExtended](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/studio/projects/%s/snapshots/%s", projectID, snapshotID), Opts: opts})
 }
 
 // Stream streams the audio of a project snapshot. req may be nil. The caller must close the returned reader.
-func (s *StudioProjectSnapshotsService) Stream(ctx context.Context, projectID, snapshotID string, req *SnapshotStreamRequest, opts ...Option) (io.ReadCloser, error) {
-	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/snapshots/%s/stream", projectID, snapshotID), body: orEmpty(req), accept: acceptAny, opts: opts})
+func (s *ProjectSnapshotsService) Stream(ctx context.Context, projectID, snapshotID string, req *SnapshotStreamRequest, opts ...option.RequestOption) (io.ReadCloser, error) {
+	return transport.DoStream(ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/studio/projects/%s/snapshots/%s/stream", projectID, snapshotID), Body: transport.OrEmpty(req), Accept: transport.AcceptAny, Opts: opts})
 }
 
 // StreamArchive streams a ZIP archive of a project snapshot's chapter audio. The caller must close the returned reader.
-func (s *StudioProjectSnapshotsService) StreamArchive(ctx context.Context, projectID, snapshotID string, opts ...Option) (io.ReadCloser, error) {
-	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/snapshots/%s/archive", projectID, snapshotID), accept: acceptAny, opts: opts})
+func (s *ProjectSnapshotsService) StreamArchive(ctx context.Context, projectID, snapshotID string, opts ...option.RequestOption) (io.ReadCloser, error) {
+	return transport.DoStream(ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: transport.Pathf("/v1/studio/projects/%s/snapshots/%s/archive", projectID, snapshotID), Accept: transport.AcceptAny, Opts: opts})
 }
