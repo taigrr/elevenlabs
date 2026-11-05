@@ -1,4 +1,4 @@
-package elevenlabs
+package music
 
 import (
 	"bufio"
@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
 )
 
 // SongMetadata describes a generated song.
@@ -24,8 +25,8 @@ type SongMetadata struct {
 	IsExplicit  bool     `json:"is_explicit"`
 }
 
-// MusicDetailedMetadata is the JSON part of a detailed composition response.
-type MusicDetailedMetadata struct {
+// DetailedMetadata is the JSON part of a detailed composition response.
+type DetailedMetadata struct {
 	CompositionPlan *MusicCompositionPlan `json:"composition_plan,omitempty"`
 	SongMetadata    *SongMetadata         `json:"song_metadata,omitempty"`
 	WordsTimestamps []WordTimestamp       `json:"words_timestamps,omitempty"`
@@ -34,13 +35,13 @@ type MusicDetailedMetadata struct {
 	Raw json.RawMessage `json:"-"`
 }
 
-// MusicDetailedResponse is a generated song with its metadata, mirroring the
+// DetailedResponse is a generated song with its metadata, mirroring the
 // MultipartResponse of the official SDK. The audio is streamed rather than
 // buffered: read it from the response (which implements io.ReadCloser) and
 // close it when done.
-type MusicDetailedResponse struct {
+type DetailedResponse struct {
 	// Metadata is the decoded JSON part.
-	Metadata MusicDetailedMetadata
+	Metadata DetailedMetadata
 	// Filename is the audio part's filename (default "generated_music.mp3").
 	Filename string
 	// ContentType is the audio part's content type, if reported.
@@ -53,19 +54,19 @@ type MusicDetailedResponse struct {
 }
 
 // Read reads the song audio.
-func (r *MusicDetailedResponse) Read(p []byte) (int, error) { return r.audio.Read(p) }
+func (r *DetailedResponse) Read(p []byte) (int, error) { return r.audio.Read(p) }
 
 // Close releases the underlying connection.
-func (r *MusicDetailedResponse) Close() error { return r.closer.Close() }
+func (r *DetailedResponse) Close() error { return r.closer.Close() }
 
 const defaultMusicFilename = "generated_music.mp3"
 
 // ComposeDetailed generates a song and returns its metadata together with a
 // streaming reader over the audio. The caller must close the response.
-func (s *MusicService) ComposeDetailed(ctx context.Context, req *MusicComposeDetailedRequest, opts ...Option) (*MusicDetailedResponse, error) {
-	req = orEmpty(req)
-	r := &request{method: http.MethodPost, path: "/v1/music/detailed", query: req, body: req, accept: acceptAny, opts: opts}
-	resp, cancel, err := send(ctx, s.cfg, r)
+func (s *Service) ComposeDetailed(ctx context.Context, req *ComposeDetailedRequest, opts ...option.RequestOption) (*DetailedResponse, error) {
+	req = transport.OrEmpty(req)
+	r := &transport.Request{Method: http.MethodPost, Path: "/v1/music/detailed", Query: req, Body: req, Accept: transport.AcceptAny, Opts: opts}
+	resp, cancel, err := transport.Send(ctx, s.cfg, r)
 	if err != nil {
 		return nil, err
 	}
@@ -80,10 +81,10 @@ func (s *MusicService) ComposeDetailed(ctx context.Context, req *MusicComposeDet
 
 // parseMusicMultipart decodes the leading JSON part and positions the
 // returned response at the start of the audio part.
-func parseMusicMultipart(body io.ReadCloser, header http.Header) (*MusicDetailedResponse, error) {
+func parseMusicMultipart(body io.ReadCloser, header http.Header) (*DetailedResponse, error) {
 	var src io.Reader = body
 	boundary := ""
-	if _, params, err := mime.ParseMediaType(header.Get(headerContentType)); err == nil {
+	if _, params, err := mime.ParseMediaType(header.Get(transport.HeaderContentType)); err == nil {
 		boundary = params["boundary"]
 	}
 	if boundary == "" {
@@ -101,7 +102,7 @@ func parseMusicMultipart(body io.ReadCloser, header http.Header) (*MusicDetailed
 		src = io.MultiReader(strings.NewReader(line), br)
 	}
 	mr := multipart.NewReader(src, boundary)
-	out := &MusicDetailedResponse{Filename: defaultMusicFilename, SongID: header.Get("song-id"), closer: body}
+	out := &DetailedResponse{Filename: defaultMusicFilename, SongID: header.Get("song-id"), closer: body}
 	haveJSON := false
 	for {
 		part, err := mr.NextPart()
@@ -111,8 +112,8 @@ func parseMusicMultipart(body io.ReadCloser, header http.Header) (*MusicDetailed
 		if err != nil {
 			return nil, err
 		}
-		mediaType, _, _ := mime.ParseMediaType(part.Header.Get(headerContentType))
-		if mediaType == contentTypeJSON && !haveJSON {
+		mediaType, _, _ := mime.ParseMediaType(part.Header.Get(transport.HeaderContentType))
+		if mediaType == transport.ContentTypeJSON && !haveJSON {
 			raw, err := io.ReadAll(part)
 			if err != nil {
 				return nil, err
@@ -130,7 +131,7 @@ func parseMusicMultipart(body io.ReadCloser, header http.Header) (*MusicDetailed
 		if name := part.FileName(); name != "" {
 			out.Filename = name
 		}
-		out.ContentType = part.Header.Get(headerContentType)
+		out.ContentType = part.Header.Get(transport.HeaderContentType)
 		out.audio = part
 		return out, nil
 	}

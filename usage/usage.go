@@ -1,12 +1,22 @@
-package elevenlabs
+package usage
 
 import (
 	"context"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
 )
 
-// UsageService groups the /v1/usage endpoints.
-type UsageService struct{ cfg *config }
+// Service groups the /v1/usage endpoints.
+type Service struct{ cfg *requestconfig.Config }
+
+// NewService returns a Service configured by opts. Without option.WithAPIKey
+// the key is read from the ELEVENLABS_API_KEY environment variable.
+func NewService(opts ...option.RequestOption) *Service {
+	return &Service{cfg: requestconfig.Build(opts...)}
+}
 
 // BreakdownType selects how usage is broken down.
 type BreakdownType string
@@ -31,16 +41,16 @@ const (
 	BreakdownTypeRequestSource        BreakdownType = "request_source"
 )
 
-// UsageAggregationInterval is the time bucket of usage statistics.
-type UsageAggregationInterval string
+// AggregationInterval is the time bucket of usage statistics.
+type AggregationInterval string
 
-// UsageAggregationInterval values.
+// AggregationInterval values.
 const (
-	UsageAggregationIntervalHour       UsageAggregationInterval = "hour"
-	UsageAggregationIntervalDay        UsageAggregationInterval = "day"
-	UsageAggregationIntervalWeek       UsageAggregationInterval = "week"
-	UsageAggregationIntervalMonth      UsageAggregationInterval = "month"
-	UsageAggregationIntervalCumulative UsageAggregationInterval = "cumulative"
+	AggregationIntervalHour       AggregationInterval = "hour"
+	AggregationIntervalDay        AggregationInterval = "day"
+	AggregationIntervalWeek       AggregationInterval = "week"
+	AggregationIntervalMonth      AggregationInterval = "month"
+	AggregationIntervalCumulative AggregationInterval = "cumulative"
 )
 
 // MetricType selects the usage metric.
@@ -59,8 +69,8 @@ const (
 	MetricTypeConcurrencyAverage MetricType = "concurrency_average"
 )
 
-// UsageGetRequest is the request of UsageService.Get.
-type UsageGetRequest struct {
+// GetRequest is the request of Service.Get.
+type GetRequest struct {
 	// StartUnix is the start of the range in unix milliseconds. Required.
 	StartUnix int64 `query:"start_unix"`
 	// EndUnix is the end of the range in unix milliseconds. Required.
@@ -70,15 +80,15 @@ type UsageGetRequest struct {
 	// BreakdownType selects how usage is broken down.
 	BreakdownType BreakdownType `query:"breakdown_type"`
 	// AggregationInterval is the time bucket (default day).
-	AggregationInterval UsageAggregationInterval `query:"aggregation_interval"`
+	AggregationInterval AggregationInterval `query:"aggregation_interval"`
 	// AggregationBucketSize is a custom bucket size in seconds.
 	AggregationBucketSize *int `query:"aggregation_bucket_size"`
 	// Metric selects the usage metric.
 	Metric MetricType `query:"metric"`
 }
 
-// UsageCharacters is a usage time series keyed by breakdown value.
-type UsageCharacters struct {
+// Characters is a usage time series keyed by breakdown value.
+type Characters struct {
 	// Time holds the start of each bucket in unix milliseconds.
 	Time []int64 `json:"time"`
 	// Usage maps each breakdown value to one value per bucket.
@@ -87,6 +97,6 @@ type UsageCharacters struct {
 
 // Get returns usage statistics. Deprecated upstream in favor of the
 // workspace analytics endpoints.
-func (s *UsageService) Get(ctx context.Context, req *UsageGetRequest, opts ...Option) (*UsageCharacters, error) {
-	return doValue[UsageCharacters](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/usage/character-stats", query: orEmpty(req), opts: opts})
+func (s *Service) Get(ctx context.Context, req *GetRequest, opts ...option.RequestOption) (*Characters, error) {
+	return transport.DoValue[Characters](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: "/v1/usage/character-stats", Query: transport.OrEmpty(req), Opts: opts})
 }

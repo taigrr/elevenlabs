@@ -3,13 +3,19 @@ package elevenlabs
 import (
 	"github.com/taigrr/elevenlabs/v2/audioeffects"
 	"github.com/taigrr/elevenlabs/v2/audioisolation"
+	"github.com/taigrr/elevenlabs/v2/forcedalignment"
 	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/models"
+	"github.com/taigrr/elevenlabs/v2/music"
 	"github.com/taigrr/elevenlabs/v2/soundeffects"
 	"github.com/taigrr/elevenlabs/v2/speechtospeech"
 	"github.com/taigrr/elevenlabs/v2/speechtotext"
 	"github.com/taigrr/elevenlabs/v2/texttodialogue"
 	"github.com/taigrr/elevenlabs/v2/texttospeech"
 	"github.com/taigrr/elevenlabs/v2/texttovoice"
+	"github.com/taigrr/elevenlabs/v2/tokens"
+	"github.com/taigrr/elevenlabs/v2/usage"
+	"github.com/taigrr/elevenlabs/v2/user"
 )
 
 // Client is the entry point to the ElevenLabs API. Endpoints are grouped into
@@ -25,10 +31,10 @@ type Client struct {
 	AudioEffects              *audioeffects.Service
 	AudioIsolation            *audioisolation.Service
 	AudioNative               *AudioNativeService
-	ForcedAlignment           *ForcedAlignmentService
+	ForcedAlignment           *forcedalignment.Service
 	History                   *HistoryService
-	Models                    *ModelsService
-	Music                     *MusicService
+	Models                    *models.Service
+	Music                     *music.Service
 	PronunciationDictionaries *PronunciationDictionariesService
 	Samples                   *SamplesService
 	SpeechToSpeech            *speechtospeech.Service
@@ -37,11 +43,11 @@ type Client struct {
 	TextToSoundEffects        *soundeffects.Service
 	TextToSpeech              *texttospeech.Service
 	TextToVoice               *texttovoice.Service
-	Tokens                    *TokensService
+	Tokens                    *tokens.Service
 	// Translation holds the realtime translation WebSocket.
 	Translation *TranslationService
-	Usage       *UsageService
-	User        *UserService
+	Usage       *usage.Service
+	User        *user.Service
 	Voices      *VoicesService
 	// Webhooks manages workspace webhooks and verifies webhook deliveries.
 	Webhooks *WebhooksService
@@ -83,10 +89,10 @@ func newClient(cfg *config) *Client {
 		AudioEffects:              audioeffects.NewService(fromConfig(cfg)),
 		AudioIsolation:            audioisolation.NewService(fromConfig(cfg)),
 		AudioNative:               &AudioNativeService{cfg: cfg},
-		ForcedAlignment:           &ForcedAlignmentService{cfg: cfg},
+		ForcedAlignment:           forcedalignment.NewService(fromConfig(cfg)),
 		History:                   &HistoryService{cfg: cfg},
-		Models:                    &ModelsService{cfg: cfg},
-		Music:                     newMusicService(cfg),
+		Models:                    models.NewService(fromConfig(cfg)),
+		Music:                     music.NewService(fromConfig(cfg)),
 		PronunciationDictionaries: newPronunciationDictionariesService(cfg),
 		Samples:                   &SamplesService{cfg: cfg},
 		SpeechToSpeech:            speechtospeech.NewService(fromConfig(cfg)),
@@ -95,10 +101,10 @@ func newClient(cfg *config) *Client {
 		TextToSoundEffects:        soundeffects.NewService(fromConfig(cfg)),
 		TextToSpeech:              texttospeech.NewService(fromConfig(cfg)),
 		TextToVoice:               texttovoice.NewService(fromConfig(cfg)),
-		Tokens:                    newTokensService(cfg),
+		Tokens:                    tokens.NewService(fromConfig(cfg)),
 		Translation:               &TranslationService{cfg: cfg},
-		Usage:                     &UsageService{cfg: cfg},
-		User:                      newUserService(cfg),
+		Usage:                     usage.NewService(fromConfig(cfg)),
+		User:                      user.NewService(fromConfig(cfg)),
 		Voices:                    newVoicesService(cfg),
 		Webhooks:                  &WebhooksService{cfg: cfg},
 		ServiceAccounts:           newServiceAccountsService(cfg),

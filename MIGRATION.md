@@ -90,3 +90,34 @@ The multipart field for voice samples is now `files` (matching the official SDK)
 | `client.ErrUnspecified` | removed; every non-2xx response is an `*APIError` unwrapping to a status sentinel (`ErrUnexpectedStatus` when there is none) |
 | `types.ValidationError` joined into the error | `APIError.ValidationErrors` (`[]ValidationError`) |
 | `types.ParamError` joined into the error | `APIError.Status` / `APIError.Message` |
+
+## Package layout (pre-release root names)
+
+Services moved out of the root package. Each package exports `Service` and
+`NewService(opts ...option.RequestOption)`; the root `Client` fields keep
+their names. Shared models moved to `types`.
+
+| Old root name | New name |
+| --- | --- |
+| `OutputFormat*`, `TextNormalization*`, `PronunciationDictionaryLocator`, `AudioEffects`, `VoiceSettings`, `SortDirection*`, `CharacterAlignment`, `AudioFileFormat*` | `types.` + same name |
+| `Voice`, `VoiceCategory*`, `VoiceSample`, `VoiceSharing`, `VoiceVerification`, `VerifiedVoiceLanguage`, `VoiceSafetyControl*`, `VoiceSharingModerationCheck` | `voices.Voice`, `voices.Category*`, `voices.Sample`, `voices.Sharing`, `voices.Verification`, `voices.VerifiedLanguage`, `voices.SafetyControl*`, `voices.SharingModerationCheck` |
+| `TextToSpeechService`, `TextToSpeechRequest` | `texttospeech.Service`, `texttospeech.ConvertRequest` |
+| `TextToSpeechStreamInputRequest`, `TextToSpeechStream`, `TextToSpeechMultiStream` | `texttospeech.StreamInputRequest`, `InputStream`, `MultiInputStream` |
+| `TextToSpeechStreamInputMessage`, `TextToSpeechStreamOutput`, `TextToSpeechMultiStream{InputMessage,Output}` | `texttospeech.StreamInputMessage`, `StreamOutput`, `MultiStream{InputMessage,Output}` |
+| `SpeechToTextService`, `SpeechToTextTranscriptsService` | `speechtotext.Service`, `speechtotext.TranscriptsService` |
+| `SpeechToTextRealtime`, `SpeechToTextRealtimeRequest` | `speechtotext.RealtimeSession`, `speechtotext.RealtimeRequest` |
+| `SpeechToText*` (e.g. `SpeechToTextConvertRequest`, `SpeechToTextModelScribeV1`, `SpeechToTextWord`), `MultichannelSpeechToText` | `speechtotext.*` without the prefix (`ConvertRequest`, `ModelScribeV1`, `Word`), `speechtotext.Multichannel` |
+| `SpeechToSpeechService`, `SpeechToSpeechRequest` | `speechtospeech.Service`, `speechtospeech.ConvertRequest` |
+| `TextToSoundEffectsService`, `CreateSoundEffectRequest`, `SoundEffectsModel*` | `soundeffects.Service`, `soundeffects.ConvertRequest`, `soundeffects.Model*` |
+| `AudioIsolationService`, `AudioIsolationRequest`, `AudioIsolation*` | `audioisolation.Service`, `audioisolation.ConvertRequest`, `audioisolation.*` |
+| `AudioEffectsService`, `AudioEffects{FilterPreset,Environment,BackgroundNoise,Catalog}` | `audioeffects.Service`, `audioeffects.{FilterPreset,Environment,BackgroundNoise,Catalog}` |
+| `TextToDialogueService`, `TextToDialogueRequest`, `TextToDialogueInput` | `texttodialogue.Service`, `ConvertRequest`, `Input` |
+| `TextToDialogueStreamInputRequest`, `TextToDialogueStream`, `TextToDialogueMultiStream`, `Dialogue*` | `texttodialogue.StreamInputRequest`, `InputStream`, `MultiInputStream`, `texttodialogue.*` without the prefix |
+| `TextToVoiceService`, `TextToVoicePreviewService`, `VoiceDesignModel*` | `texttovoice.Service`, `PreviewService`, `Model*` |
+| `VoicePreviewsRequest`, `VoiceDesignRequest`, `VoiceRemixRequest`, `CreateVoiceFromPreviewRequest`, `VoicePreview`, `VoiceDesignPreviews` | `texttovoice.PreviewsRequest`, `DesignRequest`, `RemixRequest`, `CreateRequest`, `Preview`, `DesignPreviews` |
+| `ForcedAlignmentService`, `ForcedAlignmentRequest`, `ForcedAlignment{Character,Word}`, `ForcedAlignment` | `forcedalignment.Service`, `CreateRequest`, `Alignment{Character,Word}`, `Alignment` |
+| `MusicService`, `MusicCompositionPlanService`, `MusicFinetunesService`, `Music*` | `music.Service`, `CompositionPlanService`, `FinetunesService`, `music.*` without the prefix (`MusicCompositionPlan` keeps its name) |
+| `ModelsService`, `ModelRates` | `models.Service`, `models.Rates` |
+| `UsageService`, `UsageGetRequest`, `UsageCharacters`, `UsageAggregationInterval*` | `usage.Service`, `GetRequest`, `Characters`, `AggregationInterval*` |
+| `UserService`, `UserSubscriptionService` | `user.Service`, `user.SubscriptionService` |
+| `TokensService`, `TokensSingleUseService` | `tokens.Service`, `tokens.SingleUseService` |

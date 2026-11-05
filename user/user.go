@@ -1,34 +1,44 @@
-package elevenlabs
+package user
 
 import (
 	"context"
 	"encoding/json"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
 )
 
-// UserService groups the /v1/user endpoints.
-type UserService struct {
-	cfg *config
+// Service groups the /v1/user endpoints.
+type Service struct {
+	cfg *requestconfig.Config
 
 	// Subscription groups the /v1/user/subscription endpoints.
-	Subscription *UserSubscriptionService
+	Subscription *SubscriptionService
 }
 
-func newUserService(cfg *config) *UserService {
-	return &UserService{cfg: cfg, Subscription: &UserSubscriptionService{cfg: cfg}}
+// NewService returns a Service configured by opts. Without option.WithAPIKey
+// the key is read from the ELEVENLABS_API_KEY environment variable.
+func NewService(opts ...option.RequestOption) *Service {
+	return newService(requestconfig.Build(opts...))
+}
+
+func newService(cfg *requestconfig.Config) *Service {
+	return &Service{cfg: cfg, Subscription: &SubscriptionService{cfg: cfg}}
 }
 
 // Get returns information about the authenticated user.
-func (s *UserService) Get(ctx context.Context, opts ...Option) (*User, error) {
-	return doValue[User](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/user", opts: opts})
+func (s *Service) Get(ctx context.Context, opts ...option.RequestOption) (*User, error) {
+	return transport.DoValue[User](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: "/v1/user", Opts: opts})
 }
 
-// UserSubscriptionService groups the /v1/user/subscription endpoints.
-type UserSubscriptionService struct{ cfg *config }
+// SubscriptionService groups the /v1/user/subscription endpoints.
+type SubscriptionService struct{ cfg *requestconfig.Config }
 
 // Get returns extended subscription information for the authenticated user.
-func (s *UserSubscriptionService) Get(ctx context.Context, opts ...Option) (*Subscription, error) {
-	return doValue[Subscription](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/user/subscription", opts: opts})
+func (s *SubscriptionService) Get(ctx context.Context, opts ...option.RequestOption) (*Subscription, error) {
+	return transport.DoValue[Subscription](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: "/v1/user/subscription", Opts: opts})
 }
 
 // SeatType is a workspace seat type.
@@ -41,7 +51,7 @@ const (
 	SeatTypeWorkspaceLiteMember SeatType = "workspace_lite_member"
 )
 
-// User is the response of UserService.Get.
+// User is the response of Service.Get.
 type User struct {
 	UserID                         string               `json:"user_id"`
 	WorkspaceID                    string               `json:"workspace_id"`
@@ -196,7 +206,7 @@ type SubscriptionResponse struct {
 	CharacterRefreshPeriod                *BillingPeriod       `json:"character_refresh_period,omitempty"`
 }
 
-// Subscription is the response of UserSubscriptionService.Get.
+// Subscription is the response of SubscriptionService.Get.
 type Subscription struct {
 	SubscriptionResponse
 	NextInvoice                   *Invoice                   `json:"next_invoice,omitempty"`

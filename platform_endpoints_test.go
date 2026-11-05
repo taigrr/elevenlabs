@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/taigrr/elevenlabs/v2/types"
+	"github.com/taigrr/elevenlabs/v2/user"
 )
 
 func platformEndpointCases() []endpointCase {
@@ -338,7 +339,7 @@ func platformEndpointCases() []endpointCase {
 		{
 			name: "workspace.invites.create",
 			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.Workspace.Invites.Create(ctx, &InviteRequest{Email: "a@b", SeatType: SeatTypeWorkspaceMember, GroupIDs: []string{"g"}})
+				return c.Workspace.Invites.Create(ctx, &InviteRequest{Email: "a@b", SeatType: user.SeatTypeWorkspaceMember, GroupIDs: []string{"g"}})
 			},
 			method: http.MethodPost, path: "/v1/workspace/invites/add",
 			body: `{"email":"a@b","seat_type":"workspace_member","group_ids":["g"]}`, respBody: `{"status":"ok"}`,
@@ -362,7 +363,7 @@ func platformEndpointCases() []endpointCase {
 			method: http.MethodGet, path: "/v1/workspace/members",
 			respBody: `[{"user_id":"u","email":"a@b","is_owner":true,"is_locked":false,"seat_type":"workspace_admin"}]`,
 			check: func(t *testing.T, r any) {
-				if m := r.([]WorkspaceMember)[0]; !m.IsOwner || *m.SeatType != SeatTypeWorkspaceAdmin {
+				if m := r.([]WorkspaceMember)[0]; !m.IsOwner || *m.SeatType != user.SeatTypeWorkspaceAdmin {
 					t.Errorf("member = %+v", m)
 				}
 			},
@@ -370,7 +371,7 @@ func platformEndpointCases() []endpointCase {
 		{
 			name: "workspace.members.update",
 			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.Workspace.Members.Update(ctx, &MemberUpdateRequest{Email: "a@b", IsLocked: Ptr(true), WorkspaceSeatType: SeatTypeWorkspaceLiteMember})
+				return c.Workspace.Members.Update(ctx, &MemberUpdateRequest{Email: "a@b", IsLocked: Ptr(true), WorkspaceSeatType: user.SeatTypeWorkspaceLiteMember})
 			},
 			method: http.MethodPost, path: "/v1/workspace/members",
 			body: `{"email":"a@b","is_locked":true,"workspace_seat_type":"workspace_lite_member"}`, respBody: `{"status":"ok"}`,

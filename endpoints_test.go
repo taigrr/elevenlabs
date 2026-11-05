@@ -55,35 +55,6 @@ func readAll(rc io.ReadCloser, err error) (any, error) {
 func coreEndpointCases() []endpointCase {
 	return []endpointCase{
 		{
-			name:     "user.get",
-			call:     func(ctx context.Context, c *Client) (any, error) { return c.User.Get(ctx) },
-			method:   http.MethodGet,
-			path:     "/v1/user",
-			respBody: `{"user_id":"u1","subscription":{"tier":"creator","max_credit_limit_extension":"unlimited","character_count":5},"seat_type":"workspace_admin","created_at":17}`,
-			check: func(t *testing.T, r any) {
-				u := r.(*User)
-				if u.UserID != "u1" || u.Subscription.Tier != "creator" || !u.Subscription.MaxCreditLimitExtension.Unlimited ||
-					u.Subscription.CharacterCount != 5 || u.SeatType != SeatTypeWorkspaceAdmin || u.CreatedAt != 17 {
-					t.Errorf("user = %+v", u)
-				}
-			},
-		},
-		{
-			name:     "user.subscription.get",
-			call:     func(ctx context.Context, c *Client) (any, error) { return c.User.Subscription.Get(ctx) },
-			method:   http.MethodGet,
-			path:     "/v1/user/subscription",
-			respBody: `{"tier":"pro","max_credit_limit_extension":1000,"status":"active","open_invoices":[{"amount_due_cents":500,"discounts":[],"payment_intent_statusses":["succeeded"]}],"pending_change":{"kind":"cancellation","timestamp_seconds":9}}`,
-			check: func(t *testing.T, r any) {
-				s := r.(*Subscription)
-				if s.Tier != "pro" || s.MaxCreditLimitExtension.Value != 1000 || s.Status != SubscriptionStatusActive ||
-					len(s.OpenInvoices) != 1 || s.OpenInvoices[0].PaymentIntentStatusses[0] != PaymentIntentStatusSucceeded ||
-					s.PendingChange.Kind != "cancellation" {
-					t.Errorf("subscription = %+v", s)
-				}
-			},
-		},
-		{
 			name: "voices.getAll",
 			call: func(ctx context.Context, c *Client) (any, error) {
 				return c.Voices.GetAll(ctx, &VoicesGetAllRequest{ShowLegacy: Ptr(true)})
@@ -455,4 +426,15 @@ func TestVoicesSearchAll(t *testing.T) {
 	if q := ts.last(t).RawQuery; q != "next_page_token=p2&search=x" {
 		t.Errorf("second page query = %q", q)
 	}
+}
+
+func endpointCases() []endpointCase {
+	cases := append(coreEndpointCases(), libraryEndpointCases()...)
+	cases = append(cases, platformEndpointCases()...)
+	cases = append(cases, convaiEndpointCases()...)
+	return append(cases, productionEndpointCases()...)
+}
+
+func testFile(name, data string) File {
+	return File{Reader: strings.NewReader(data), Name: name}
 }

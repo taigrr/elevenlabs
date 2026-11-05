@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/taigrr/elevenlabs/v2/types"
+	"github.com/taigrr/elevenlabs/v2/user"
 )
 
 // WorkspaceService groups the /v1/workspace endpoints.
@@ -217,11 +218,11 @@ type WorkspaceGroupsService struct {
 
 // ScimGroup describes the SCIM group a workspace group is synced from.
 type ScimGroup struct {
-	ScimExternalID *string   `json:"scim_external_id,omitempty"`
-	DisplayName    string    `json:"display_name"`
-	CreatedAtUnix  *int64    `json:"created_at_unix,omitempty"`
-	UpdatedAtUnix  *int64    `json:"updated_at_unix,omitempty"`
-	SeatType       *SeatType `json:"seat_type,omitempty"`
+	ScimExternalID *string        `json:"scim_external_id,omitempty"`
+	DisplayName    string         `json:"display_name"`
+	CreatedAtUnix  *int64         `json:"created_at_unix,omitempty"`
+	UpdatedAtUnix  *int64         `json:"updated_at_unix,omitempty"`
+	SeatType       *user.SeatType `json:"seat_type,omitempty"`
 }
 
 // WorkspaceGroup is a workspace user group.
@@ -297,7 +298,7 @@ type InviteRequest struct {
 	// WorkspacePermission is a legacy permission name.
 	WorkspacePermission string `json:"workspace_permission,omitempty"`
 	// SeatType is the seat assigned to the invitee.
-	SeatType SeatType `json:"seat_type,omitempty"`
+	SeatType user.SeatType `json:"seat_type,omitempty"`
 	// GroupIDs adds the invitee to these groups.
 	GroupIDs []string `json:"group_ids,omitempty"`
 	// UsageLimit caps the invitee's credit usage.
@@ -307,10 +308,10 @@ type InviteRequest struct {
 // BulkInviteRequest is the body of WorkspaceInvitesService.CreateBatch.
 type BulkInviteRequest struct {
 	// Emails of the invitees. Required.
-	Emails     []string `json:"emails"`
-	SeatType   SeatType `json:"seat_type,omitempty"`
-	GroupIDs   []string `json:"group_ids,omitempty"`
-	UsageLimit *int64   `json:"usage_limit,omitempty"`
+	Emails     []string      `json:"emails"`
+	SeatType   user.SeatType `json:"seat_type,omitempty"`
+	GroupIDs   []string      `json:"group_ids,omitempty"`
+	UsageLimit *int64        `json:"usage_limit,omitempty"`
 }
 
 // Create invites a user to the workspace.
@@ -335,12 +336,12 @@ type WorkspaceMembersService struct{ cfg *config }
 
 // WorkspaceMember is a member of the workspace.
 type WorkspaceMember struct {
-	UserID    string    `json:"user_id"`
-	Email     string    `json:"email"`
-	FirstName *string   `json:"first_name,omitempty"`
-	SeatType  *SeatType `json:"seat_type,omitempty"`
-	IsOwner   bool      `json:"is_owner"`
-	IsLocked  bool      `json:"is_locked"`
+	UserID    string         `json:"user_id"`
+	Email     string         `json:"email"`
+	FirstName *string        `json:"first_name,omitempty"`
+	SeatType  *user.SeatType `json:"seat_type,omitempty"`
+	IsOwner   bool           `json:"is_owner"`
+	IsLocked  bool           `json:"is_locked"`
 }
 
 // List returns the workspace members.
@@ -355,11 +356,11 @@ func (s *WorkspaceMembersService) List(ctx context.Context, opts ...Option) ([]W
 // MemberUpdateRequest is the body of WorkspaceMembersService.Update.
 type MemberUpdateRequest struct {
 	// Email identifies the member. Required.
-	Email                     string   `json:"email"`
-	IsLocked                  *bool    `json:"is_locked,omitempty"`
-	WorkspaceRole             SeatType `json:"workspace_role,omitempty"`
-	WorkspaceSeatType         SeatType `json:"workspace_seat_type,omitempty"`
-	AllowDowngradeToBasicSeat *bool    `json:"allow_downgrade_to_basic_seat,omitempty"`
+	Email                     string        `json:"email"`
+	IsLocked                  *bool         `json:"is_locked,omitempty"`
+	WorkspaceRole             user.SeatType `json:"workspace_role,omitempty"`
+	WorkspaceSeatType         user.SeatType `json:"workspace_seat_type,omitempty"`
+	AllowDowngradeToBasicSeat *bool         `json:"allow_downgrade_to_basic_seat,omitempty"`
 }
 
 // Update changes a member's role, seat or lock state.

@@ -104,8 +104,6 @@ func pathf(format string, segments ...string) string { return transport.Pathf(fo
 
 func orEmpty[T any](p *T) *T { return transport.OrEmpty(p) }
 
-func newStream[T any](body io.ReadCloser) *Stream[T] { return types.NewStream[T](body) }
-
 type page[T any] struct {
 	items   []T
 	next    string

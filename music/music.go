@@ -1,4 +1,4 @@
-package elevenlabs
+package music
 
 import (
 	"context"
@@ -7,17 +7,21 @@ import (
 	"iter"
 	"net/http"
 
+	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/internal/stream"
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
 	"github.com/taigrr/elevenlabs/v2/types"
 )
 
-// MusicModel identifies a music model.
-type MusicModel string
+// Model identifies a music model.
+type Model string
 
-// MusicModel values.
+// Model values.
 const (
-	MusicModelV1   MusicModel = "music_v1"
-	MusicModelV2   MusicModel = "music_v2"
-	MusicModelV2_5 MusicModel = "music_v2_5"
+	ModelV1   Model = "music_v1"
+	ModelV2   Model = "music_v2"
+	ModelV2_5 Model = "music_v2_5"
 )
 
 // TimeRange is a span of a song in milliseconds.
@@ -33,7 +37,7 @@ type SectionSource struct {
 	NegativeRanges []TimeRange `json:"negative_ranges,omitempty"`
 }
 
-// SongSection is one section of a MusicPrompt.
+// SongSection is one section of a Prompt.
 type SongSection struct {
 	SectionName         string         `json:"section_name"`
 	PositiveLocalStyles []string       `json:"positive_local_styles"`
@@ -43,8 +47,8 @@ type SongSection struct {
 	SourceFrom          *SectionSource `json:"source_from,omitempty"`
 }
 
-// MusicPrompt is a section-based composition plan.
-type MusicPrompt struct {
+// Prompt is a section-based composition plan.
+type Prompt struct {
 	PositiveGlobalStyles []string      `json:"positive_global_styles"`
 	NegativeGlobalStyles []string      `json:"negative_global_styles"`
 	Sections             []SongSection `json:"sections"`
@@ -128,10 +132,10 @@ type CompositionPlan struct {
 	Chunks []CompositionPlanChunk `json:"chunks"`
 }
 
-// MusicCompositionPlan is either a section-based MusicPrompt or a
+// MusicCompositionPlan is either a section-based Prompt or a
 // chunk-based CompositionPlan: exactly one field is non-nil.
 type MusicCompositionPlan struct {
-	Prompt *MusicPrompt
+	Prompt *Prompt
 	Chunks *CompositionPlan
 }
 
@@ -146,7 +150,7 @@ func (p *MusicCompositionPlan) UnmarshalJSON(data []byte) error {
 		p.Chunks = new(CompositionPlan)
 		return json.Unmarshal(data, p.Chunks)
 	}
-	p.Prompt = new(MusicPrompt)
+	p.Prompt = new(Prompt)
 	return json.Unmarshal(data, p.Prompt)
 }
 
@@ -161,8 +165,8 @@ func (p MusicCompositionPlan) MarshalJSON() ([]byte, error) {
 	return []byte("null"), nil
 }
 
-// MusicGenerationParams are the body fields shared by every composition endpoint.
-type MusicGenerationParams struct {
+// GenerationParams are the body fields shared by every composition endpoint.
+type GenerationParams struct {
 	// Prompt describes the song. Mutually exclusive with CompositionPlan.
 	Prompt string `json:"prompt,omitempty"`
 	// CompositionPlan is a detailed plan. Mutually exclusive with Prompt.
@@ -170,7 +174,7 @@ type MusicGenerationParams struct {
 	// MusicLengthMs is the song length (3000-600000); chosen by the model when nil.
 	MusicLengthMs *int64 `json:"music_length_ms,omitempty"`
 	// ModelID selects the model.
-	ModelID MusicModel `json:"model_id,omitempty"`
+	ModelID Model `json:"model_id,omitempty"`
 	// Seed makes generation deterministic on a best-effort basis.
 	Seed *int64 `json:"seed,omitempty"`
 	// ForceInstrumental guarantees a song without vocals (Prompt only).
@@ -181,28 +185,28 @@ type MusicGenerationParams struct {
 	StoreForInpainting *bool `json:"store_for_inpainting,omitempty"`
 }
 
-// MusicComposeRequest is the request of MusicService.Compose.
-type MusicComposeRequest struct {
+// ComposeRequest is the request of Service.Compose.
+type ComposeRequest struct {
 	// OutputFormat selects the audio format.
 	OutputFormat types.OutputFormat `json:"-" query:"output_format"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `json:"-" query:"enable_logging"`
 
-	MusicGenerationParams
+	GenerationParams
 	// RespectSectionsDurations strictly enforces section durations.
 	RespectSectionsDurations *bool `json:"respect_sections_durations,omitempty"`
 	// SignWithC2PA signs the generated mp3 with C2PA.
 	SignWithC2PA *bool `json:"sign_with_c2pa,omitempty"`
 }
 
-// MusicComposeDetailedRequest is the request of MusicService.ComposeDetailed.
-type MusicComposeDetailedRequest struct {
+// ComposeDetailedRequest is the request of Service.ComposeDetailed.
+type ComposeDetailedRequest struct {
 	// OutputFormat selects the audio format.
 	OutputFormat types.OutputFormat `json:"-" query:"output_format"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `json:"-" query:"enable_logging"`
 
-	MusicGenerationParams
+	GenerationParams
 	// RespectSectionsDurations strictly enforces section durations.
 	RespectSectionsDurations *bool `json:"respect_sections_durations,omitempty"`
 	// WithTimestamps returns word timestamps in the metadata.
@@ -213,31 +217,31 @@ type MusicComposeDetailedRequest struct {
 	SignWithC2PA *bool `json:"sign_with_c2pa,omitempty"`
 }
 
-// MusicStreamRequest is the request of MusicService.Stream.
-type MusicStreamRequest struct {
+// StreamRequest is the request of Service.Stream.
+type StreamRequest struct {
 	// OutputFormat selects the audio format.
 	OutputFormat types.OutputFormat `json:"-" query:"output_format"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `json:"-" query:"enable_logging"`
 
-	MusicGenerationParams
+	GenerationParams
 }
 
-// MusicComposeDetailedStreamRequest is the request of MusicService.ComposeDetailedStream.
-type MusicComposeDetailedStreamRequest struct {
+// ComposeDetailedStreamRequest is the request of Service.ComposeDetailedStream.
+type ComposeDetailedStreamRequest struct {
 	// OutputFormat selects the audio format.
 	OutputFormat types.OutputFormat `json:"-" query:"output_format"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `json:"-" query:"enable_logging"`
 
-	MusicGenerationParams
+	GenerationParams
 	// WithTimestamps returns word timestamps.
 	WithTimestamps *bool `json:"with_timestamps,omitempty"`
 	// WithWaveformVisual returns waveform data.
 	WithWaveformVisual *bool `json:"with_waveform_visual,omitempty"`
 }
 
-// VideoToMusicRequest is the request of MusicService.VideoToMusic.
+// VideoToMusicRequest is the request of Service.VideoToMusic.
 type VideoToMusicRequest struct {
 	// OutputFormat selects the audio format.
 	OutputFormat types.OutputFormat `form:"-" query:"output_format"`
@@ -245,13 +249,13 @@ type VideoToMusicRequest struct {
 	EnableLogging *bool `form:"-" query:"enable_logging"`
 
 	// Videos are combined in order to make the soundtrack. Required.
-	Videos []File `form:"videos"`
+	Videos []types.File `form:"videos"`
 	// Description guides the music generation.
 	Description string `form:"description"`
 	// Tags are style tags for the music.
 	Tags []string `form:"tags"`
 	// ModelID selects the model.
-	ModelID MusicModel `form:"model_id"`
+	ModelID Model `form:"model_id"`
 	// AddSFX adds sound effects.
 	AddSFX *bool `form:"add_sfx"`
 	// SeparateTracks returns separate tracks.
@@ -263,19 +267,19 @@ type VideoToMusicRequest struct {
 }
 
 // ExtractCompositionPlan controls composition plan extraction on upload:
-// "true", "false", or a MusicModel to extract with.
+// "true", "false", or a Model to extract with.
 type ExtractCompositionPlan string
 
-// ExtractCompositionPlan values; any MusicModel may also be used.
+// ExtractCompositionPlan values; any Model may also be used.
 const (
 	ExtractCompositionPlanTrue  ExtractCompositionPlan = "true"
 	ExtractCompositionPlanFalse ExtractCompositionPlan = "false"
 )
 
-// MusicUploadRequest is the request of MusicService.Upload.
-type MusicUploadRequest struct {
+// UploadRequest is the request of Service.Upload.
+type UploadRequest struct {
 	// File is the audio to upload. Required.
-	File File `form:"file"`
+	File types.File `form:"file"`
 	// ExtractCompositionPlan extracts a composition plan (adds latency).
 	ExtractCompositionPlan ExtractCompositionPlan `form:"extract_composition_plan"`
 	// WithTimestamps returns word timestamps.
@@ -291,8 +295,8 @@ type WordTimestamp struct {
 	EndMs   int64  `json:"end_ms"`
 }
 
-// MusicUpload is the result of MusicService.Upload.
-type MusicUpload struct {
+// Upload is the result of Service.Upload.
+type Upload struct {
 	SongID          string                `json:"song_id"`
 	CompositionPlan *MusicCompositionPlan `json:"composition_plan,omitempty"`
 	WordsTimestamps []WordTimestamp       `json:"words_timestamps,omitempty"`
@@ -308,7 +312,7 @@ const (
 	StemVariationSixStemsV1 StemVariation = "six_stems_v1"
 )
 
-// SeparateStemsRequest is the request of MusicService.SeparateStems.
+// SeparateStemsRequest is the request of Service.SeparateStems.
 type SeparateStemsRequest struct {
 	// OutputFormat selects the audio format.
 	OutputFormat types.OutputFormat `form:"-" query:"output_format"`
@@ -316,78 +320,84 @@ type SeparateStemsRequest struct {
 	EnableLogging *bool `form:"-" query:"enable_logging"`
 
 	// File is the audio to separate. Required.
-	File File `form:"file"`
+	File types.File `form:"file"`
 	// StemVariationID selects the stem layout.
 	StemVariationID StemVariation `form:"stem_variation_id"`
 	// SignWithC2PA signs the generated mp3s with C2PA.
 	SignWithC2PA *bool `form:"sign_with_c2pa"`
 }
 
-// MusicService groups the /v1/music endpoints.
-type MusicService struct {
-	cfg *config
+// Service groups the /v1/music endpoints.
+type Service struct {
+	cfg *requestconfig.Config
 
-	CompositionPlan *MusicCompositionPlanService
-	Finetunes       *MusicFinetunesService
+	CompositionPlan *CompositionPlanService
+	Finetunes       *FinetunesService
 }
 
-func newMusicService(cfg *config) *MusicService {
-	return &MusicService{
+// NewService returns a Service configured by opts. Without option.WithAPIKey
+// the key is read from the ELEVENLABS_API_KEY environment variable.
+func NewService(opts ...option.RequestOption) *Service {
+	return newService(requestconfig.Build(opts...))
+}
+
+func newService(cfg *requestconfig.Config) *Service {
+	return &Service{
 		cfg:             cfg,
-		CompositionPlan: &MusicCompositionPlanService{cfg: cfg},
-		Finetunes:       &MusicFinetunesService{cfg: cfg},
+		CompositionPlan: &CompositionPlanService{cfg: cfg},
+		Finetunes:       &FinetunesService{cfg: cfg},
 	}
 }
 
 // VideoToMusic generates a soundtrack for videos. The caller must close the
 // returned reader.
-func (s *MusicService) VideoToMusic(ctx context.Context, req *VideoToMusicRequest, opts ...Option) (io.ReadCloser, error) {
-	req = orEmpty(req)
-	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/video-to-music", query: req, form: req, accept: acceptAny, opts: opts})
+func (s *Service) VideoToMusic(ctx context.Context, req *VideoToMusicRequest, opts ...option.RequestOption) (io.ReadCloser, error) {
+	req = transport.OrEmpty(req)
+	return transport.DoStream(ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/music/video-to-music", Query: req, Form: req, Accept: transport.AcceptAny, Opts: opts})
 }
 
 // Compose generates a song and returns the complete audio. The caller must
 // close the returned reader.
-func (s *MusicService) Compose(ctx context.Context, req *MusicComposeRequest, opts ...Option) (io.ReadCloser, error) {
-	req = orEmpty(req)
-	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music", query: req, body: req, accept: acceptAny, opts: opts})
+func (s *Service) Compose(ctx context.Context, req *ComposeRequest, opts ...option.RequestOption) (io.ReadCloser, error) {
+	req = transport.OrEmpty(req)
+	return transport.DoStream(ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/music", Query: req, Body: req, Accept: transport.AcceptAny, Opts: opts})
 }
 
 // Stream generates a song and streams the audio as it is produced. The
 // caller must close the returned reader.
-func (s *MusicService) Stream(ctx context.Context, req *MusicStreamRequest, opts ...Option) (io.ReadCloser, error) {
-	req = orEmpty(req)
-	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/stream", query: req, body: req, accept: acceptAny, opts: opts})
+func (s *Service) Stream(ctx context.Context, req *StreamRequest, opts ...option.RequestOption) (io.ReadCloser, error) {
+	req = transport.OrEmpty(req)
+	return transport.DoStream(ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/music/stream", Query: req, Body: req, Accept: transport.AcceptAny, Opts: opts})
 }
 
 // ComposeDetailedStream generates a song and streams newline-delimited JSON
 // messages (typed as strings by the official SDK, so they are exposed as raw
 // JSON). The caller must close the returned stream.
-func (s *MusicService) ComposeDetailedStream(ctx context.Context, req *MusicComposeDetailedStreamRequest, opts ...Option) (*Stream[json.RawMessage], error) {
-	req = orEmpty(req)
-	body, err := doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/detailed/stream", query: req, body: req, accept: contentTypeJSON, opts: opts})
+func (s *Service) ComposeDetailedStream(ctx context.Context, req *ComposeDetailedStreamRequest, opts ...option.RequestOption) (*types.Stream[json.RawMessage], error) {
+	req = transport.OrEmpty(req)
+	body, err := transport.DoStream(ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/music/detailed/stream", Query: req, Body: req, Accept: transport.ContentTypeJSON, Opts: opts})
 	if err != nil {
 		return nil, err
 	}
-	return newStream[json.RawMessage](body), nil
+	return types.NewStream[json.RawMessage](body), nil
 }
 
 // Upload uploads a song for later inpainting (enterprise only).
-func (s *MusicService) Upload(ctx context.Context, req *MusicUploadRequest, opts ...Option) (*MusicUpload, error) {
-	return doValue[MusicUpload](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/upload", form: orEmpty(req), opts: opts})
+func (s *Service) Upload(ctx context.Context, req *UploadRequest, opts ...option.RequestOption) (*Upload, error) {
+	return transport.DoValue[Upload](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/music/upload", Form: transport.OrEmpty(req), Opts: opts})
 }
 
 // SeparateStems splits audio into stems and returns a zip archive. The
 // caller must close the returned reader.
-func (s *MusicService) SeparateStems(ctx context.Context, req *SeparateStemsRequest, opts ...Option) (io.ReadCloser, error) {
-	req = orEmpty(req)
-	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/stem-separation", query: req, form: req, accept: acceptAny, opts: opts})
+func (s *Service) SeparateStems(ctx context.Context, req *SeparateStemsRequest, opts ...option.RequestOption) (io.ReadCloser, error) {
+	req = transport.OrEmpty(req)
+	return transport.DoStream(ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/music/stem-separation", Query: req, Form: req, Accept: transport.AcceptAny, Opts: opts})
 }
 
-// MusicCompositionPlanService groups the /v1/music/plan endpoint.
-type MusicCompositionPlanService struct{ cfg *config }
+// CompositionPlanService groups the /v1/music/plan endpoint.
+type CompositionPlanService struct{ cfg *requestconfig.Config }
 
-// CompositionPlanCreateRequest is the request of MusicCompositionPlanService.Create.
+// CompositionPlanCreateRequest is the request of CompositionPlanService.Create.
 type CompositionPlanCreateRequest struct {
 	// Prompt describes the song. Required.
 	Prompt string `json:"prompt"`
@@ -396,13 +406,13 @@ type CompositionPlanCreateRequest struct {
 	// SourceCompositionPlan is an existing plan to modify.
 	SourceCompositionPlan *MusicCompositionPlan `json:"source_composition_plan,omitempty"`
 	// ModelID selects the model.
-	ModelID MusicModel `json:"model_id,omitempty"`
+	ModelID Model `json:"model_id,omitempty"`
 }
 
 // Create generates a composition plan from a prompt. Free of credits but
 // rate limited.
-func (s *MusicCompositionPlanService) Create(ctx context.Context, req *CompositionPlanCreateRequest, opts ...Option) (*MusicCompositionPlan, error) {
-	return doValue[MusicCompositionPlan](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/plan", body: orEmpty(req), opts: opts})
+func (s *CompositionPlanService) Create(ctx context.Context, req *CompositionPlanCreateRequest, opts ...option.RequestOption) (*MusicCompositionPlan, error) {
+	return transport.DoValue[MusicCompositionPlan](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/music/plan", Body: transport.OrEmpty(req), Opts: opts})
 }
 
 // FinetuneVisibility controls who can use a music finetune.
@@ -434,52 +444,52 @@ const (
 	FinetuneSortName      FinetuneSort = "name"
 )
 
-// MusicFinetuneStatus is the training status of a finetune.
-type MusicFinetuneStatus string
+// FinetuneStatus is the training status of a finetune.
+type FinetuneStatus string
 
-// MusicFinetuneStatus values.
+// FinetuneStatus values.
 const (
-	MusicFinetuneStatusPending    MusicFinetuneStatus = "pending"
-	MusicFinetuneStatusInProgress MusicFinetuneStatus = "in_progress"
-	MusicFinetuneStatusCompleted  MusicFinetuneStatus = "completed"
-	MusicFinetuneStatusFailed     MusicFinetuneStatus = "failed"
-	MusicFinetuneStatusBlocked    MusicFinetuneStatus = "blocked"
+	FinetuneStatusPending    FinetuneStatus = "pending"
+	FinetuneStatusInProgress FinetuneStatus = "in_progress"
+	FinetuneStatusCompleted  FinetuneStatus = "completed"
+	FinetuneStatusFailed     FinetuneStatus = "failed"
+	FinetuneStatusBlocked    FinetuneStatus = "blocked"
 )
 
-// MusicFinetuneFailureReason explains a failed finetune.
-type MusicFinetuneFailureReason string
+// FinetuneFailureReason explains a failed finetune.
+type FinetuneFailureReason string
 
-// MusicFinetuneFailureReason values.
+// FinetuneFailureReason values.
 const (
-	MusicFinetuneFailureReasonAudioProcessingFailed MusicFinetuneFailureReason = "audio_processing_failed"
-	MusicFinetuneFailureReasonCopyrightViolation    MusicFinetuneFailureReason = "copyright_violation"
-	MusicFinetuneFailureReasonTrainingFailed        MusicFinetuneFailureReason = "training_failed"
+	FinetuneFailureReasonAudioProcessingFailed FinetuneFailureReason = "audio_processing_failed"
+	FinetuneFailureReasonCopyrightViolation    FinetuneFailureReason = "copyright_violation"
+	FinetuneFailureReasonTrainingFailed        FinetuneFailureReason = "training_failed"
 )
 
-// MusicFinetune is a music finetune.
-type MusicFinetune struct {
-	ID               string                      `json:"id"`
-	Name             string                      `json:"name"`
-	Tags             []string                    `json:"tags"`
-	PrimaryGenre     *string                     `json:"primary_genre,omitempty"`
-	ModelID          string                      `json:"model_id"`
-	CreatedAt        string                      `json:"created_at"`
-	Visibility       FinetuneVisibility          `json:"visibility"`
-	CreatedBy        FinetuneCreatedBy           `json:"created_by"`
-	Status           MusicFinetuneStatus         `json:"status"`
-	TrainingProgress float64                     `json:"training_progress"`
-	FailureReason    *MusicFinetuneFailureReason `json:"failure_reason,omitempty"`
+// Finetune is a music finetune.
+type Finetune struct {
+	ID               string                 `json:"id"`
+	Name             string                 `json:"name"`
+	Tags             []string               `json:"tags"`
+	PrimaryGenre     *string                `json:"primary_genre,omitempty"`
+	ModelID          string                 `json:"model_id"`
+	CreatedAt        string                 `json:"created_at"`
+	Visibility       FinetuneVisibility     `json:"visibility"`
+	CreatedBy        FinetuneCreatedBy      `json:"created_by"`
+	Status           FinetuneStatus         `json:"status"`
+	TrainingProgress float64                `json:"training_progress"`
+	FailureReason    *FinetuneFailureReason `json:"failure_reason,omitempty"`
 }
 
-// MusicFinetunePage is one page of music finetunes.
-type MusicFinetunePage struct {
-	Finetunes  []MusicFinetune `json:"finetunes"`
-	NextCursor *string         `json:"next_cursor,omitempty"`
-	HasMore    bool            `json:"has_more"`
+// FinetunePage is one page of music finetunes.
+type FinetunePage struct {
+	Finetunes  []Finetune `json:"finetunes"`
+	NextCursor *string    `json:"next_cursor,omitempty"`
+	HasMore    bool       `json:"has_more"`
 }
 
-// MusicFinetunesListRequest holds the optional parameters of MusicFinetunesService.List.
-type MusicFinetunesListRequest struct {
+// FinetunesListRequest holds the optional parameters of FinetunesService.List.
+type FinetunesListRequest struct {
 	// Cursor is the pagination cursor.
 	Cursor string `query:"cursor"`
 	// PageSize is the number of finetunes per page.
@@ -494,74 +504,74 @@ type MusicFinetunesListRequest struct {
 	SortDirection types.SortDirection `query:"sort_direction"`
 }
 
-// MusicFinetuneCreateRequest is the request of MusicFinetunesService.Create.
-type MusicFinetuneCreateRequest struct {
+// FinetuneCreateRequest is the request of FinetunesService.Create.
+type FinetuneCreateRequest struct {
 	// Name is the finetune name. Required.
 	Name string `form:"name"`
 	// PrimaryGenre is the finetune's primary genre. Required.
 	PrimaryGenre string `form:"primary_genre"`
 	// Files are the training audio files.
-	Files []File `form:"files"`
+	Files []types.File `form:"files"`
 	// Tags are descriptive tags.
 	Tags []string `form:"tags"`
 	// Visibility is private or workspace.
 	Visibility FinetuneVisibility `form:"visibility"`
 	// ModelID selects the base model.
-	ModelID MusicModel `form:"model_id"`
+	ModelID Model `form:"model_id"`
 }
 
-// MusicFinetuneUpdateRequest is the request of MusicFinetunesService.Update.
-type MusicFinetuneUpdateRequest struct {
+// FinetuneUpdateRequest is the request of FinetunesService.Update.
+type FinetuneUpdateRequest struct {
 	Name         *string            `json:"name,omitempty"`
 	Tags         []string           `json:"tags,omitempty"`
 	PrimaryGenre *string            `json:"primary_genre,omitempty"`
 	Visibility   FinetuneVisibility `json:"visibility,omitempty"`
 }
 
-// MusicFinetunesService groups the /v1/music/finetunes endpoints.
-type MusicFinetunesService struct{ cfg *config }
+// FinetunesService groups the /v1/music/finetunes endpoints.
+type FinetunesService struct{ cfg *requestconfig.Config }
 
 // List returns one page of music finetunes. req may be nil.
-func (s *MusicFinetunesService) List(ctx context.Context, req *MusicFinetunesListRequest, opts ...Option) (*MusicFinetunePage, error) {
-	return doValue[MusicFinetunePage](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/music/finetunes", query: req, opts: opts})
+func (s *FinetunesService) List(ctx context.Context, req *FinetunesListRequest, opts ...option.RequestOption) (*FinetunePage, error) {
+	return transport.DoValue[FinetunePage](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: "/v1/music/finetunes", Query: req, Opts: opts})
 }
 
 // ListAll iterates over every music finetune matching req, fetching pages on demand.
-func (s *MusicFinetunesService) ListAll(ctx context.Context, req *MusicFinetunesListRequest, opts ...Option) iter.Seq2[MusicFinetune, error] {
-	var params MusicFinetunesListRequest
+func (s *FinetunesService) ListAll(ctx context.Context, req *FinetunesListRequest, opts ...option.RequestOption) iter.Seq2[Finetune, error] {
+	var params FinetunesListRequest
 	if req != nil {
 		params = *req
 	}
-	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[MusicFinetune], error) {
+	return stream.Paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (stream.Page[Finetune], error) {
 		params.Cursor = cursor
 		resp, err := s.List(ctx, &params, opts...)
 		if err != nil {
-			return page[MusicFinetune]{}, err
+			return stream.Page[Finetune]{}, err
 		}
 		next := ""
 		if resp.NextCursor != nil {
 			next = *resp.NextCursor
 		}
-		return page[MusicFinetune]{items: resp.Finetunes, next: next, hasMore: resp.HasMore}, nil
+		return stream.Page[Finetune]{Items: resp.Finetunes, Next: next, HasMore: resp.HasMore}, nil
 	})
 }
 
 // Create starts training a music finetune from audio files.
-func (s *MusicFinetunesService) Create(ctx context.Context, req *MusicFinetuneCreateRequest, opts ...Option) (*MusicFinetune, error) {
-	return doValue[MusicFinetune](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/finetunes", form: orEmpty(req), opts: opts})
+func (s *FinetunesService) Create(ctx context.Context, req *FinetuneCreateRequest, opts ...option.RequestOption) (*Finetune, error) {
+	return transport.DoValue[Finetune](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/music/finetunes", Form: transport.OrEmpty(req), Opts: opts})
 }
 
 // Get returns a music finetune.
-func (s *MusicFinetunesService) Get(ctx context.Context, finetuneID string, opts ...Option) (*MusicFinetune, error) {
-	return doValue[MusicFinetune](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/music/finetunes/%s", finetuneID), opts: opts})
+func (s *FinetunesService) Get(ctx context.Context, finetuneID string, opts ...option.RequestOption) (*Finetune, error) {
+	return transport.DoValue[Finetune](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/music/finetunes/%s", finetuneID), Opts: opts})
 }
 
 // Delete deletes a music finetune and returns it.
-func (s *MusicFinetunesService) Delete(ctx context.Context, finetuneID string, opts ...Option) (*MusicFinetune, error) {
-	return doValue[MusicFinetune](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/music/finetunes/%s", finetuneID), opts: opts})
+func (s *FinetunesService) Delete(ctx context.Context, finetuneID string, opts ...option.RequestOption) (*Finetune, error) {
+	return transport.DoValue[Finetune](ctx, s.cfg, &transport.Request{Method: http.MethodDelete, Path: transport.Pathf("/v1/music/finetunes/%s", finetuneID), Opts: opts})
 }
 
 // Update modifies a music finetune.
-func (s *MusicFinetunesService) Update(ctx context.Context, finetuneID string, req *MusicFinetuneUpdateRequest, opts ...Option) (*MusicFinetune, error) {
-	return doValue[MusicFinetune](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/music/finetunes/%s", finetuneID), body: orEmpty(req), opts: opts})
+func (s *FinetunesService) Update(ctx context.Context, finetuneID string, req *FinetuneUpdateRequest, opts ...option.RequestOption) (*Finetune, error) {
+	return transport.DoValue[Finetune](ctx, s.cfg, &transport.Request{Method: http.MethodPatch, Path: transport.Pathf("/v1/music/finetunes/%s", finetuneID), Body: transport.OrEmpty(req), Opts: opts})
 }
