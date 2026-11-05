@@ -121,3 +121,15 @@ their names. Shared models moved to `types`.
 | `UsageService`, `UsageGetRequest`, `UsageCharacters`, `UsageAggregationInterval*` | `usage.Service`, `GetRequest`, `Characters`, `AggregationInterval*` |
 | `UserService`, `UserSubscriptionService` | `user.Service`, `user.SubscriptionService` |
 | `TokensService`, `TokensSingleUseService` | `tokens.Service`, `tokens.SingleUseService` |
+| `StatusResponse`, `ResourcePermission*` | `types.StatusResponse`, `types.ResourcePermission*` |
+| `VoicesService`, `Voices{IVC,Settings,Samples,SamplesAudio,PVC,Accents,Collections}Service` | `voices.Service`, `voices.{IVC,Settings,Samples,SamplesAudio,PVC,Accents,Collections}Service` (`PVC*Service` unchanged) |
+| `Voices{GetAll,Search,Get,Update,GetShared}Request`, `GetVoicesResponse`, `GetVoicesV2Response` | `voices.{GetAll,Search,Get,Update,GetShared}Request`, `GetAllResponse`, `SearchResponse` |
+| `VoiceCollection`, `VoiceCollectionRequest`, `GetVoiceCollectionsResponse`, `DeleteVoiceCollectionResponse` | `voices.Collection`, `CollectionRequest`, `ListCollectionsResponse`, `DeleteCollectionResponse` |
+| `VoiceAccent`, `GetVoiceAccentsResponse`, `GetLibraryVoicesResponse`, `VoiceSamplePreview`, `VoiceSampleWaveform` | `voices.Accent`, `AccentsResponse`, `LibraryVoicesResponse`, `SamplePreview`, `SampleWaveform` |
+| other voice/IVC/PVC/library types (`IVCCreateRequest`, `PVC*Request`, `LibraryVoice`, `SharedVoice*`, `VoiceIDResponse`, ...) | `voices.` + same name |
+| `SamplesService` | `samples.Service` |
+| `HistoryService`, `HistorySource*`, `HistoryListRequest`, `GetSpeechHistoryResponse`, `SpeechHistoryItem`, `HistoryAlignments`, `DownloadHistoryRequest` | `history.Service`, `Source*`, `ListRequest`, `ListResponse`, `Item`, `Alignments`, `DownloadRequest` (`DialogueInput` unchanged) |
+| `PronunciationDictionariesService`, `PronunciationDictionaryRulesService`, `PronunciationRule`, `PronunciationRuleType*` | `pronunciation.Service`, `RulesService`, `Rule`, `RuleType*` (`AliasRule`, `PhonemeRule` unchanged) |
+| `PronunciationDictionaryCreateFrom{File,Rules}Request`, `AddPronunciationDictionaryResponse`, `PronunciationDictionaryMetadata`, `PronunciationDictionaryWithRules`, `PronunciationDictionaryUpdateRequest`, `PronunciationDictionarySort*`, `PronunciationDictionariesListRequest`, `GetPronunciationDictionariesResponse`, `PronunciationDictionaryRulesResponse` | `pronunciation.CreateFrom{File,Rules}Request`, `AddResponse`, `Metadata`, `DictionaryWithRules`, `UpdateRequest`, `Sort*`, `ListRequest`, `ListResponse`, `RulesResponse` |
+| `AudioNativeService`, `AudioNative*` | `audionative.Service`, `audionative.*` without the prefix |
+| `AssetsService`, `AssetsListRequest`, `AssetListResponse`, `AssetCreateRequest` | `assets.Service`, `ListRequest`, `ListResponse`, `CreateRequest` (`Asset` unchanged) |

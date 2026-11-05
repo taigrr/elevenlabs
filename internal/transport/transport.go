@@ -352,3 +352,11 @@ func newBody(cfg *requestconfig.Config, req *Request) (*encode.Body, error) {
 func TimeoutError(method, path string, err error) error {
 	return fmt.Errorf("%w: %s %s: %w", apierror.ErrTimeout, method, path, err)
 }
+
+// NonNil returns s, or an empty slice when s is nil, so it encodes as [] rather than null.
+func NonNil[T any](s []T) []T {
+	if s == nil {
+		return []T{}
+	}
+	return s
+}

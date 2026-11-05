@@ -24,35 +24,6 @@ func ExampleNewClient() {
 	// Output: https://api.eu.residency.elevenlabs.io
 }
 
-func ExampleHistoryService_ListAll() {
-	ctx := context.Background()
-	client := elevenlabs.NewClient()
-
-	for item, err := range client.History.ListAll(ctx, &elevenlabs.HistoryListRequest{PageSize: elevenlabs.Ptr(100)}) {
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(item.HistoryItemID)
-	}
-}
-
-func ExamplePronunciationDictionariesService_CreateFromRules() {
-	ctx := context.Background()
-	client := elevenlabs.NewClient()
-
-	dict, err := client.PronunciationDictionaries.CreateFromRules(ctx, &elevenlabs.PronunciationDictionaryCreateFromRulesRequest{
-		Name: "My Dictionary",
-		Rules: []elevenlabs.PronunciationRule{
-			elevenlabs.AliasRule("Thailand", "tie-land"),
-			elevenlabs.PhonemeRule("tomato", "təˈmeɪtoʊ", "ipa"),
-		},
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(dict.ID, dict.VersionID)
-}
-
 func ExampleAPIError() {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusNotFound)

@@ -1,12 +1,17 @@
 package elevenlabs
 
 import (
+	"github.com/taigrr/elevenlabs/v2/assets"
 	"github.com/taigrr/elevenlabs/v2/audioeffects"
 	"github.com/taigrr/elevenlabs/v2/audioisolation"
+	"github.com/taigrr/elevenlabs/v2/audionative"
 	"github.com/taigrr/elevenlabs/v2/forcedalignment"
+	"github.com/taigrr/elevenlabs/v2/history"
 	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
 	"github.com/taigrr/elevenlabs/v2/models"
 	"github.com/taigrr/elevenlabs/v2/music"
+	"github.com/taigrr/elevenlabs/v2/pronunciation"
+	"github.com/taigrr/elevenlabs/v2/samples"
 	"github.com/taigrr/elevenlabs/v2/soundeffects"
 	"github.com/taigrr/elevenlabs/v2/speechtospeech"
 	"github.com/taigrr/elevenlabs/v2/speechtotext"
@@ -16,6 +21,7 @@ import (
 	"github.com/taigrr/elevenlabs/v2/tokens"
 	"github.com/taigrr/elevenlabs/v2/usage"
 	"github.com/taigrr/elevenlabs/v2/user"
+	"github.com/taigrr/elevenlabs/v2/voices"
 )
 
 // Client is the entry point to the ElevenLabs API. Endpoints are grouped into
@@ -26,17 +32,17 @@ import (
 type Client struct {
 	cfg *config
 
-	Assets *AssetsService
+	Assets *assets.Service
 	// AudioEffects lists the presets usable in audio_effects.
 	AudioEffects              *audioeffects.Service
 	AudioIsolation            *audioisolation.Service
-	AudioNative               *AudioNativeService
+	AudioNative               *audionative.Service
 	ForcedAlignment           *forcedalignment.Service
-	History                   *HistoryService
+	History                   *history.Service
 	Models                    *models.Service
 	Music                     *music.Service
-	PronunciationDictionaries *PronunciationDictionariesService
-	Samples                   *SamplesService
+	PronunciationDictionaries *pronunciation.Service
+	Samples                   *samples.Service
 	SpeechToSpeech            *speechtospeech.Service
 	SpeechToText              *speechtotext.Service
 	TextToDialogue            *texttodialogue.Service
@@ -48,7 +54,7 @@ type Client struct {
 	Translation *TranslationService
 	Usage       *usage.Service
 	User        *user.Service
-	Voices      *VoicesService
+	Voices      *voices.Service
 	// Webhooks manages workspace webhooks and verifies webhook deliveries.
 	Webhooks *WebhooksService
 	// ServiceAccounts manages service accounts and their API keys.
@@ -85,16 +91,16 @@ func NewClient(opts ...Option) *Client {
 func newClient(cfg *config) *Client {
 	return &Client{
 		cfg:                       cfg,
-		Assets:                    &AssetsService{cfg: cfg},
+		Assets:                    assets.NewService(fromConfig(cfg)),
 		AudioEffects:              audioeffects.NewService(fromConfig(cfg)),
 		AudioIsolation:            audioisolation.NewService(fromConfig(cfg)),
-		AudioNative:               &AudioNativeService{cfg: cfg},
+		AudioNative:               audionative.NewService(fromConfig(cfg)),
 		ForcedAlignment:           forcedalignment.NewService(fromConfig(cfg)),
-		History:                   &HistoryService{cfg: cfg},
+		History:                   history.NewService(fromConfig(cfg)),
 		Models:                    models.NewService(fromConfig(cfg)),
 		Music:                     music.NewService(fromConfig(cfg)),
-		PronunciationDictionaries: newPronunciationDictionariesService(cfg),
-		Samples:                   &SamplesService{cfg: cfg},
+		PronunciationDictionaries: pronunciation.NewService(fromConfig(cfg)),
+		Samples:                   samples.NewService(fromConfig(cfg)),
 		SpeechToSpeech:            speechtospeech.NewService(fromConfig(cfg)),
 		SpeechToText:              speechtotext.NewService(fromConfig(cfg)),
 		TextToDialogue:            texttodialogue.NewService(fromConfig(cfg)),
@@ -105,7 +111,7 @@ func newClient(cfg *config) *Client {
 		Translation:               &TranslationService{cfg: cfg},
 		Usage:                     usage.NewService(fromConfig(cfg)),
 		User:                      user.NewService(fromConfig(cfg)),
-		Voices:                    newVoicesService(cfg),
+		Voices:                    voices.NewService(fromConfig(cfg)),
 		Webhooks:                  &WebhooksService{cfg: cfg},
 		ServiceAccounts:           newServiceAccountsService(cfg),
 		EnvironmentVariables:      &EnvironmentVariablesService{cfg: cfg},

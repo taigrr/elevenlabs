@@ -147,3 +147,8 @@ type audioReader = ws.AudioReader
 type writerFunc = ws.WriterFunc
 
 func nonNilBytes(b []byte) []byte { return ws.NonNilBytes(b) }
+
+// StatusResponse is the generic {"status": "..."} response.
+type StatusResponse = types.StatusResponse
+
+func nonNil[T any](s []T) []T { return transport.NonNil(s) }

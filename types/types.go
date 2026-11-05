@@ -77,3 +77,20 @@ func (l *LimitOrUnlimited) UnmarshalJSON(b []byte) error {
 // Ptr returns a pointer to v. It is a convenience for populating optional
 // request fields, e.g. Seed: types.Ptr(42).
 func Ptr[T any](v T) *T { return &v }
+
+// StatusResponse is the generic {"status": "..."} response returned by many
+// mutation endpoints (DeleteVoiceResponseModel, EditVoiceResponseModel, ...).
+type StatusResponse struct {
+	Status string `json:"status"`
+}
+
+// ResourcePermission is the caller's access role on a shared resource.
+type ResourcePermission string
+
+// ResourcePermission values.
+const (
+	ResourcePermissionAdmin     ResourcePermission = "admin"
+	ResourcePermissionEditor    ResourcePermission = "editor"
+	ResourcePermissionCommenter ResourcePermission = "commenter"
+	ResourcePermissionViewer    ResourcePermission = "viewer"
+)
