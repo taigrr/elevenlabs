@@ -106,12 +106,12 @@ type AgentTestListRequest struct {
 }
 
 // Create creates a test.
-func (s *AgentTestsService) Create(ctx context.Context, test *AgentTest, opts ...RequestOption) (*IDResponse, error) {
+func (s *AgentTestsService) Create(ctx context.Context, test *AgentTest, opts ...Option) (*IDResponse, error) {
 	return sendValue[IDResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/agent-testing/create", nil, orEmpty(test), opts)
 }
 
 // Move moves tests or folders into folderID (the root when empty).
-func (s *AgentTestsService) Move(ctx context.Context, entityIDs []string, folderID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *AgentTestsService) Move(ctx context.Context, entityIDs []string, folderID string, opts ...Option) (json.RawMessage, error) {
 	body := struct {
 		EntityIDs []string `json:"entity_ids"`
 		MoveTo    string   `json:"move_to,omitempty"`
@@ -120,22 +120,22 @@ func (s *AgentTestsService) Move(ctx context.Context, entityIDs []string, folder
 }
 
 // Get returns a test.
-func (s *AgentTestsService) Get(ctx context.Context, testID string, opts ...RequestOption) (*AgentTest, error) {
+func (s *AgentTestsService) Get(ctx context.Context, testID string, opts ...Option) (*AgentTest, error) {
 	return getValue[AgentTest](ctx, s.cfg, pathf("/v1/convai/agent-testing/%s", testID), nil, opts)
 }
 
 // Update replaces a test.
-func (s *AgentTestsService) Update(ctx context.Context, testID string, test *AgentTest, opts ...RequestOption) (*AgentTest, error) {
+func (s *AgentTestsService) Update(ctx context.Context, testID string, test *AgentTest, opts ...Option) (*AgentTest, error) {
 	return sendValue[AgentTest](ctx, s.cfg, http.MethodPut, pathf("/v1/convai/agent-testing/%s", testID), nil, orEmpty(test), opts)
 }
 
 // Delete deletes a test.
-func (s *AgentTestsService) Delete(ctx context.Context, testID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *AgentTestsService) Delete(ctx context.Context, testID string, opts ...Option) (json.RawMessage, error) {
 	return sendRaw(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/agent-testing/%s", testID), nil, nil, opts)
 }
 
 // Summaries returns summaries of the given tests keyed by test ID.
-func (s *AgentTestsService) Summaries(ctx context.Context, testIDs []string, opts ...RequestOption) (map[string]AgentTestSummary, error) {
+func (s *AgentTestsService) Summaries(ctx context.Context, testIDs []string, opts ...Option) (map[string]AgentTestSummary, error) {
 	body := struct {
 		TestIDs []string `json:"test_ids"`
 	}{nonNil(testIDs)}
@@ -149,12 +149,12 @@ func (s *AgentTestsService) Summaries(ctx context.Context, testIDs []string, opt
 }
 
 // List returns one page of tests. req may be nil.
-func (s *AgentTestsService) List(ctx context.Context, req *AgentTestListRequest, opts ...RequestOption) (*AgentTestsPage, error) {
+func (s *AgentTestsService) List(ctx context.Context, req *AgentTestListRequest, opts ...Option) (*AgentTestsPage, error) {
 	return getValue[AgentTestsPage](ctx, s.cfg, "/v1/convai/agent-testing", req, opts)
 }
 
 // ListAll iterates over every test.
-func (s *AgentTestsService) ListAll(ctx context.Context, req *AgentTestListRequest, opts ...RequestOption) iter.Seq2[AgentTestSummary, error] {
+func (s *AgentTestsService) ListAll(ctx context.Context, req *AgentTestListRequest, opts ...Option) iter.Seq2[AgentTestSummary, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[AgentTestSummary], error) {
 		params.Cursor = cursor
@@ -178,7 +178,7 @@ type AgentTestFolder struct {
 }
 
 // Create creates a folder. parentFolderID may be empty.
-func (s *AgentTestFoldersService) Create(ctx context.Context, name, parentFolderID string, opts ...RequestOption) (*AgentTestFolder, error) {
+func (s *AgentTestFoldersService) Create(ctx context.Context, name, parentFolderID string, opts ...Option) (*AgentTestFolder, error) {
 	body := struct {
 		Name           string `json:"name"`
 		ParentFolderID string `json:"parent_folder_id,omitempty"`
@@ -187,17 +187,17 @@ func (s *AgentTestFoldersService) Create(ctx context.Context, name, parentFolder
 }
 
 // Get returns a folder.
-func (s *AgentTestFoldersService) Get(ctx context.Context, folderID string, opts ...RequestOption) (*AgentTestFolder, error) {
+func (s *AgentTestFoldersService) Get(ctx context.Context, folderID string, opts ...Option) (*AgentTestFolder, error) {
 	return getValue[AgentTestFolder](ctx, s.cfg, pathf("/v1/convai/agent-testing/folders/%s", folderID), nil, opts)
 }
 
 // Delete deletes a folder. req may be nil.
-func (s *AgentTestFoldersService) Delete(ctx context.Context, folderID string, req *ForceRequest, opts ...RequestOption) error {
+func (s *AgentTestFoldersService) Delete(ctx context.Context, folderID string, req *ForceRequest, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/agent-testing/folders/%s", folderID), req, nil, opts)
 }
 
 // Update renames a folder.
-func (s *AgentTestFoldersService) Update(ctx context.Context, folderID, name string, opts ...RequestOption) (*AgentTestFolder, error) {
+func (s *AgentTestFoldersService) Update(ctx context.Context, folderID, name string, opts ...Option) (*AgentTestFolder, error) {
 	body := struct {
 		Name string `json:"name"`
 	}{name}
@@ -265,12 +265,12 @@ func testInvocationPath(id string) string {
 }
 
 // List returns one page of test invocations. req may be nil.
-func (s *TestInvocationsService) List(ctx context.Context, req *TestInvocationListRequest, opts ...RequestOption) (*TestInvocationsPage, error) {
+func (s *TestInvocationsService) List(ctx context.Context, req *TestInvocationListRequest, opts ...Option) (*TestInvocationsPage, error) {
 	return getValue[TestInvocationsPage](ctx, s.cfg, "/v1/convai/test-invocations", req, opts)
 }
 
 // ListAll iterates over every test invocation.
-func (s *TestInvocationsService) ListAll(ctx context.Context, req *TestInvocationListRequest, opts ...RequestOption) iter.Seq2[TestInvocationSummary, error] {
+func (s *TestInvocationsService) ListAll(ctx context.Context, req *TestInvocationListRequest, opts ...Option) iter.Seq2[TestInvocationSummary, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[TestInvocationSummary], error) {
 		params.Cursor = cursor
@@ -283,12 +283,12 @@ func (s *TestInvocationsService) ListAll(ctx context.Context, req *TestInvocatio
 }
 
 // Get returns a test invocation with its runs.
-func (s *TestInvocationsService) Get(ctx context.Context, invocationID string, opts ...RequestOption) (*TestInvocation, error) {
+func (s *TestInvocationsService) Get(ctx context.Context, invocationID string, opts ...Option) (*TestInvocation, error) {
 	return getValue[TestInvocation](ctx, s.cfg, testInvocationPath(invocationID), nil, opts)
 }
 
 // Update renames a test invocation.
-func (s *TestInvocationsService) Update(ctx context.Context, invocationID, name string, opts ...RequestOption) (*TestInvocation, error) {
+func (s *TestInvocationsService) Update(ctx context.Context, invocationID, name string, opts ...Option) (*TestInvocation, error) {
 	body := struct {
 		Name string `json:"name,omitempty"`
 	}{name}
@@ -296,11 +296,11 @@ func (s *TestInvocationsService) Update(ctx context.Context, invocationID, name 
 }
 
 // Cancel cancels the pending runs of a test invocation.
-func (s *TestInvocationsService) Cancel(ctx context.Context, invocationID string, opts ...RequestOption) error {
+func (s *TestInvocationsService) Cancel(ctx context.Context, invocationID string, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodPost, testInvocationPath(invocationID)+"/cancel", nil, nil, opts)
 }
 
 // Resubmit re-runs selected test runs of an invocation.
-func (s *TestInvocationsService) Resubmit(ctx context.Context, invocationID string, req *ResubmitTestsRequest, opts ...RequestOption) (json.RawMessage, error) {
+func (s *TestInvocationsService) Resubmit(ctx context.Context, invocationID string, req *ResubmitTestsRequest, opts ...Option) (json.RawMessage, error) {
 	return sendRaw(ctx, s.cfg, http.MethodPost, testInvocationPath(invocationID)+"/resubmit", nil, orEmpty(req), opts)
 }

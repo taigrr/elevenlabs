@@ -61,12 +61,12 @@ type HistoryListRequest struct {
 }
 
 // List returns one page of generated audio history. req may be nil.
-func (s *HistoryService) List(ctx context.Context, req *HistoryListRequest, opts ...RequestOption) (*GetSpeechHistoryResponse, error) {
+func (s *HistoryService) List(ctx context.Context, req *HistoryListRequest, opts ...Option) (*GetSpeechHistoryResponse, error) {
 	return doValue[GetSpeechHistoryResponse](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/history", query: req, opts: opts})
 }
 
 // ListAll iterates over every history item matching req, fetching pages on demand.
-func (s *HistoryService) ListAll(ctx context.Context, req *HistoryListRequest, opts ...RequestOption) iter.Seq2[SpeechHistoryItem, error] {
+func (s *HistoryService) ListAll(ctx context.Context, req *HistoryListRequest, opts ...Option) iter.Seq2[SpeechHistoryItem, error] {
 	var params HistoryListRequest
 	if req != nil {
 		params = *req
@@ -86,17 +86,17 @@ func (s *HistoryService) ListAll(ctx context.Context, req *HistoryListRequest, o
 }
 
 // Get returns a single history item.
-func (s *HistoryService) Get(ctx context.Context, historyItemID string, opts ...RequestOption) (*SpeechHistoryItem, error) {
+func (s *HistoryService) Get(ctx context.Context, historyItemID string, opts ...Option) (*SpeechHistoryItem, error) {
 	return doValue[SpeechHistoryItem](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/history/%s", historyItemID), opts: opts})
 }
 
 // Delete deletes a history item.
-func (s *HistoryService) Delete(ctx context.Context, historyItemID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *HistoryService) Delete(ctx context.Context, historyItemID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/history/%s", historyItemID), opts: opts})
 }
 
 // GetAudio streams the audio of a history item. The caller must close the returned reader.
-func (s *HistoryService) GetAudio(ctx context.Context, historyItemID string, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *HistoryService) GetAudio(ctx context.Context, historyItemID string, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/history/%s/audio", historyItemID), accept: acceptAny, opts: opts})
 }
 
@@ -110,7 +110,7 @@ type DownloadHistoryRequest struct {
 
 // Download streams one history item's audio, or a zip archive when multiple
 // IDs are given. The caller must close the returned reader.
-func (s *HistoryService) Download(ctx context.Context, req *DownloadHistoryRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *HistoryService) Download(ctx context.Context, req *DownloadHistoryRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/history/download", body: orEmpty(req), accept: acceptAny, opts: opts})
 }
 

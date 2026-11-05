@@ -148,7 +148,7 @@ type ServiceAccountList struct {
 }
 
 // List returns the workspace's service accounts.
-func (s *ServiceAccountsService) List(ctx context.Context, opts ...RequestOption) (*ServiceAccountList, error) {
+func (s *ServiceAccountsService) List(ctx context.Context, opts ...Option) (*ServiceAccountList, error) {
 	return doValue[ServiceAccountList](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/service-accounts", opts: opts})
 }
 
@@ -172,7 +172,7 @@ type ServiceAccountCreateResponse struct {
 }
 
 // Create creates a service account.
-func (s *ServiceAccountsService) Create(ctx context.Context, req *ServiceAccountCreateRequest, opts ...RequestOption) (*ServiceAccountCreateResponse, error) {
+func (s *ServiceAccountsService) Create(ctx context.Context, req *ServiceAccountCreateRequest, opts ...Option) (*ServiceAccountCreateResponse, error) {
 	return doValue[ServiceAccountCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/service-accounts", body: orEmpty(req), opts: opts})
 }
 
@@ -185,7 +185,7 @@ type WorkspaceAPIKeyList struct {
 }
 
 // List returns the API keys of a service account.
-func (s *ServiceAccountAPIKeysService) List(ctx context.Context, serviceAccountUserID string, opts ...RequestOption) (*WorkspaceAPIKeyList, error) {
+func (s *ServiceAccountAPIKeysService) List(ctx context.Context, serviceAccountUserID string, opts ...Option) (*WorkspaceAPIKeyList, error) {
 	return doValue[WorkspaceAPIKeyList](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/service-accounts/%s/api-keys", serviceAccountUserID), opts: opts})
 }
 
@@ -219,13 +219,13 @@ type APIKeyCreateResponse struct {
 }
 
 // Create creates an API key for a service account.
-func (s *ServiceAccountAPIKeysService) Create(ctx context.Context, serviceAccountUserID string, req *APIKeyCreateRequest, opts ...RequestOption) (*APIKeyCreateResponse, error) {
+func (s *ServiceAccountAPIKeysService) Create(ctx context.Context, serviceAccountUserID string, req *APIKeyCreateRequest, opts ...Option) (*APIKeyCreateResponse, error) {
 	return doValue[APIKeyCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/service-accounts/%s/api-keys", serviceAccountUserID), body: orEmpty(req), opts: opts})
 }
 
 // Delete deletes an API key of a service account. The response body, if
 // any, is returned as raw JSON.
-func (s *ServiceAccountAPIKeysService) Delete(ctx context.Context, serviceAccountUserID, apiKeyID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *ServiceAccountAPIKeysService) Delete(ctx context.Context, serviceAccountUserID, apiKeyID string, opts ...Option) (json.RawMessage, error) {
 	return doRaw(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/service-accounts/%s/api-keys/%s", serviceAccountUserID, apiKeyID), opts: opts})
 }
 
@@ -245,11 +245,11 @@ type APIKeyUpdateRequest struct {
 }
 
 // Update edits an API key of a service account. req may be nil.
-func (s *ServiceAccountAPIKeysService) Update(ctx context.Context, serviceAccountUserID, apiKeyID string, req *APIKeyUpdateRequest, opts ...RequestOption) (json.RawMessage, error) {
+func (s *ServiceAccountAPIKeysService) Update(ctx context.Context, serviceAccountUserID, apiKeyID string, req *APIKeyUpdateRequest, opts ...Option) (json.RawMessage, error) {
 	return doRaw(ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/service-accounts/%s/api-keys/%s", serviceAccountUserID, apiKeyID), body: orEmpty(req), opts: opts})
 }
 
 // Disable disables an API key of a service account.
-func (s *ServiceAccountAPIKeysService) Disable(ctx context.Context, serviceAccountUserID, apiKeyID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *ServiceAccountAPIKeysService) Disable(ctx context.Context, serviceAccountUserID, apiKeyID string, opts ...Option) (json.RawMessage, error) {
 	return doRaw(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/service-accounts/%s/api-keys/%s/disable", serviceAccountUserID, apiKeyID), opts: opts})
 }

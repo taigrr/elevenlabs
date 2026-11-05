@@ -279,14 +279,14 @@ type SpeechToTextRealtime struct {
 // (wss://…/v1/speech-to-text/realtime), the equivalent of the official SDK's
 // ScribeRealtime.connect. Stream audio with SendAudio or AudioWriter, call
 // Commit for manual commits, and read results with Recv.
-func (s *SpeechToTextService) Realtime(ctx context.Context, req *SpeechToTextRealtimeRequest, opts ...RequestOption) (*SpeechToTextRealtime, error) {
+func (s *SpeechToTextService) Realtime(ctx context.Context, req *SpeechToTextRealtimeRequest, opts ...Option) (*SpeechToTextRealtime, error) {
 	if req == nil {
 		req = &SpeechToTextRealtimeRequest{}
 	}
 	if err := req.validate(); err != nil {
 		return nil, err
 	}
-	sock, err := s.cfg.dial(ctx, dialConfig{
+	sock, err := dial(ctx, s.cfg, dialConfig{
 		path:     "/v1/speech-to-text/realtime",
 		query:    req,
 		opts:     opts,

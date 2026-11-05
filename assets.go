@@ -37,12 +37,12 @@ type AssetListResponse struct {
 }
 
 // List returns one page of the workspace's assets. req may be nil.
-func (s *AssetsService) List(ctx context.Context, req *AssetsListRequest, opts ...RequestOption) (*AssetListResponse, error) {
+func (s *AssetsService) List(ctx context.Context, req *AssetsListRequest, opts ...Option) (*AssetListResponse, error) {
 	return doValue[AssetListResponse](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/assets", query: req, opts: opts})
 }
 
 // ListAll iterates over every asset, fetching pages on demand.
-func (s *AssetsService) ListAll(ctx context.Context, req *AssetsListRequest, opts ...RequestOption) iter.Seq2[Asset, error] {
+func (s *AssetsService) ListAll(ctx context.Context, req *AssetsListRequest, opts ...Option) iter.Seq2[Asset, error] {
 	var params AssetsListRequest
 	if req != nil {
 		params = *req
@@ -74,16 +74,16 @@ type AssetCreateRequest struct {
 }
 
 // Create uploads an asset.
-func (s *AssetsService) Create(ctx context.Context, req *AssetCreateRequest, opts ...RequestOption) (*Asset, error) {
+func (s *AssetsService) Create(ctx context.Context, req *AssetCreateRequest, opts ...Option) (*Asset, error) {
 	return doValue[Asset](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/assets", form: orEmpty(req), opts: opts})
 }
 
 // Get returns an asset.
-func (s *AssetsService) Get(ctx context.Context, assetID string, opts ...RequestOption) (*Asset, error) {
+func (s *AssetsService) Get(ctx context.Context, assetID string, opts ...Option) (*Asset, error) {
 	return doValue[Asset](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/assets/%s", assetID), opts: opts})
 }
 
 // Delete deletes an asset.
-func (s *AssetsService) Delete(ctx context.Context, assetID string, opts ...RequestOption) error {
+func (s *AssetsService) Delete(ctx context.Context, assetID string, opts ...Option) error {
 	return doJSON(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/assets/%s", assetID), opts: opts}, nil)
 }

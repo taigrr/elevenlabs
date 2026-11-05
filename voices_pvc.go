@@ -55,17 +55,17 @@ type PVCTrainRequest struct {
 }
 
 // Create creates a new professional voice clone with no samples.
-func (s *VoicesPVCService) Create(ctx context.Context, req *PVCCreateRequest, opts ...RequestOption) (*VoiceIDResponse, error) {
+func (s *VoicesPVCService) Create(ctx context.Context, req *PVCCreateRequest, opts ...Option) (*VoiceIDResponse, error) {
 	return doValue[VoiceIDResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/voices/pvc", body: orEmpty(req), opts: opts})
 }
 
 // Update edits a professional voice clone's metadata.
-func (s *VoicesPVCService) Update(ctx context.Context, voiceID string, req *PVCUpdateRequest, opts ...RequestOption) (*VoiceIDResponse, error) {
+func (s *VoicesPVCService) Update(ctx context.Context, voiceID string, req *PVCUpdateRequest, opts ...Option) (*VoiceIDResponse, error) {
 	return doValue[VoiceIDResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/pvc/%s", voiceID), body: orEmpty(req), opts: opts})
 }
 
 // Train starts training a professional voice clone.
-func (s *VoicesPVCService) Train(ctx context.Context, voiceID string, req *PVCTrainRequest, opts ...RequestOption) (*StatusResponse, error) {
+func (s *VoicesPVCService) Train(ctx context.Context, voiceID string, req *PVCTrainRequest, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/pvc/%s/train", voiceID), body: orEmpty(req), opts: opts})
 }
 
@@ -104,7 +104,7 @@ type PVCUpdateSampleRequest struct {
 }
 
 // Create adds audio samples to a professional voice clone.
-func (s *PVCSamplesService) Create(ctx context.Context, voiceID string, req *PVCAddSamplesRequest, opts ...RequestOption) ([]VoiceSample, error) {
+func (s *PVCSamplesService) Create(ctx context.Context, voiceID string, req *PVCAddSamplesRequest, opts ...Option) ([]VoiceSample, error) {
 	var out []VoiceSample
 	err := doJSON(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/pvc/%s/samples", voiceID), form: orEmpty(req), opts: opts}, &out)
 	if err != nil {
@@ -114,12 +114,12 @@ func (s *PVCSamplesService) Create(ctx context.Context, voiceID string, req *PVC
 }
 
 // Update edits a PVC sample (trimming, speaker selection, noise removal).
-func (s *PVCSamplesService) Update(ctx context.Context, voiceID, sampleID string, req *PVCUpdateSampleRequest, opts ...RequestOption) (*VoiceIDResponse, error) {
+func (s *PVCSamplesService) Update(ctx context.Context, voiceID, sampleID string, req *PVCUpdateSampleRequest, opts ...Option) (*VoiceIDResponse, error) {
 	return doValue[VoiceIDResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/pvc/%s/samples/%s", voiceID, sampleID), body: orEmpty(req), opts: opts})
 }
 
 // Delete removes a sample from a professional voice clone.
-func (s *PVCSamplesService) Delete(ctx context.Context, voiceID, sampleID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *PVCSamplesService) Delete(ctx context.Context, voiceID, sampleID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/voices/pvc/%s/samples/%s", voiceID, sampleID), opts: opts})
 }
 
@@ -142,7 +142,7 @@ type VoiceSamplePreview struct {
 }
 
 // Get returns a base64 preview of a PVC sample's audio. req may be nil.
-func (s *PVCSamplesAudioService) Get(ctx context.Context, voiceID, sampleID string, req *PVCSampleAudioRequest, opts ...RequestOption) (*VoiceSamplePreview, error) {
+func (s *PVCSamplesAudioService) Get(ctx context.Context, voiceID, sampleID string, req *PVCSampleAudioRequest, opts ...Option) (*VoiceSamplePreview, error) {
 	return doValue[VoiceSamplePreview](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/pvc/%s/samples/%s/audio", voiceID, sampleID), query: req, opts: opts})
 }
 
@@ -155,12 +155,12 @@ type PVCSamplesSpeakersService struct {
 }
 
 // Get returns the speaker separation status and detected speakers of a sample.
-func (s *PVCSamplesSpeakersService) Get(ctx context.Context, voiceID, sampleID string, opts ...RequestOption) (*SpeakerSeparation, error) {
+func (s *PVCSamplesSpeakersService) Get(ctx context.Context, voiceID, sampleID string, opts ...Option) (*SpeakerSeparation, error) {
 	return doValue[SpeakerSeparation](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/pvc/%s/samples/%s/speakers", voiceID, sampleID), opts: opts})
 }
 
 // Separate starts speaker separation for a sample.
-func (s *PVCSamplesSpeakersService) Separate(ctx context.Context, voiceID, sampleID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *PVCSamplesSpeakersService) Separate(ctx context.Context, voiceID, sampleID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/pvc/%s/samples/%s/separate-speakers", voiceID, sampleID), opts: opts})
 }
 
@@ -175,7 +175,7 @@ type SpeakerAudio struct {
 }
 
 // Get returns the isolated audio of one speaker in a sample.
-func (s *PVCSpeakersAudioService) Get(ctx context.Context, voiceID, sampleID, speakerID string, opts ...RequestOption) (*SpeakerAudio, error) {
+func (s *PVCSpeakersAudioService) Get(ctx context.Context, voiceID, sampleID, speakerID string, opts ...Option) (*SpeakerAudio, error) {
 	return doValue[SpeakerAudio](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/pvc/%s/samples/%s/speakers/%s/audio", voiceID, sampleID, speakerID), opts: opts})
 }
 
@@ -189,7 +189,7 @@ type VoiceSampleWaveform struct {
 }
 
 // Get returns the visual waveform of a PVC sample.
-func (s *PVCSamplesWaveformService) Get(ctx context.Context, voiceID, sampleID string, opts ...RequestOption) (*VoiceSampleWaveform, error) {
+func (s *PVCSamplesWaveformService) Get(ctx context.Context, voiceID, sampleID string, opts ...Option) (*VoiceSampleWaveform, error) {
 	return doValue[VoiceSampleWaveform](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/pvc/%s/samples/%s/waveform", voiceID, sampleID), opts: opts})
 }
 
@@ -210,7 +210,7 @@ type PVCManualVerificationRequest struct {
 }
 
 // Request requests manual verification of a professional voice clone.
-func (s *PVCVerificationService) Request(ctx context.Context, voiceID string, req *PVCManualVerificationRequest, opts ...RequestOption) (*StatusResponse, error) {
+func (s *PVCVerificationService) Request(ctx context.Context, voiceID string, req *PVCManualVerificationRequest, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/pvc/%s/verification", voiceID), form: orEmpty(req), opts: opts})
 }
 
@@ -218,7 +218,7 @@ func (s *PVCVerificationService) Request(ctx context.Context, voiceID string, re
 type PVCCaptchaService struct{ cfg *config }
 
 // Get requests a verification captcha for a professional voice clone.
-func (s *PVCCaptchaService) Get(ctx context.Context, voiceID string, opts ...RequestOption) error {
+func (s *PVCCaptchaService) Get(ctx context.Context, voiceID string, opts ...Option) error {
 	return doJSON(ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/pvc/%s/captcha", voiceID), opts: opts}, nil)
 }
 
@@ -229,6 +229,6 @@ type PVCVerifyCaptchaRequest struct {
 }
 
 // Verify submits a captcha recording to verify a professional voice clone.
-func (s *PVCCaptchaService) Verify(ctx context.Context, voiceID string, req *PVCVerifyCaptchaRequest, opts ...RequestOption) (*StatusResponse, error) {
+func (s *PVCCaptchaService) Verify(ctx context.Context, voiceID string, req *PVCVerifyCaptchaRequest, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/pvc/%s/captcha", voiceID), form: orEmpty(req), opts: opts})
 }

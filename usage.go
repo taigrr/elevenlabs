@@ -87,6 +87,6 @@ type UsageCharacters struct {
 
 // Get returns usage statistics. Deprecated upstream in favor of the
 // workspace analytics endpoints.
-func (s *UsageService) Get(ctx context.Context, req *UsageGetRequest, opts ...RequestOption) (*UsageCharacters, error) {
+func (s *UsageService) Get(ctx context.Context, req *UsageGetRequest, opts ...Option) (*UsageCharacters, error) {
 	return doValue[UsageCharacters](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/usage/character-stats", query: orEmpty(req), opts: opts})
 }

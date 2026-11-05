@@ -265,7 +265,7 @@ func (r SpeechToTextConvertResponse) MarshalJSON() ([]byte, error) {
 }
 
 // Convert transcribes an audio or video file. Uploads are streamed.
-func (s *SpeechToTextService) Convert(ctx context.Context, req *SpeechToTextConvertRequest, opts ...RequestOption) (*SpeechToTextConvertResponse, error) {
+func (s *SpeechToTextService) Convert(ctx context.Context, req *SpeechToTextConvertRequest, opts ...Option) (*SpeechToTextConvertResponse, error) {
 	if req == nil || req.ModelID == "" {
 		return nil, fmt.Errorf("elevenlabs: speech to text: model id is required")
 	}
@@ -308,12 +308,12 @@ func (t Transcript) MarshalJSON() ([]byte, error) {
 }
 
 // Get returns a previously generated transcript.
-func (s *SpeechToTextTranscriptsService) Get(ctx context.Context, transcriptionID string, opts ...RequestOption) (*Transcript, error) {
+func (s *SpeechToTextTranscriptsService) Get(ctx context.Context, transcriptionID string, opts ...Option) (*Transcript, error) {
 	return doValue[Transcript](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/speech-to-text/transcripts/%s", transcriptionID), opts: opts})
 }
 
 // Delete deletes a transcript. The API's response body is untyped and is
 // returned as raw JSON (nil when empty).
-func (s *SpeechToTextTranscriptsService) Delete(ctx context.Context, transcriptionID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *SpeechToTextTranscriptsService) Delete(ctx context.Context, transcriptionID string, opts ...Option) (json.RawMessage, error) {
 	return doRaw(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/speech-to-text/transcripts/%s", transcriptionID), opts: opts})
 }

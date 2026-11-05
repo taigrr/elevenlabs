@@ -84,32 +84,32 @@ type AudioWithTimestampsAndVoiceSegments struct {
 	VoiceSegments       []VoiceSegment      `json:"voice_segments"`
 }
 
-func (s *TextToDialogueService) request(suffix string, req *TextToDialogueRequest, accept string, opts []RequestOption) *request {
+func (s *TextToDialogueService) request(suffix string, req *TextToDialogueRequest, accept string, opts []Option) *request {
 	req = orEmpty(req)
 	return &request{method: http.MethodPost, path: "/v1/text-to-dialogue" + suffix, query: req, body: req, accept: accept, opts: opts}
 }
 
 // Convert generates dialogue audio from multiple voices and returns the
 // complete audio. The caller must close the returned reader.
-func (s *TextToDialogueService) Convert(ctx context.Context, req *TextToDialogueRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *TextToDialogueService) Convert(ctx context.Context, req *TextToDialogueRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, s.request("", req, acceptAny, opts))
 }
 
 // Stream generates dialogue audio and streams it as it is produced. The
 // caller must close the returned reader.
-func (s *TextToDialogueService) Stream(ctx context.Context, req *TextToDialogueRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *TextToDialogueService) Stream(ctx context.Context, req *TextToDialogueRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, s.request("/stream", req, acceptAny, opts))
 }
 
 // ConvertWithTimestamps generates dialogue and returns base64 audio with
 // character timing and voice segments.
-func (s *TextToDialogueService) ConvertWithTimestamps(ctx context.Context, req *TextToDialogueRequest, opts ...RequestOption) (*AudioWithTimestampsAndVoiceSegments, error) {
+func (s *TextToDialogueService) ConvertWithTimestamps(ctx context.Context, req *TextToDialogueRequest, opts ...Option) (*AudioWithTimestampsAndVoiceSegments, error) {
 	return doValue[AudioWithTimestampsAndVoiceSegments](ctx, s.cfg, s.request("/with-timestamps", req, contentTypeJSON, opts))
 }
 
 // StreamWithTimestamps streams base64 audio chunks with character timing and
 // voice segments. The caller must close the returned stream.
-func (s *TextToDialogueService) StreamWithTimestamps(ctx context.Context, req *TextToDialogueRequest, opts ...RequestOption) (*Stream[AudioWithTimestampsAndVoiceSegments], error) {
+func (s *TextToDialogueService) StreamWithTimestamps(ctx context.Context, req *TextToDialogueRequest, opts ...Option) (*Stream[AudioWithTimestampsAndVoiceSegments], error) {
 	body, err := doStream(ctx, s.cfg, s.request("/stream/with-timestamps", req, contentTypeJSON, opts))
 	if err != nil {
 		return nil, err

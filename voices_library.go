@@ -34,7 +34,7 @@ type VoiceIDResponse struct {
 
 // ReplicateToIsolatedEnvironment copies a voice into a workspace with a
 // different data residency within the same billing group.
-func (s *VoicesService) ReplicateToIsolatedEnvironment(ctx context.Context, voiceID string, req *ReplicateVoiceRequest, opts ...RequestOption) (*VoiceIDResponse, error) {
+func (s *VoicesService) ReplicateToIsolatedEnvironment(ctx context.Context, voiceID string, req *ReplicateVoiceRequest, opts ...Option) (*VoiceIDResponse, error) {
 	return doValue[VoiceIDResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/%s/replicate-to-isolated-environment", voiceID), body: orEmpty(req), opts: opts})
 }
 
@@ -48,7 +48,7 @@ type ShareVoiceRequest struct {
 
 // Share adds a shared library voice, identified by its public owner and
 // voice IDs, to the user's voices.
-func (s *VoicesService) Share(ctx context.Context, publicUserID, voiceID string, req *ShareVoiceRequest, opts ...RequestOption) (*VoiceIDResponse, error) {
+func (s *VoicesService) Share(ctx context.Context, publicUserID, voiceID string, req *ShareVoiceRequest, opts ...Option) (*VoiceIDResponse, error) {
 	return doValue[VoiceIDResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/add/%s/%s", publicUserID, voiceID), body: orEmpty(req), opts: opts})
 }
 
@@ -63,7 +63,7 @@ type FindSimilarVoicesRequest struct {
 }
 
 // FindSimilarVoices returns shared library voices similar to an audio sample.
-func (s *VoicesService) FindSimilarVoices(ctx context.Context, req *FindSimilarVoicesRequest, opts ...RequestOption) (*GetLibraryVoicesResponse, error) {
+func (s *VoicesService) FindSimilarVoices(ctx context.Context, req *FindSimilarVoicesRequest, opts ...Option) (*GetLibraryVoicesResponse, error) {
 	return doValue[GetLibraryVoicesResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/similar-voices", form: orEmpty(req), opts: opts})
 }
 
@@ -173,13 +173,13 @@ type GetLibraryVoicesResponse struct {
 }
 
 // GetShared returns one page of the shared voice library. req may be nil.
-func (s *VoicesService) GetShared(ctx context.Context, req *VoicesGetSharedRequest, opts ...RequestOption) (*GetLibraryVoicesResponse, error) {
+func (s *VoicesService) GetShared(ctx context.Context, req *VoicesGetSharedRequest, opts ...Option) (*GetLibraryVoicesResponse, error) {
 	return doValue[GetLibraryVoicesResponse](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/shared-voices", query: req, opts: opts})
 }
 
 // GetSharedAll iterates over the shared voice library, fetching pages on
 // demand starting at req.Page (or 0).
-func (s *VoicesService) GetSharedAll(ctx context.Context, req *VoicesGetSharedRequest, opts ...RequestOption) iter.Seq2[LibraryVoice, error] {
+func (s *VoicesService) GetSharedAll(ctx context.Context, req *VoicesGetSharedRequest, opts ...Option) iter.Seq2[LibraryVoice, error] {
 	var params VoicesGetSharedRequest
 	if req != nil {
 		params = *req
@@ -227,7 +227,7 @@ type GetVoiceAccentsResponse struct {
 }
 
 // Get lists the available voice accents. req may be nil.
-func (s *VoicesAccentsService) Get(ctx context.Context, req *AccentsGetRequest, opts ...RequestOption) (*GetVoiceAccentsResponse, error) {
+func (s *VoicesAccentsService) Get(ctx context.Context, req *AccentsGetRequest, opts ...Option) (*GetVoiceAccentsResponse, error) {
 	return doValue[GetVoiceAccentsResponse](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/voices/accents", query: req, opts: opts})
 }
 
@@ -266,36 +266,36 @@ type DeleteVoiceCollectionResponse struct {
 }
 
 // List returns the voice collections the caller can access.
-func (s *VoicesCollectionsService) List(ctx context.Context, opts ...RequestOption) (*GetVoiceCollectionsResponse, error) {
+func (s *VoicesCollectionsService) List(ctx context.Context, opts ...Option) (*GetVoiceCollectionsResponse, error) {
 	return doValue[GetVoiceCollectionsResponse](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/voices/collections", opts: opts})
 }
 
 // Create creates a voice collection.
-func (s *VoicesCollectionsService) Create(ctx context.Context, req *VoiceCollectionRequest, opts ...RequestOption) (*VoiceCollection, error) {
+func (s *VoicesCollectionsService) Create(ctx context.Context, req *VoiceCollectionRequest, opts ...Option) (*VoiceCollection, error) {
 	return doValue[VoiceCollection](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/voices/collections", body: orEmpty(req), opts: opts})
 }
 
 // Get returns a voice collection.
-func (s *VoicesCollectionsService) Get(ctx context.Context, collectionID string, opts ...RequestOption) (*VoiceCollection, error) {
+func (s *VoicesCollectionsService) Get(ctx context.Context, collectionID string, opts ...Option) (*VoiceCollection, error) {
 	return doValue[VoiceCollection](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/collections/%s", collectionID), opts: opts})
 }
 
 // Delete deletes a voice collection.
-func (s *VoicesCollectionsService) Delete(ctx context.Context, collectionID string, opts ...RequestOption) (*DeleteVoiceCollectionResponse, error) {
+func (s *VoicesCollectionsService) Delete(ctx context.Context, collectionID string, opts ...Option) (*DeleteVoiceCollectionResponse, error) {
 	return doValue[DeleteVoiceCollectionResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/voices/collections/%s", collectionID), opts: opts})
 }
 
 // Update edits a voice collection's title or icon.
-func (s *VoicesCollectionsService) Update(ctx context.Context, collectionID string, req *VoiceCollectionRequest, opts ...RequestOption) (*VoiceCollection, error) {
+func (s *VoicesCollectionsService) Update(ctx context.Context, collectionID string, req *VoiceCollectionRequest, opts ...Option) (*VoiceCollection, error) {
 	return doValue[VoiceCollection](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/voices/collections/%s", collectionID), body: orEmpty(req), opts: opts})
 }
 
 // AddVoice adds a voice to a collection.
-func (s *VoicesCollectionsService) AddVoice(ctx context.Context, collectionID, voiceID string, opts ...RequestOption) (*CollectionVoiceResponse, error) {
+func (s *VoicesCollectionsService) AddVoice(ctx context.Context, collectionID, voiceID string, opts ...Option) (*CollectionVoiceResponse, error) {
 	return doValue[CollectionVoiceResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/collections/%s/voice/%s", collectionID, voiceID), opts: opts})
 }
 
 // RemoveVoice removes a voice from a collection.
-func (s *VoicesCollectionsService) RemoveVoice(ctx context.Context, collectionID, voiceID string, opts ...RequestOption) (*CollectionVoiceResponse, error) {
+func (s *VoicesCollectionsService) RemoveVoice(ctx context.Context, collectionID, voiceID string, opts ...Option) (*CollectionVoiceResponse, error) {
 	return doValue[CollectionVoiceResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/voices/collections/%s/voice/%s", collectionID, voiceID), opts: opts})
 }

@@ -44,7 +44,7 @@ type VoicesGetAllRequest struct {
 }
 
 // GetAll lists all voices available to the user. req may be nil.
-func (s *VoicesService) GetAll(ctx context.Context, req *VoicesGetAllRequest, opts ...RequestOption) (*GetVoicesResponse, error) {
+func (s *VoicesService) GetAll(ctx context.Context, req *VoicesGetAllRequest, opts ...Option) (*GetVoicesResponse, error) {
 	return doValue[GetVoicesResponse](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/voices", query: req, opts: opts})
 }
 
@@ -93,12 +93,12 @@ type VoicesSearchRequest struct {
 }
 
 // Search returns one page of voices using the v2 search endpoint. req may be nil.
-func (s *VoicesService) Search(ctx context.Context, req *VoicesSearchRequest, opts ...RequestOption) (*GetVoicesV2Response, error) {
+func (s *VoicesService) Search(ctx context.Context, req *VoicesSearchRequest, opts ...Option) (*GetVoicesV2Response, error) {
 	return doValue[GetVoicesV2Response](ctx, s.cfg, &request{method: http.MethodGet, path: "/v2/voices", query: req, opts: opts})
 }
 
 // SearchAll iterates over every voice matching req, fetching pages on demand.
-func (s *VoicesService) SearchAll(ctx context.Context, req *VoicesSearchRequest, opts ...RequestOption) iter.Seq2[Voice, error] {
+func (s *VoicesService) SearchAll(ctx context.Context, req *VoicesSearchRequest, opts ...Option) iter.Seq2[Voice, error] {
 	var params VoicesSearchRequest
 	if req != nil {
 		params = *req
@@ -124,12 +124,12 @@ type VoicesGetRequest struct {
 }
 
 // Get returns metadata about a voice. req may be nil.
-func (s *VoicesService) Get(ctx context.Context, voiceID string, req *VoicesGetRequest, opts ...RequestOption) (*Voice, error) {
+func (s *VoicesService) Get(ctx context.Context, voiceID string, req *VoicesGetRequest, opts ...Option) (*Voice, error) {
 	return doValue[Voice](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/%s", voiceID), query: req, opts: opts})
 }
 
 // Delete deletes a voice.
-func (s *VoicesService) Delete(ctx context.Context, voiceID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *VoicesService) Delete(ctx context.Context, voiceID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/voices/%s", voiceID), opts: opts})
 }
 
@@ -150,7 +150,7 @@ type VoicesUpdateRequest struct {
 }
 
 // Update edits a voice's name, description, labels or samples.
-func (s *VoicesService) Update(ctx context.Context, voiceID string, req *VoicesUpdateRequest, opts ...RequestOption) (*StatusResponse, error) {
+func (s *VoicesService) Update(ctx context.Context, voiceID string, req *VoicesUpdateRequest, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/%s/edit", voiceID), form: orEmpty(req), opts: opts})
 }
 
@@ -178,7 +178,7 @@ type AddVoiceIVCResponse struct {
 }
 
 // Create clones a voice from audio samples and adds it to the user's voices.
-func (s *VoicesIVCService) Create(ctx context.Context, req *IVCCreateRequest, opts ...RequestOption) (*AddVoiceIVCResponse, error) {
+func (s *VoicesIVCService) Create(ctx context.Context, req *IVCCreateRequest, opts ...Option) (*AddVoiceIVCResponse, error) {
 	return doValue[AddVoiceIVCResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/voices/add", form: orEmpty(req), opts: opts})
 }
 
@@ -186,17 +186,17 @@ func (s *VoicesIVCService) Create(ctx context.Context, req *IVCCreateRequest, op
 type VoicesSettingsService struct{ cfg *config }
 
 // GetDefault returns the default voice settings.
-func (s *VoicesSettingsService) GetDefault(ctx context.Context, opts ...RequestOption) (*VoiceSettings, error) {
+func (s *VoicesSettingsService) GetDefault(ctx context.Context, opts ...Option) (*VoiceSettings, error) {
 	return doValue[VoiceSettings](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/voices/settings/default", opts: opts})
 }
 
 // Get returns the settings of a voice.
-func (s *VoicesSettingsService) Get(ctx context.Context, voiceID string, opts ...RequestOption) (*VoiceSettings, error) {
+func (s *VoicesSettingsService) Get(ctx context.Context, voiceID string, opts ...Option) (*VoiceSettings, error) {
 	return doValue[VoiceSettings](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/%s/settings", voiceID), opts: opts})
 }
 
 // Update edits the settings of a voice.
-func (s *VoicesSettingsService) Update(ctx context.Context, voiceID string, settings *VoiceSettings, opts ...RequestOption) (*StatusResponse, error) {
+func (s *VoicesSettingsService) Update(ctx context.Context, voiceID string, settings *VoiceSettings, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/%s/settings/edit", voiceID), body: orEmpty(settings), opts: opts})
 }
 
@@ -212,7 +212,7 @@ type VoicesSamplesService struct {
 type VoicesSamplesAudioService struct{ cfg *config }
 
 // Get streams the audio of a voice sample. The caller must close the returned reader.
-func (s *VoicesSamplesAudioService) Get(ctx context.Context, voiceID, sampleID string, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *VoicesSamplesAudioService) Get(ctx context.Context, voiceID, sampleID string, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/%s/samples/%s/audio", voiceID, sampleID), accept: acceptAny, opts: opts})
 }
 

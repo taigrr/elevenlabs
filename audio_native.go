@@ -49,7 +49,7 @@ type AudioNativeCreateResponse struct {
 }
 
 // Create creates an Audio Native enabled project.
-func (s *AudioNativeService) Create(ctx context.Context, req *AudioNativeCreateRequest, opts ...RequestOption) (*AudioNativeCreateResponse, error) {
+func (s *AudioNativeService) Create(ctx context.Context, req *AudioNativeCreateRequest, opts ...Option) (*AudioNativeCreateResponse, error) {
 	return doValue[AudioNativeCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/audio-native", form: orEmpty(req), opts: opts})
 }
 
@@ -84,7 +84,7 @@ type AudioNativeSettingsResponse struct {
 }
 
 // GetSettings returns the player settings of an Audio Native project.
-func (s *AudioNativeService) GetSettings(ctx context.Context, projectID string, opts ...RequestOption) (*AudioNativeSettingsResponse, error) {
+func (s *AudioNativeService) GetSettings(ctx context.Context, projectID string, opts ...Option) (*AudioNativeSettingsResponse, error) {
 	return doValue[AudioNativeSettingsResponse](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/audio-native/%s/settings", projectID), opts: opts})
 }
 
@@ -107,7 +107,7 @@ type AudioNativeEditContentResponse struct {
 }
 
 // Update replaces the content of an Audio Native project.
-func (s *AudioNativeService) Update(ctx context.Context, projectID string, req *AudioNativeUpdateRequest, opts ...RequestOption) (*AudioNativeEditContentResponse, error) {
+func (s *AudioNativeService) Update(ctx context.Context, projectID string, req *AudioNativeUpdateRequest, opts ...Option) (*AudioNativeEditContentResponse, error) {
 	return doValue[AudioNativeEditContentResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/audio-native/%s/content", projectID), form: orEmpty(req), opts: opts})
 }
 
@@ -123,6 +123,6 @@ type AudioNativeUpdateFromURLRequest struct {
 
 // UpdateContentFromURL updates the Audio Native project associated with a
 // page URL using the page's current content.
-func (s *AudioNativeService) UpdateContentFromURL(ctx context.Context, req *AudioNativeUpdateFromURLRequest, opts ...RequestOption) (*AudioNativeEditContentResponse, error) {
+func (s *AudioNativeService) UpdateContentFromURL(ctx context.Context, req *AudioNativeUpdateFromURLRequest, opts ...Option) (*AudioNativeEditContentResponse, error) {
 	return doValue[AudioNativeEditContentResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/audio-native/content", body: orEmpty(req), opts: opts})
 }

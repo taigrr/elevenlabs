@@ -101,12 +101,12 @@ type ToolListRequest struct {
 }
 
 // List returns one page of tools. req may be nil.
-func (s *ToolsService) List(ctx context.Context, req *ToolListRequest, opts ...RequestOption) (*ToolsPage, error) {
+func (s *ToolsService) List(ctx context.Context, req *ToolListRequest, opts ...Option) (*ToolsPage, error) {
 	return getValue[ToolsPage](ctx, s.cfg, "/v1/convai/tools", req, opts)
 }
 
 // ListAll iterates over every tool.
-func (s *ToolsService) ListAll(ctx context.Context, req *ToolListRequest, opts ...RequestOption) iter.Seq2[Tool, error] {
+func (s *ToolsService) ListAll(ctx context.Context, req *ToolListRequest, opts ...Option) iter.Seq2[Tool, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[Tool], error) {
 		params.Cursor = cursor
@@ -119,12 +119,12 @@ func (s *ToolsService) ListAll(ctx context.Context, req *ToolListRequest, opts .
 }
 
 // Create creates a tool.
-func (s *ToolsService) Create(ctx context.Context, req *ToolRequest, opts ...RequestOption) (*Tool, error) {
+func (s *ToolsService) Create(ctx context.Context, req *ToolRequest, opts ...Option) (*Tool, error) {
 	return sendValue[Tool](ctx, s.cfg, http.MethodPost, "/v1/convai/tools", nil, orEmpty(req), opts)
 }
 
 // Get returns a tool. environment may be empty.
-func (s *ToolsService) Get(ctx context.Context, toolID, environment string, opts ...RequestOption) (*Tool, error) {
+func (s *ToolsService) Get(ctx context.Context, toolID, environment string, opts ...Option) (*Tool, error) {
 	query := struct {
 		Environment string `query:"environment"`
 	}{environment}
@@ -132,17 +132,17 @@ func (s *ToolsService) Get(ctx context.Context, toolID, environment string, opts
 }
 
 // Delete deletes a tool. req may be nil.
-func (s *ToolsService) Delete(ctx context.Context, toolID string, req *ForceRequest, opts ...RequestOption) (json.RawMessage, error) {
+func (s *ToolsService) Delete(ctx context.Context, toolID string, req *ForceRequest, opts ...Option) (json.RawMessage, error) {
 	return sendRaw(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/tools/%s", toolID), req, nil, opts)
 }
 
 // Update replaces a tool's configuration.
-func (s *ToolsService) Update(ctx context.Context, toolID string, req *ToolRequest, opts ...RequestOption) (*Tool, error) {
+func (s *ToolsService) Update(ctx context.Context, toolID string, req *ToolRequest, opts ...Option) (*Tool, error) {
 	return sendValue[Tool](ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/tools/%s", toolID), nil, orEmpty(req), opts)
 }
 
 // GetDependentAgents lists the agents that use a tool. req may be nil.
-func (s *ToolsService) GetDependentAgents(ctx context.Context, toolID string, req *PageRequest, opts ...RequestOption) (*DependentAgentsPage, error) {
+func (s *ToolsService) GetDependentAgents(ctx context.Context, toolID string, req *PageRequest, opts ...Option) (*DependentAgentsPage, error) {
 	return getValue[DependentAgentsPage](ctx, s.cfg, pathf("/v1/convai/tools/%s/dependent-agents", toolID), req, opts)
 }
 
@@ -186,12 +186,12 @@ type ToolExecutionsRequest struct {
 }
 
 // Get returns one page of a tool's executions. req may be nil.
-func (s *ToolExecutionsService) Get(ctx context.Context, toolID string, req *ToolExecutionsRequest, opts ...RequestOption) (*ToolExecutionsPage, error) {
+func (s *ToolExecutionsService) Get(ctx context.Context, toolID string, req *ToolExecutionsRequest, opts ...Option) (*ToolExecutionsPage, error) {
 	return getValue[ToolExecutionsPage](ctx, s.cfg, pathf("/v1/convai/tools/%s/executions", toolID), req, opts)
 }
 
 // All iterates over every execution of a tool.
-func (s *ToolExecutionsService) All(ctx context.Context, toolID string, req *ToolExecutionsRequest, opts ...RequestOption) iter.Seq2[ToolExecution, error] {
+func (s *ToolExecutionsService) All(ctx context.Context, toolID string, req *ToolExecutionsRequest, opts ...Option) iter.Seq2[ToolExecution, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[ToolExecution], error) {
 		params.Cursor = cursor

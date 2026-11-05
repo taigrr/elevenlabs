@@ -43,7 +43,7 @@ client := elevenlabs.NewClient(
 )
 ```
 
-Per-call behavior can be adjusted with request options such as `elevenlabs.WithRequestTimeout`, `elevenlabs.WithRequestHeader` and `elevenlabs.WithQueryParam`.
+Per-call behavior can be adjusted with request options such as `elevenlabs.WithTimeout`, `elevenlabs.WithHeader` and `elevenlabs.WithQueryParam`.
 
 ### Text-to-Speech Example
 

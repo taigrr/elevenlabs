@@ -144,8 +144,8 @@ type TextToSpeechStream struct{ s *socket }
 // audio (wss://…/v1/text-to-speech/{voice_id}/stream-input). Send an
 // *InitializeConnection first, then *SendText messages, then a
 // *CloseConnection. Call Close when done. req may be nil.
-func (s *TextToSpeechService) StreamInput(ctx context.Context, voiceID string, req *TextToSpeechStreamInputRequest, opts ...RequestOption) (*TextToSpeechStream, error) {
-	sock, err := s.cfg.dial(ctx, dialConfig{
+func (s *TextToSpeechService) StreamInput(ctx context.Context, voiceID string, req *TextToSpeechStreamInputRequest, opts ...Option) (*TextToSpeechStream, error) {
+	sock, err := dial(ctx, s.cfg, dialConfig{
 		path:     pathf("/v1/text-to-speech/%s/stream-input", voiceID),
 		query:    req,
 		opts:     opts,
@@ -195,7 +195,7 @@ func (c *TextToSpeechStream) Recv(ctx context.Context) (*TextToSpeechStreamOutpu
 // AudioReader returns a reader over the decoded audio of successive Recv
 // calls. It reports io.EOF after the final message or a normal closure.
 func (c *TextToSpeechStream) AudioReader(ctx context.Context) io.Reader {
-	return &audioReader{next: func() ([]byte, error) {
+	return &audioReader{Next: func() ([]byte, error) {
 		out, err := c.Recv(ctx)
 		if err != nil {
 			return nil, err
@@ -343,8 +343,8 @@ type TextToSpeechMultiStream struct{ s *socket }
 
 // MultiStreamInput opens a multi-context text-to-speech WebSocket
 // (wss://…/v1/text-to-speech/{voice_id}/multi-stream-input). req may be nil.
-func (s *TextToSpeechService) MultiStreamInput(ctx context.Context, voiceID string, req *TextToSpeechStreamInputRequest, opts ...RequestOption) (*TextToSpeechMultiStream, error) {
-	sock, err := s.cfg.dial(ctx, dialConfig{
+func (s *TextToSpeechService) MultiStreamInput(ctx context.Context, voiceID string, req *TextToSpeechStreamInputRequest, opts ...Option) (*TextToSpeechMultiStream, error) {
+	sock, err := dial(ctx, s.cfg, dialConfig{
 		path:     pathf("/v1/text-to-speech/%s/multi-stream-input", voiceID),
 		query:    req,
 		opts:     opts,

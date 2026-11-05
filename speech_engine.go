@@ -105,12 +105,12 @@ type SpeechEnginePage struct {
 }
 
 // List returns one page of speech engines. req may be nil.
-func (s *SpeechEngineService) List(ctx context.Context, req *SpeechEngineListRequest, opts ...RequestOption) (*SpeechEnginePage, error) {
+func (s *SpeechEngineService) List(ctx context.Context, req *SpeechEngineListRequest, opts ...Option) (*SpeechEnginePage, error) {
 	return doValue[SpeechEnginePage](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/speech-engine", query: req, opts: opts})
 }
 
 // ListAll iterates over every speech engine, fetching pages on demand.
-func (s *SpeechEngineService) ListAll(ctx context.Context, req *SpeechEngineListRequest, opts ...RequestOption) iter.Seq2[SpeechEngineSummary, error] {
+func (s *SpeechEngineService) ListAll(ctx context.Context, req *SpeechEngineListRequest, opts ...Option) iter.Seq2[SpeechEngineSummary, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[SpeechEngineSummary], error) {
 		params.Cursor = cursor
@@ -159,22 +159,22 @@ type SpeechEngineUpdateRequest struct {
 }
 
 // Create creates a speech engine.
-func (s *SpeechEngineService) Create(ctx context.Context, req *SpeechEngineCreateRequest, opts ...RequestOption) (*SpeechEngine, error) {
+func (s *SpeechEngineService) Create(ctx context.Context, req *SpeechEngineCreateRequest, opts ...Option) (*SpeechEngine, error) {
 	return doValue[SpeechEngine](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/speech-engine", body: orEmpty(req), opts: opts})
 }
 
 // Get returns a speech engine.
-func (s *SpeechEngineService) Get(ctx context.Context, speechEngineID string, opts ...RequestOption) (*SpeechEngine, error) {
+func (s *SpeechEngineService) Get(ctx context.Context, speechEngineID string, opts ...Option) (*SpeechEngine, error) {
 	return doValue[SpeechEngine](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/speech-engine/%s", speechEngineID), opts: opts})
 }
 
 // Delete deletes a speech engine.
-func (s *SpeechEngineService) Delete(ctx context.Context, speechEngineID string, opts ...RequestOption) error {
+func (s *SpeechEngineService) Delete(ctx context.Context, speechEngineID string, opts ...Option) error {
 	return doJSON(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/speech-engine/%s", speechEngineID), opts: opts}, nil)
 }
 
 // Update edits a speech engine. req may be nil.
-func (s *SpeechEngineService) Update(ctx context.Context, speechEngineID string, req *SpeechEngineUpdateRequest, opts ...RequestOption) (*SpeechEngine, error) {
+func (s *SpeechEngineService) Update(ctx context.Context, speechEngineID string, req *SpeechEngineUpdateRequest, opts ...Option) (*SpeechEngine, error) {
 	return doValue[SpeechEngine](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/speech-engine/%s", speechEngineID), body: orEmpty(req), opts: opts})
 }
 
@@ -185,6 +185,6 @@ type SpeechEngineDuplicateRequest struct {
 }
 
 // Duplicate copies a speech engine. req may be nil.
-func (s *SpeechEngineService) Duplicate(ctx context.Context, speechEngineID string, req *SpeechEngineDuplicateRequest, opts ...RequestOption) (*SpeechEngine, error) {
+func (s *SpeechEngineService) Duplicate(ctx context.Context, speechEngineID string, req *SpeechEngineDuplicateRequest, opts ...Option) (*SpeechEngine, error) {
 	return doValue[SpeechEngine](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/speech-engine/%s/duplicate", speechEngineID), body: orEmpty(req), opts: opts})
 }

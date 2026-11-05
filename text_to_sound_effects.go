@@ -38,7 +38,7 @@ type CreateSoundEffectRequest struct {
 type TextToSoundEffectsService struct{ cfg *config }
 
 // Convert generates a sound effect from text. The caller must close the returned reader.
-func (s *TextToSoundEffectsService) Convert(ctx context.Context, req *CreateSoundEffectRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *TextToSoundEffectsService) Convert(ctx context.Context, req *CreateSoundEffectRequest, opts ...Option) (io.ReadCloser, error) {
 	req = orEmpty(req)
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/sound-generation", query: req, body: req, accept: acceptAny, opts: opts})
 }

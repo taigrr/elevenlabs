@@ -117,12 +117,12 @@ type DubbingPage struct {
 }
 
 // List returns one page of dubs. req may be nil.
-func (s *DubbingService) List(ctx context.Context, req *DubbingListRequest, opts ...RequestOption) (*DubbingPage, error) {
+func (s *DubbingService) List(ctx context.Context, req *DubbingListRequest, opts ...Option) (*DubbingPage, error) {
 	return doValue[DubbingPage](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/dubbing", query: req, opts: opts})
 }
 
 // ListAll iterates over every dub, fetching pages on demand.
-func (s *DubbingService) ListAll(ctx context.Context, req *DubbingListRequest, opts ...RequestOption) iter.Seq2[DubbingMetadata, error] {
+func (s *DubbingService) ListAll(ctx context.Context, req *DubbingListRequest, opts ...Option) iter.Seq2[DubbingMetadata, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[DubbingMetadata], error) {
 		params.Cursor = cursor
@@ -174,17 +174,17 @@ type DubbingCreateResponse struct {
 }
 
 // Create starts dubbing a file.
-func (s *DubbingService) Create(ctx context.Context, req *DubbingCreateRequest, opts ...RequestOption) (*DubbingCreateResponse, error) {
+func (s *DubbingService) Create(ctx context.Context, req *DubbingCreateRequest, opts ...Option) (*DubbingCreateResponse, error) {
 	return doValue[DubbingCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/dubbing", form: orEmpty(req), opts: opts})
 }
 
 // Get returns a dub's metadata.
-func (s *DubbingService) Get(ctx context.Context, dubbingID string, opts ...RequestOption) (*DubbingMetadata, error) {
+func (s *DubbingService) Get(ctx context.Context, dubbingID string, opts ...Option) (*DubbingMetadata, error) {
 	return doValue[DubbingMetadata](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/dubbing/%s", dubbingID), opts: opts})
 }
 
 // Delete deletes a dub.
-func (s *DubbingService) Delete(ctx context.Context, dubbingID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *DubbingService) Delete(ctx context.Context, dubbingID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/dubbing/%s", dubbingID), opts: opts})
 }
 
@@ -192,7 +192,7 @@ func (s *DubbingService) Delete(ctx context.Context, dubbingID string, opts ...R
 type DubbingAudioService struct{ cfg *config }
 
 // Get streams the dubbed audio or video for a language. The caller must close the returned reader.
-func (s *DubbingAudioService) Get(ctx context.Context, dubbingID, languageCode string, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *DubbingAudioService) Get(ctx context.Context, dubbingID, languageCode string, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/dubbing/%s/audio/%s", dubbingID, languageCode), accept: acceptAny, opts: opts})
 }
 
@@ -253,9 +253,9 @@ type formatTypeQuery struct {
 
 // GetTranscriptForDub returns the transcript of a dub in one language.
 // An empty format uses the server default (SRT).
-func (s *DubbingTranscriptService) GetTranscriptForDub(ctx context.Context, dubbingID, languageCode string, format TranscriptFormat, opts ...RequestOption) (*DubTranscript, error) {
+func (s *DubbingTranscriptService) GetTranscriptForDub(ctx context.Context, dubbingID, languageCode string, format TranscriptFormat, opts ...Option) (*DubTranscript, error) {
 	req := &request{method: http.MethodGet, path: pathf("/v1/dubbing/%s/transcript/%s", dubbingID, languageCode), query: formatTypeQuery{format}, accept: acceptAny, opts: opts}
-	resp, cancel, err := s.cfg.send(ctx, req)
+	resp, cancel, err := send(ctx, s.cfg, req)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ type DubbingTranscripts struct {
 }
 
 // Get returns the transcript of a dub in the given format.
-func (s *DubbingTranscriptsService) Get(ctx context.Context, dubbingID, languageCode string, format TranscriptFormat, opts ...RequestOption) (*DubbingTranscripts, error) {
+func (s *DubbingTranscriptsService) Get(ctx context.Context, dubbingID, languageCode string, format TranscriptFormat, opts ...Option) (*DubbingTranscripts, error) {
 	return doValue[DubbingTranscripts](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/dubbing/%s/transcripts/%s/format/%s", dubbingID, languageCode, string(format)), opts: opts})
 }
 
@@ -373,12 +373,12 @@ type DubbingProjectPage struct {
 }
 
 // List returns one page of dubbing projects. req may be nil.
-func (s *DubbingProjectService) List(ctx context.Context, req *DubbingProjectListRequest, opts ...RequestOption) (*DubbingProjectPage, error) {
+func (s *DubbingProjectService) List(ctx context.Context, req *DubbingProjectListRequest, opts ...Option) (*DubbingProjectPage, error) {
 	return doValue[DubbingProjectPage](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/dubbing/project", query: req, opts: opts})
 }
 
 // ListAll iterates over every dubbing project.
-func (s *DubbingProjectService) ListAll(ctx context.Context, req *DubbingProjectListRequest, opts ...RequestOption) iter.Seq2[DubbingProject, error] {
+func (s *DubbingProjectService) ListAll(ctx context.Context, req *DubbingProjectListRequest, opts ...Option) iter.Seq2[DubbingProject, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[DubbingProject], error) {
 		params.Cursor = cursor
@@ -410,17 +410,17 @@ type DubbingProjectCreateRequest struct {
 }
 
 // Create creates a dubbing project.
-func (s *DubbingProjectService) Create(ctx context.Context, req *DubbingProjectCreateRequest, opts ...RequestOption) (*DubbingProject, error) {
+func (s *DubbingProjectService) Create(ctx context.Context, req *DubbingProjectCreateRequest, opts ...Option) (*DubbingProject, error) {
 	return doValue[DubbingProject](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/dubbing/project", form: orEmpty(req), opts: opts})
 }
 
 // Get returns a dubbing project.
-func (s *DubbingProjectService) Get(ctx context.Context, projectID string, opts ...RequestOption) (*DubbingProject, error) {
+func (s *DubbingProjectService) Get(ctx context.Context, projectID string, opts ...Option) (*DubbingProject, error) {
 	return doValue[DubbingProject](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/dubbing/project/%s", projectID), opts: opts})
 }
 
 // Delete deletes a dubbing project.
-func (s *DubbingProjectService) Delete(ctx context.Context, projectID string, opts ...RequestOption) error {
+func (s *DubbingProjectService) Delete(ctx context.Context, projectID string, opts ...Option) error {
 	return doJSON(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/dubbing/project/%s", projectID), opts: opts}, nil)
 }
 
@@ -481,12 +481,12 @@ type DubbingLanguagePage struct {
 }
 
 // List returns one page of a project's target languages. req may be nil.
-func (s *DubbingProjectLanguageService) List(ctx context.Context, projectID string, req *DubbingLanguageListRequest, opts ...RequestOption) (*DubbingLanguagePage, error) {
+func (s *DubbingProjectLanguageService) List(ctx context.Context, projectID string, req *DubbingLanguageListRequest, opts ...Option) (*DubbingLanguagePage, error) {
 	return doValue[DubbingLanguagePage](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/dubbing/project/%s/language", projectID), query: req, opts: opts})
 }
 
 // ListAll iterates over every target language of a project.
-func (s *DubbingProjectLanguageService) ListAll(ctx context.Context, projectID string, req *DubbingLanguageListRequest, opts ...RequestOption) iter.Seq2[DubbingLanguage, error] {
+func (s *DubbingProjectLanguageService) ListAll(ctx context.Context, projectID string, req *DubbingLanguageListRequest, opts ...Option) iter.Seq2[DubbingLanguage, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[DubbingLanguage], error) {
 		params.Cursor = cursor
@@ -509,17 +509,17 @@ type DubbingLanguageCreateRequest struct {
 }
 
 // Create adds a target language to a project.
-func (s *DubbingProjectLanguageService) Create(ctx context.Context, projectID string, req *DubbingLanguageCreateRequest, opts ...RequestOption) (*DubbingLanguage, error) {
+func (s *DubbingProjectLanguageService) Create(ctx context.Context, projectID string, req *DubbingLanguageCreateRequest, opts ...Option) (*DubbingLanguage, error) {
 	return doValue[DubbingLanguage](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/project/%s/language", projectID), body: orEmpty(req), opts: opts})
 }
 
 // Get returns a target language of a project.
-func (s *DubbingProjectLanguageService) Get(ctx context.Context, projectID, languageID string, opts ...RequestOption) (*DubbingLanguage, error) {
+func (s *DubbingProjectLanguageService) Get(ctx context.Context, projectID, languageID string, opts ...Option) (*DubbingLanguage, error) {
 	return doValue[DubbingLanguage](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/dubbing/project/%s/language/%s", projectID, languageID), opts: opts})
 }
 
 // Delete removes a target language from a project.
-func (s *DubbingProjectLanguageService) Delete(ctx context.Context, projectID, languageID string, opts ...RequestOption) error {
+func (s *DubbingProjectLanguageService) Delete(ctx context.Context, projectID, languageID string, opts ...Option) error {
 	return doJSON(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/dubbing/project/%s/language/%s", projectID, languageID), opts: opts}, nil)
 }
 
@@ -570,12 +570,12 @@ type DubbingRegenerateResponse struct {
 type DubbingTargetTranscriptService struct{ cfg *config }
 
 // Get returns the translated transcript of a language.
-func (s *DubbingTargetTranscriptService) Get(ctx context.Context, projectID, languageID string, opts ...RequestOption) (*DubbingTargetTranscript, error) {
+func (s *DubbingTargetTranscriptService) Get(ctx context.Context, projectID, languageID string, opts ...Option) (*DubbingTargetTranscript, error) {
 	return doValue[DubbingTargetTranscript](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/dubbing/project/%s/language/%s/transcript", projectID, languageID), opts: opts})
 }
 
 // UpdateSegment edits one translated segment.
-func (s *DubbingTargetTranscriptService) UpdateSegment(ctx context.Context, projectID, languageID, segmentID string, req *DubbingTargetSegmentUpdate, opts ...RequestOption) (*DubbingTargetSegmentResponse, error) {
+func (s *DubbingTargetTranscriptService) UpdateSegment(ctx context.Context, projectID, languageID, segmentID string, req *DubbingTargetSegmentUpdate, opts ...Option) (*DubbingTargetSegmentResponse, error) {
 	return doValue[DubbingTargetSegmentResponse](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/dubbing/project/%s/language/%s/transcript/segment/%s", projectID, languageID, segmentID), body: orEmpty(req), opts: opts})
 }
 
@@ -584,7 +584,7 @@ type segmentsBody[T any] struct {
 }
 
 // UpdateSegments edits several translated segments keyed by segment ID.
-func (s *DubbingTargetTranscriptService) UpdateSegments(ctx context.Context, projectID, languageID string, segments map[string]DubbingTargetSegmentUpdate, opts ...RequestOption) (*DubbingTargetSegmentsResponse, error) {
+func (s *DubbingTargetTranscriptService) UpdateSegments(ctx context.Context, projectID, languageID string, segments map[string]DubbingTargetSegmentUpdate, opts ...Option) (*DubbingTargetSegmentsResponse, error) {
 	if segments == nil {
 		segments = map[string]DubbingTargetSegmentUpdate{}
 	}
@@ -592,7 +592,7 @@ func (s *DubbingTargetTranscriptService) UpdateSegments(ctx context.Context, pro
 }
 
 // Regenerate re-dubs stale segments of a language.
-func (s *DubbingTargetTranscriptService) Regenerate(ctx context.Context, projectID, languageID string, opts ...RequestOption) (*DubbingRegenerateResponse, error) {
+func (s *DubbingTargetTranscriptService) Regenerate(ctx context.Context, projectID, languageID string, opts ...Option) (*DubbingRegenerateResponse, error) {
 	return doValue[DubbingRegenerateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/project/%s/language/%s/transcript/regenerate", projectID, languageID), opts: opts})
 }
 
@@ -650,22 +650,22 @@ type DubbingRevisionResponse struct {
 type DubbingSourceTranscriptService struct{ cfg *config }
 
 // Get returns the source transcript of a project.
-func (s *DubbingSourceTranscriptService) Get(ctx context.Context, projectID string, opts ...RequestOption) (*DubbingSourceTranscript, error) {
+func (s *DubbingSourceTranscriptService) Get(ctx context.Context, projectID string, opts ...Option) (*DubbingSourceTranscript, error) {
 	return doValue[DubbingSourceTranscript](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/dubbing/project/%s/transcript", projectID), opts: opts})
 }
 
 // DeleteSegment deletes a source segment.
-func (s *DubbingSourceTranscriptService) DeleteSegment(ctx context.Context, projectID, segmentID string, opts ...RequestOption) (*DubbingRevisionResponse, error) {
+func (s *DubbingSourceTranscriptService) DeleteSegment(ctx context.Context, projectID, segmentID string, opts ...Option) (*DubbingRevisionResponse, error) {
 	return doValue[DubbingRevisionResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/dubbing/project/%s/transcript/segment/%s", projectID, segmentID), opts: opts})
 }
 
 // UpdateSegment edits a source segment.
-func (s *DubbingSourceTranscriptService) UpdateSegment(ctx context.Context, projectID, segmentID string, req *DubbingSegmentUpdate, opts ...RequestOption) (*DubbingSourceSegmentResponse, error) {
+func (s *DubbingSourceTranscriptService) UpdateSegment(ctx context.Context, projectID, segmentID string, req *DubbingSegmentUpdate, opts ...Option) (*DubbingSourceSegmentResponse, error) {
 	return doValue[DubbingSourceSegmentResponse](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/dubbing/project/%s/transcript/segment/%s", projectID, segmentID), body: orEmpty(req), opts: opts})
 }
 
 // UpdateSegments edits several source segments keyed by segment ID.
-func (s *DubbingSourceTranscriptService) UpdateSegments(ctx context.Context, projectID string, segments map[string]DubbingSegmentUpdate, opts ...RequestOption) (*DubbingSourceSegmentsResponse, error) {
+func (s *DubbingSourceTranscriptService) UpdateSegments(ctx context.Context, projectID string, segments map[string]DubbingSegmentUpdate, opts ...Option) (*DubbingSourceSegmentsResponse, error) {
 	if segments == nil {
 		segments = map[string]DubbingSegmentUpdate{}
 	}
@@ -673,7 +673,7 @@ func (s *DubbingSourceTranscriptService) UpdateSegments(ctx context.Context, pro
 }
 
 // CreateSegment adds a source segment.
-func (s *DubbingSourceTranscriptService) CreateSegment(ctx context.Context, projectID string, req *DubbingSegmentCreate, opts ...RequestOption) (*DubbingSourceSegmentResponse, error) {
+func (s *DubbingSourceTranscriptService) CreateSegment(ctx context.Context, projectID string, req *DubbingSegmentCreate, opts ...Option) (*DubbingSourceSegmentResponse, error) {
 	return doValue[DubbingSourceSegmentResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/project/%s/transcript/segment", projectID), body: orEmpty(req), opts: opts})
 }
 
@@ -782,7 +782,7 @@ type DubbingResourceService struct {
 }
 
 // Get returns a dubbing resource.
-func (s *DubbingResourceService) Get(ctx context.Context, dubbingID string, opts ...RequestOption) (*DubbingResource, error) {
+func (s *DubbingResourceService) Get(ctx context.Context, dubbingID string, opts ...Option) (*DubbingResource, error) {
 	return doValue[DubbingResource](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/dubbing/resource/%s", dubbingID), opts: opts})
 }
 
@@ -792,7 +792,7 @@ type migrateSegmentsBody struct {
 }
 
 // MigrateSegments moves segments to another speaker.
-func (s *DubbingResourceService) MigrateSegments(ctx context.Context, dubbingID string, segmentIDs []string, speakerID string, opts ...RequestOption) (*DubbingVersionResponse, error) {
+func (s *DubbingResourceService) MigrateSegments(ctx context.Context, dubbingID string, segmentIDs []string, speakerID string, opts ...Option) (*DubbingVersionResponse, error) {
 	return doValue[DubbingVersionResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/resource/%s/migrate-segments", dubbingID), body: migrateSegmentsBody{nonNil(segmentIDs), speakerID}, opts: opts})
 }
 
@@ -802,17 +802,17 @@ type segmentListBody struct {
 }
 
 // Transcribe re-transcribes segments.
-func (s *DubbingResourceService) Transcribe(ctx context.Context, dubbingID string, segments []string, opts ...RequestOption) (*DubbingVersionResponse, error) {
+func (s *DubbingResourceService) Transcribe(ctx context.Context, dubbingID string, segments []string, opts ...Option) (*DubbingVersionResponse, error) {
 	return doValue[DubbingVersionResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/resource/%s/transcribe", dubbingID), body: segmentListBody{Segments: nonNil(segments)}, opts: opts})
 }
 
 // Translate re-translates segments into languages (all languages if empty).
-func (s *DubbingResourceService) Translate(ctx context.Context, dubbingID string, segments, languages []string, opts ...RequestOption) (*DubbingVersionResponse, error) {
+func (s *DubbingResourceService) Translate(ctx context.Context, dubbingID string, segments, languages []string, opts ...Option) (*DubbingVersionResponse, error) {
 	return doValue[DubbingVersionResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/resource/%s/translate", dubbingID), body: segmentListBody{nonNil(segments), languages}, opts: opts})
 }
 
 // Dub re-dubs segments in languages (all languages if empty).
-func (s *DubbingResourceService) Dub(ctx context.Context, dubbingID string, segments, languages []string, opts ...RequestOption) (*DubbingVersionResponse, error) {
+func (s *DubbingResourceService) Dub(ctx context.Context, dubbingID string, segments, languages []string, opts ...Option) (*DubbingVersionResponse, error) {
 	return doValue[DubbingVersionResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/resource/%s/dub", dubbingID), body: segmentListBody{nonNil(segments), languages}, opts: opts})
 }
 
@@ -829,7 +829,7 @@ type DubbingRenderResponse struct {
 }
 
 // Render renders the output for a language.
-func (s *DubbingResourceService) Render(ctx context.Context, dubbingID, language string, req *DubbingRenderRequest, opts ...RequestOption) (*DubbingRenderResponse, error) {
+func (s *DubbingResourceService) Render(ctx context.Context, dubbingID, language string, req *DubbingRenderRequest, opts ...Option) (*DubbingRenderResponse, error) {
 	return doValue[DubbingRenderResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/resource/%s/render/%s", dubbingID, language), body: orEmpty(req), opts: opts})
 }
 
@@ -841,7 +841,7 @@ type languageBody struct {
 }
 
 // Add adds a target language to a resource.
-func (s *DubbingResourceLanguageService) Add(ctx context.Context, dubbingID, language string, opts ...RequestOption) (*DubbingVersionResponse, error) {
+func (s *DubbingResourceLanguageService) Add(ctx context.Context, dubbingID, language string, opts ...Option) (*DubbingVersionResponse, error) {
 	return doValue[DubbingVersionResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/resource/%s/language", dubbingID), body: languageBody{language}, opts: opts})
 }
 
@@ -856,12 +856,12 @@ type SegmentUpdateRequest struct {
 }
 
 // Update edits a segment in one language. req may be nil.
-func (s *DubbingResourceSegmentService) Update(ctx context.Context, dubbingID, segmentID, language string, req *SegmentUpdateRequest, opts ...RequestOption) (*DubbingVersionResponse, error) {
+func (s *DubbingResourceSegmentService) Update(ctx context.Context, dubbingID, segmentID, language string, req *SegmentUpdateRequest, opts ...Option) (*DubbingVersionResponse, error) {
 	return doValue[DubbingVersionResponse](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/dubbing/resource/%s/segment/%s/%s", dubbingID, segmentID, language), body: orEmpty(req), opts: opts})
 }
 
 // Delete deletes a segment.
-func (s *DubbingResourceSegmentService) Delete(ctx context.Context, dubbingID, segmentID string, opts ...RequestOption) (*DubbingVersionResponse, error) {
+func (s *DubbingResourceSegmentService) Delete(ctx context.Context, dubbingID, segmentID string, opts ...Option) (*DubbingVersionResponse, error) {
 	return doValue[DubbingVersionResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/dubbing/resource/%s/segment/%s", dubbingID, segmentID), opts: opts})
 }
 
@@ -886,7 +886,7 @@ type SpeakerRequest struct {
 }
 
 // Update edits a speaker. req may be nil.
-func (s *DubbingResourceSpeakerService) Update(ctx context.Context, dubbingID, speakerID string, req *SpeakerRequest, opts ...RequestOption) (*DubbingVersionResponse, error) {
+func (s *DubbingResourceSpeakerService) Update(ctx context.Context, dubbingID, speakerID string, req *SpeakerRequest, opts ...Option) (*DubbingVersionResponse, error) {
 	return doValue[DubbingVersionResponse](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/dubbing/resource/%s/speaker/%s", dubbingID, speakerID), body: orEmpty(req), opts: opts})
 }
 
@@ -897,7 +897,7 @@ type SpeakerCreateResponse struct {
 }
 
 // Create adds a speaker. req may be nil; Languages is ignored.
-func (s *DubbingResourceSpeakerService) Create(ctx context.Context, dubbingID string, req *SpeakerRequest, opts ...RequestOption) (*SpeakerCreateResponse, error) {
+func (s *DubbingResourceSpeakerService) Create(ctx context.Context, dubbingID string, req *SpeakerRequest, opts ...Option) (*SpeakerCreateResponse, error) {
 	body := *orEmpty(req)
 	body.Languages = nil
 	return doValue[SpeakerCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/resource/%s/speaker", dubbingID), body: &body, opts: opts})
@@ -918,7 +918,7 @@ type SimilarVoicesResponse struct {
 }
 
 // FindSimilarVoices returns library voices similar to a speaker.
-func (s *DubbingResourceSpeakerService) FindSimilarVoices(ctx context.Context, dubbingID, speakerID string, opts ...RequestOption) (*SimilarVoicesResponse, error) {
+func (s *DubbingResourceSpeakerService) FindSimilarVoices(ctx context.Context, dubbingID, speakerID string, opts ...Option) (*SimilarVoicesResponse, error) {
 	return doValue[SimilarVoicesResponse](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/dubbing/resource/%s/speaker/%s/similar-voices", dubbingID, speakerID), opts: opts})
 }
 
@@ -941,6 +941,6 @@ type SegmentCreateResponse struct {
 }
 
 // Create adds a segment to a speaker.
-func (s *DubbingResourceSpeakerSegmentService) Create(ctx context.Context, dubbingID, speakerID string, req *SegmentCreateRequest, opts ...RequestOption) (*SegmentCreateResponse, error) {
+func (s *DubbingResourceSpeakerSegmentService) Create(ctx context.Context, dubbingID, speakerID string, req *SegmentCreateRequest, opts ...Option) (*SegmentCreateResponse, error) {
 	return doValue[SegmentCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/dubbing/resource/%s/speaker/%s/segment", dubbingID, speakerID), body: orEmpty(req), opts: opts})
 }

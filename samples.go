@@ -10,6 +10,6 @@ import (
 type SamplesService struct{ cfg *config }
 
 // Delete removes a sample from a voice.
-func (s *SamplesService) Delete(ctx context.Context, voiceID, sampleID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *SamplesService) Delete(ctx context.Context, voiceID, sampleID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/voices/%s/samples/%s", voiceID, sampleID), opts: opts})
 }

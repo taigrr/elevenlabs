@@ -71,7 +71,7 @@ type WorkspaceWebhookList struct {
 }
 
 // List returns the workspace webhooks. req may be nil.
-func (s *WebhooksService) List(ctx context.Context, req *WebhooksListRequest, opts ...RequestOption) (*WorkspaceWebhookList, error) {
+func (s *WebhooksService) List(ctx context.Context, req *WebhooksListRequest, opts ...Option) (*WorkspaceWebhookList, error) {
 	return doValue[WorkspaceWebhookList](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/workspace/webhooks", query: req, opts: opts})
 }
 
@@ -107,12 +107,12 @@ type WebhookCreateResponse struct {
 }
 
 // Create creates a workspace webhook.
-func (s *WebhooksService) Create(ctx context.Context, req *WebhookCreateRequest, opts ...RequestOption) (*WebhookCreateResponse, error) {
+func (s *WebhooksService) Create(ctx context.Context, req *WebhookCreateRequest, opts ...Option) (*WebhookCreateResponse, error) {
 	return doValue[WebhookCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/workspace/webhooks", body: orEmpty(req), opts: opts})
 }
 
 // Delete deletes a workspace webhook.
-func (s *WebhooksService) Delete(ctx context.Context, webhookID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *WebhooksService) Delete(ctx context.Context, webhookID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/workspace/webhooks/%s", webhookID), opts: opts})
 }
 
@@ -131,7 +131,7 @@ type WebhookUpdateRequest struct {
 }
 
 // Update edits a workspace webhook.
-func (s *WebhooksService) Update(ctx context.Context, webhookID string, req *WebhookUpdateRequest, opts ...RequestOption) (*StatusResponse, error) {
+func (s *WebhooksService) Update(ctx context.Context, webhookID string, req *WebhookUpdateRequest, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/workspace/webhooks/%s", webhookID), body: orEmpty(req), opts: opts})
 }
 

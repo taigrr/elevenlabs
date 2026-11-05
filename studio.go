@@ -297,7 +297,7 @@ type PodcastCreateRequest struct {
 }
 
 // CreatePodcast creates a podcast Studio project.
-func (s *StudioService) CreatePodcast(ctx context.Context, req *PodcastCreateRequest, opts ...RequestOption) (*ProjectResponse, error) {
+func (s *StudioService) CreatePodcast(ctx context.Context, req *PodcastCreateRequest, opts ...Option) (*ProjectResponse, error) {
 	return doValue[ProjectResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/studio/podcasts", body: orEmpty(req), opts: opts})
 }
 
@@ -321,7 +321,7 @@ type ProjectList struct {
 }
 
 // List returns the Studio projects.
-func (s *StudioProjectsService) List(ctx context.Context, opts ...RequestOption) (*ProjectList, error) {
+func (s *StudioProjectsService) List(ctx context.Context, opts ...Option) (*ProjectList, error) {
 	return doValue[ProjectList](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/studio/projects", opts: opts})
 }
 
@@ -368,7 +368,7 @@ type ProjectCreateRequest struct {
 }
 
 // Create creates a Studio project.
-func (s *StudioProjectsService) Create(ctx context.Context, req *ProjectCreateRequest, opts ...RequestOption) (*ProjectResponse, error) {
+func (s *StudioProjectsService) Create(ctx context.Context, req *ProjectCreateRequest, opts ...Option) (*ProjectResponse, error) {
 	return doValue[ProjectResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/studio/projects", form: orEmpty(req), opts: opts})
 }
 
@@ -377,7 +377,7 @@ type shareIDQuery struct {
 }
 
 // Get returns a project with its chapters. shareID may be empty.
-func (s *StudioProjectsService) Get(ctx context.Context, projectID, shareID string, opts ...RequestOption) (*ProjectExtended, error) {
+func (s *StudioProjectsService) Get(ctx context.Context, projectID, shareID string, opts ...Option) (*ProjectExtended, error) {
 	return doValue[ProjectExtended](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s", projectID), query: shareIDQuery{shareID}, opts: opts})
 }
 
@@ -394,17 +394,17 @@ type ProjectUpdateRequest struct {
 }
 
 // Update edits a project's metadata.
-func (s *StudioProjectsService) Update(ctx context.Context, projectID string, req *ProjectUpdateRequest, opts ...RequestOption) (*ProjectResponse, error) {
+func (s *StudioProjectsService) Update(ctx context.Context, projectID string, req *ProjectUpdateRequest, opts ...Option) (*ProjectResponse, error) {
 	return doValue[ProjectResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s", projectID), body: orEmpty(req), opts: opts})
 }
 
 // Delete deletes a project.
-func (s *StudioProjectsService) Delete(ctx context.Context, projectID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *StudioProjectsService) Delete(ctx context.Context, projectID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/studio/projects/%s", projectID), opts: opts})
 }
 
 // Convert starts converting a whole project to audio.
-func (s *StudioProjectsService) Convert(ctx context.Context, projectID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *StudioProjectsService) Convert(ctx context.Context, projectID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/convert", projectID), opts: opts})
 }
 
@@ -414,7 +414,7 @@ type ProjectMutedTracks struct {
 }
 
 // GetMutedTracks returns the chapters that contain muted tracks.
-func (s *StudioProjectsService) GetMutedTracks(ctx context.Context, projectID string, opts ...RequestOption) (*ProjectMutedTracks, error) {
+func (s *StudioProjectsService) GetMutedTracks(ctx context.Context, projectID string, opts ...Option) (*ProjectMutedTracks, error) {
 	return doValue[ProjectMutedTracks](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/muted-tracks", projectID), opts: opts})
 }
 
@@ -430,7 +430,7 @@ type ProjectContentUpdateRequest struct {
 }
 
 // Update replaces the content of a project.
-func (s *StudioContentService) Update(ctx context.Context, projectID string, req *ProjectContentUpdateRequest, opts ...RequestOption) (*ProjectResponse, error) {
+func (s *StudioContentService) Update(ctx context.Context, projectID string, req *ProjectContentUpdateRequest, opts ...Option) (*ProjectResponse, error) {
 	return doValue[ProjectResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/content", projectID), form: orEmpty(req), opts: opts})
 }
 
@@ -445,7 +445,7 @@ type ProjectPronunciationDictionariesRequest struct {
 }
 
 // Create attaches pronunciation dictionaries to a project.
-func (s *StudioPronunciationDictionariesService) Create(ctx context.Context, projectID string, req *ProjectPronunciationDictionariesRequest, opts ...RequestOption) (*StatusResponse, error) {
+func (s *StudioPronunciationDictionariesService) Create(ctx context.Context, projectID string, req *ProjectPronunciationDictionariesRequest, opts ...Option) (*StatusResponse, error) {
 	body := *orEmpty(req)
 	body.PronunciationDictionaryLocators = nonNil(body.PronunciationDictionaryLocators)
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/pronunciation-dictionaries", projectID), body: &body, opts: opts})
@@ -465,7 +465,7 @@ type ChapterList struct {
 }
 
 // List returns the chapters of a project.
-func (s *StudioChaptersService) List(ctx context.Context, projectID string, opts ...RequestOption) (*ChapterList, error) {
+func (s *StudioChaptersService) List(ctx context.Context, projectID string, opts ...Option) (*ChapterList, error) {
 	return doValue[ChapterList](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/chapters", projectID), opts: opts})
 }
 
@@ -481,12 +481,12 @@ type ChapterResponse struct {
 }
 
 // Create adds a chapter to a project.
-func (s *StudioChaptersService) Create(ctx context.Context, projectID string, req *ChapterCreateRequest, opts ...RequestOption) (*ChapterResponse, error) {
+func (s *StudioChaptersService) Create(ctx context.Context, projectID string, req *ChapterCreateRequest, opts ...Option) (*ChapterResponse, error) {
 	return doValue[ChapterResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/chapters", projectID), body: orEmpty(req), opts: opts})
 }
 
 // Get returns a chapter with its content.
-func (s *StudioChaptersService) Get(ctx context.Context, projectID, chapterID string, opts ...RequestOption) (*ChapterWithContent, error) {
+func (s *StudioChaptersService) Get(ctx context.Context, projectID, chapterID string, opts ...Option) (*ChapterWithContent, error) {
 	return doValue[ChapterWithContent](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/chapters/%s", projectID, chapterID), opts: opts})
 }
 
@@ -497,17 +497,17 @@ type ChapterUpdateRequest struct {
 }
 
 // Update edits a chapter. req may be nil.
-func (s *StudioChaptersService) Update(ctx context.Context, projectID, chapterID string, req *ChapterUpdateRequest, opts ...RequestOption) (*ChapterResponse, error) {
+func (s *StudioChaptersService) Update(ctx context.Context, projectID, chapterID string, req *ChapterUpdateRequest, opts ...Option) (*ChapterResponse, error) {
 	return doValue[ChapterResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/chapters/%s", projectID, chapterID), body: orEmpty(req), opts: opts})
 }
 
 // Delete deletes a chapter.
-func (s *StudioChaptersService) Delete(ctx context.Context, projectID, chapterID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *StudioChaptersService) Delete(ctx context.Context, projectID, chapterID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/studio/projects/%s/chapters/%s", projectID, chapterID), opts: opts})
 }
 
 // Convert starts converting a chapter to audio.
-func (s *StudioChaptersService) Convert(ctx context.Context, projectID, chapterID string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *StudioChaptersService) Convert(ctx context.Context, projectID, chapterID string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/chapters/%s/convert", projectID, chapterID), opts: opts})
 }
 
@@ -541,17 +541,17 @@ type ChapterSnapshotList struct {
 type StudioChapterSnapshotsService struct{ cfg *config }
 
 // List returns the snapshots of a chapter.
-func (s *StudioChapterSnapshotsService) List(ctx context.Context, projectID, chapterID string, opts ...RequestOption) (*ChapterSnapshotList, error) {
+func (s *StudioChapterSnapshotsService) List(ctx context.Context, projectID, chapterID string, opts ...Option) (*ChapterSnapshotList, error) {
 	return doValue[ChapterSnapshotList](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/chapters/%s/snapshots", projectID, chapterID), opts: opts})
 }
 
 // Get returns a chapter snapshot.
-func (s *StudioChapterSnapshotsService) Get(ctx context.Context, projectID, chapterID, snapshotID string, opts ...RequestOption) (*ChapterSnapshotExtended, error) {
+func (s *StudioChapterSnapshotsService) Get(ctx context.Context, projectID, chapterID, snapshotID string, opts ...Option) (*ChapterSnapshotExtended, error) {
 	return doValue[ChapterSnapshotExtended](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/chapters/%s/snapshots/%s", projectID, chapterID, snapshotID), opts: opts})
 }
 
 // Stream streams the audio of a chapter snapshot. req may be nil. The caller must close the returned reader.
-func (s *StudioChapterSnapshotsService) Stream(ctx context.Context, projectID, chapterID, snapshotID string, req *SnapshotStreamRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *StudioChapterSnapshotsService) Stream(ctx context.Context, projectID, chapterID, snapshotID string, req *SnapshotStreamRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/chapters/%s/snapshots/%s/stream", projectID, chapterID, snapshotID), body: orEmpty(req), accept: acceptAny, opts: opts})
 }
 
@@ -581,21 +581,21 @@ type ProjectSnapshotList struct {
 type StudioProjectSnapshotsService struct{ cfg *config }
 
 // List returns the snapshots of a project.
-func (s *StudioProjectSnapshotsService) List(ctx context.Context, projectID string, opts ...RequestOption) (*ProjectSnapshotList, error) {
+func (s *StudioProjectSnapshotsService) List(ctx context.Context, projectID string, opts ...Option) (*ProjectSnapshotList, error) {
 	return doValue[ProjectSnapshotList](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/snapshots", projectID), opts: opts})
 }
 
 // Get returns a project snapshot.
-func (s *StudioProjectSnapshotsService) Get(ctx context.Context, projectID, snapshotID string, opts ...RequestOption) (*ProjectSnapshotExtended, error) {
+func (s *StudioProjectSnapshotsService) Get(ctx context.Context, projectID, snapshotID string, opts ...Option) (*ProjectSnapshotExtended, error) {
 	return doValue[ProjectSnapshotExtended](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/studio/projects/%s/snapshots/%s", projectID, snapshotID), opts: opts})
 }
 
 // Stream streams the audio of a project snapshot. req may be nil. The caller must close the returned reader.
-func (s *StudioProjectSnapshotsService) Stream(ctx context.Context, projectID, snapshotID string, req *SnapshotStreamRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *StudioProjectSnapshotsService) Stream(ctx context.Context, projectID, snapshotID string, req *SnapshotStreamRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/snapshots/%s/stream", projectID, snapshotID), body: orEmpty(req), accept: acceptAny, opts: opts})
 }
 
 // StreamArchive streams a ZIP archive of a project snapshot's chapter audio. The caller must close the returned reader.
-func (s *StudioProjectSnapshotsService) StreamArchive(ctx context.Context, projectID, snapshotID string, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *StudioProjectSnapshotsService) StreamArchive(ctx context.Context, projectID, snapshotID string, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/studio/projects/%s/snapshots/%s/archive", projectID, snapshotID), accept: acceptAny, opts: opts})
 }

@@ -171,23 +171,23 @@ type KnowledgeBaseAddRequest struct {
 }
 
 // AddToKnowledgeBase uploads a file or URL into the knowledge base.
-func (s *ConversationalAIService) AddToKnowledgeBase(ctx context.Context, req *KnowledgeBaseAddRequest, opts ...RequestOption) (*KnowledgeBaseCreateResponse, error) {
+func (s *ConversationalAIService) AddToKnowledgeBase(ctx context.Context, req *KnowledgeBaseAddRequest, opts ...Option) (*KnowledgeBaseCreateResponse, error) {
 	req = orEmpty(req)
 	return doValue[KnowledgeBaseCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/convai/knowledge-base", query: req, form: req, opts: opts})
 }
 
 // RAGIndexOverview reports RAG index storage usage.
-func (s *ConversationalAIService) RAGIndexOverview(ctx context.Context, opts ...RequestOption) (*RAGIndexOverview, error) {
+func (s *ConversationalAIService) RAGIndexOverview(ctx context.Context, opts ...Option) (*RAGIndexOverview, error) {
 	return getValue[RAGIndexOverview](ctx, s.cfg, "/v1/convai/knowledge-base/rag-index", nil, opts)
 }
 
 // GetDocumentRAGIndexes lists a document's RAG indexes.
-func (s *ConversationalAIService) GetDocumentRAGIndexes(ctx context.Context, documentID string, opts ...RequestOption) (*RAGIndexes, error) {
+func (s *ConversationalAIService) GetDocumentRAGIndexes(ctx context.Context, documentID string, opts ...Option) (*RAGIndexes, error) {
 	return getValue[RAGIndexes](ctx, s.cfg, pathf("/v1/convai/knowledge-base/%s/rag-index", documentID), nil, opts)
 }
 
 // DeleteDocumentRAGIndex deletes one RAG index of a document.
-func (s *ConversationalAIService) DeleteDocumentRAGIndex(ctx context.Context, documentID, ragIndexID string, opts ...RequestOption) (*RAGIndex, error) {
+func (s *ConversationalAIService) DeleteDocumentRAGIndex(ctx context.Context, documentID, ragIndexID string, opts ...Option) (*RAGIndex, error) {
 	return sendValue[RAGIndex](ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/knowledge-base/%s/rag-index/%s", documentID, ragIndexID), nil, nil, opts)
 }
 
@@ -254,12 +254,12 @@ type KnowledgeBaseSearchPage struct {
 }
 
 // List returns one page of knowledge base entries. req may be nil.
-func (s *KnowledgeBaseService) List(ctx context.Context, req *KnowledgeBaseListRequest, opts ...RequestOption) (*KnowledgeBasePage, error) {
+func (s *KnowledgeBaseService) List(ctx context.Context, req *KnowledgeBaseListRequest, opts ...Option) (*KnowledgeBasePage, error) {
 	return getValue[KnowledgeBasePage](ctx, s.cfg, "/v1/convai/knowledge-base", req, opts)
 }
 
 // ListAll iterates over every knowledge base entry.
-func (s *KnowledgeBaseService) ListAll(ctx context.Context, req *KnowledgeBaseListRequest, opts ...RequestOption) iter.Seq2[KnowledgeBaseDocument, error] {
+func (s *KnowledgeBaseService) ListAll(ctx context.Context, req *KnowledgeBaseListRequest, opts ...Option) iter.Seq2[KnowledgeBaseDocument, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[KnowledgeBaseDocument], error) {
 		params.Cursor = cursor
@@ -273,7 +273,7 @@ func (s *KnowledgeBaseService) ListAll(ctx context.Context, req *KnowledgeBaseLi
 
 // GetOrCreateRAGIndexes returns, and optionally creates, RAG indexes for
 // several documents, keyed by document ID.
-func (s *KnowledgeBaseService) GetOrCreateRAGIndexes(ctx context.Context, items []RAGIndexRequest, opts ...RequestOption) (map[string]BatchResult[RAGIndex], error) {
+func (s *KnowledgeBaseService) GetOrCreateRAGIndexes(ctx context.Context, items []RAGIndexRequest, opts ...Option) (map[string]BatchResult[RAGIndex], error) {
 	body := struct {
 		Items []RAGIndexRequest `json:"items"`
 	}{nonNil(items)}
@@ -285,12 +285,12 @@ func (s *KnowledgeBaseService) GetOrCreateRAGIndexes(ctx context.Context, items 
 }
 
 // Search searches knowledge base contents.
-func (s *KnowledgeBaseService) Search(ctx context.Context, req *KnowledgeBaseSearchRequest, opts ...RequestOption) (*KnowledgeBaseSearchPage, error) {
+func (s *KnowledgeBaseService) Search(ctx context.Context, req *KnowledgeBaseSearchRequest, opts ...Option) (*KnowledgeBaseSearchPage, error) {
 	return getValue[KnowledgeBaseSearchPage](ctx, s.cfg, "/v1/convai/knowledge-base/search", req, opts)
 }
 
 // SearchAll iterates over every content search result.
-func (s *KnowledgeBaseService) SearchAll(ctx context.Context, req *KnowledgeBaseSearchRequest, opts ...RequestOption) iter.Seq2[KnowledgeBaseSearchResult, error] {
+func (s *KnowledgeBaseService) SearchAll(ctx context.Context, req *KnowledgeBaseSearchRequest, opts ...Option) iter.Seq2[KnowledgeBaseSearchResult, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[KnowledgeBaseSearchResult], error) {
 		params.Cursor = cursor
@@ -379,22 +379,22 @@ type CrawlJobCreateResponse struct {
 }
 
 // List returns one page of crawl jobs. req may be nil.
-func (s *KnowledgeBaseCrawlJobsService) List(ctx context.Context, req *CrawlJobListRequest, opts ...RequestOption) (*CrawlJobPage, error) {
+func (s *KnowledgeBaseCrawlJobsService) List(ctx context.Context, req *CrawlJobListRequest, opts ...Option) (*CrawlJobPage, error) {
 	return getValue[CrawlJobPage](ctx, s.cfg, "/v1/convai/knowledge-base/crawl", req, opts)
 }
 
 // Create starts a crawl job.
-func (s *KnowledgeBaseCrawlJobsService) Create(ctx context.Context, req *CrawlJobCreateRequest, opts ...RequestOption) (*CrawlJobCreateResponse, error) {
+func (s *KnowledgeBaseCrawlJobsService) Create(ctx context.Context, req *CrawlJobCreateRequest, opts ...Option) (*CrawlJobCreateResponse, error) {
 	return sendValue[CrawlJobCreateResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/knowledge-base/crawl", nil, orEmpty(req), opts)
 }
 
 // Get returns a crawl job.
-func (s *KnowledgeBaseCrawlJobsService) Get(ctx context.Context, crawlJobID string, opts ...RequestOption) (*CrawlJob, error) {
+func (s *KnowledgeBaseCrawlJobsService) Get(ctx context.Context, crawlJobID string, opts ...Option) (*CrawlJob, error) {
 	return getValue[CrawlJob](ctx, s.cfg, pathf("/v1/convai/knowledge-base/crawl/%s", crawlJobID), nil, opts)
 }
 
 // Cancel cancels a crawl job.
-func (s *KnowledgeBaseCrawlJobsService) Cancel(ctx context.Context, crawlJobID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *KnowledgeBaseCrawlJobsService) Cancel(ctx context.Context, crawlJobID string, opts ...Option) (json.RawMessage, error) {
 	return sendRaw(ctx, s.cfg, http.MethodPost, pathf("/v1/convai/knowledge-base/crawl/%s/cancel", crawlJobID), nil, nil, opts)
 }
 
@@ -402,7 +402,7 @@ func (s *KnowledgeBaseCrawlJobsService) Cancel(ctx context.Context, crawlJobID s
 type KnowledgeBaseDocumentService struct{ cfg *config }
 
 // UpdateFile replaces the file of a file document.
-func (s *KnowledgeBaseDocumentService) UpdateFile(ctx context.Context, documentID string, file File, opts ...RequestOption) (*KnowledgeBaseDocument, error) {
+func (s *KnowledgeBaseDocumentService) UpdateFile(ctx context.Context, documentID string, file File, opts ...Option) (*KnowledgeBaseDocument, error) {
 	form := struct {
 		File File `form:"file"`
 	}{file}
@@ -410,12 +410,12 @@ func (s *KnowledgeBaseDocumentService) UpdateFile(ctx context.Context, documentI
 }
 
 // Refresh re-fetches a URL document or re-syncs a file document.
-func (s *KnowledgeBaseDocumentService) Refresh(ctx context.Context, documentID string, opts ...RequestOption) (*KnowledgeBaseDocument, error) {
+func (s *KnowledgeBaseDocumentService) Refresh(ctx context.Context, documentID string, opts ...Option) (*KnowledgeBaseDocument, error) {
 	return sendValue[KnowledgeBaseDocument](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/knowledge-base/%s/refresh", documentID), nil, nil, opts)
 }
 
 // ComputeRAGIndex starts computing a document's RAG index for model.
-func (s *KnowledgeBaseDocumentService) ComputeRAGIndex(ctx context.Context, documentID string, model EmbeddingModel, opts ...RequestOption) (*RAGIndex, error) {
+func (s *KnowledgeBaseDocumentService) ComputeRAGIndex(ctx context.Context, documentID string, model EmbeddingModel, opts ...Option) (*RAGIndex, error) {
 	body := struct {
 		Model EmbeddingModel `json:"model"`
 	}{model}
@@ -503,27 +503,27 @@ type SignedFileURL struct {
 }
 
 // CreateFromURL scrapes a web page into a document.
-func (s *KnowledgeBaseDocumentsService) CreateFromURL(ctx context.Context, req *DocumentFromURLRequest, opts ...RequestOption) (*KnowledgeBaseCreateResponse, error) {
+func (s *KnowledgeBaseDocumentsService) CreateFromURL(ctx context.Context, req *DocumentFromURLRequest, opts ...Option) (*KnowledgeBaseCreateResponse, error) {
 	return sendValue[KnowledgeBaseCreateResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/knowledge-base/url", nil, orEmpty(req), opts)
 }
 
 // CreateFromFile uploads a file as a document.
-func (s *KnowledgeBaseDocumentsService) CreateFromFile(ctx context.Context, req *DocumentFromFileRequest, opts ...RequestOption) (*KnowledgeBaseCreateResponse, error) {
+func (s *KnowledgeBaseDocumentsService) CreateFromFile(ctx context.Context, req *DocumentFromFileRequest, opts ...Option) (*KnowledgeBaseCreateResponse, error) {
 	return doValue[KnowledgeBaseCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/convai/knowledge-base/file", form: orEmpty(req), opts: opts})
 }
 
 // CreateFromText creates a document from text.
-func (s *KnowledgeBaseDocumentsService) CreateFromText(ctx context.Context, req *DocumentFromTextRequest, opts ...RequestOption) (*KnowledgeBaseCreateResponse, error) {
+func (s *KnowledgeBaseDocumentsService) CreateFromText(ctx context.Context, req *DocumentFromTextRequest, opts ...Option) (*KnowledgeBaseCreateResponse, error) {
 	return sendValue[KnowledgeBaseCreateResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/knowledge-base/text", nil, orEmpty(req), opts)
 }
 
 // CreateFolder creates a folder.
-func (s *KnowledgeBaseDocumentsService) CreateFolder(ctx context.Context, req *FolderCreateRequest, opts ...RequestOption) (*KnowledgeBaseCreateResponse, error) {
+func (s *KnowledgeBaseDocumentsService) CreateFolder(ctx context.Context, req *FolderCreateRequest, opts ...Option) (*KnowledgeBaseCreateResponse, error) {
 	return sendValue[KnowledgeBaseCreateResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/knowledge-base/folder", nil, orEmpty(req), opts)
 }
 
 // Get returns a document. agentID may be empty.
-func (s *KnowledgeBaseDocumentsService) Get(ctx context.Context, documentID, agentID string, opts ...RequestOption) (*KnowledgeBaseDocument, error) {
+func (s *KnowledgeBaseDocumentsService) Get(ctx context.Context, documentID, agentID string, opts ...Option) (*KnowledgeBaseDocument, error) {
 	query := struct {
 		AgentID string `query:"agent_id"`
 	}{agentID}
@@ -531,22 +531,22 @@ func (s *KnowledgeBaseDocumentsService) Get(ctx context.Context, documentID, age
 }
 
 // Delete deletes a document or folder. req may be nil.
-func (s *KnowledgeBaseDocumentsService) Delete(ctx context.Context, documentID string, req *ForceRequest, opts ...RequestOption) (json.RawMessage, error) {
+func (s *KnowledgeBaseDocumentsService) Delete(ctx context.Context, documentID string, req *ForceRequest, opts ...Option) (json.RawMessage, error) {
 	return sendRaw(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/knowledge-base/%s", documentID), req, nil, opts)
 }
 
 // Update renames a document or replaces a text document's content.
-func (s *KnowledgeBaseDocumentsService) Update(ctx context.Context, documentID string, req *DocumentUpdateRequest, opts ...RequestOption) (*KnowledgeBaseDocument, error) {
+func (s *KnowledgeBaseDocumentsService) Update(ctx context.Context, documentID string, req *DocumentUpdateRequest, opts ...Option) (*KnowledgeBaseDocument, error) {
 	return sendValue[KnowledgeBaseDocument](ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/knowledge-base/%s", documentID), nil, orEmpty(req), opts)
 }
 
 // GetAgents lists the agents that use a document. req may be nil.
-func (s *KnowledgeBaseDocumentsService) GetAgents(ctx context.Context, documentID string, req *DependentAgentsRequest, opts ...RequestOption) (*DependentAgentsPage, error) {
+func (s *KnowledgeBaseDocumentsService) GetAgents(ctx context.Context, documentID string, req *DependentAgentsRequest, opts ...Option) (*DependentAgentsPage, error) {
 	return getValue[DependentAgentsPage](ctx, s.cfg, pathf("/v1/convai/knowledge-base/%s/dependent-agents", documentID), req, opts)
 }
 
 // GetBulkAgents lists the agents that use any of documentIDs. req may be nil.
-func (s *KnowledgeBaseDocumentsService) GetBulkAgents(ctx context.Context, documentIDs []string, req *DependentAgentsRequest, opts ...RequestOption) (*DependentAgentsPage, error) {
+func (s *KnowledgeBaseDocumentsService) GetBulkAgents(ctx context.Context, documentIDs []string, req *DependentAgentsRequest, opts ...Option) (*DependentAgentsPage, error) {
 	body := struct {
 		DocumentIDs []string `json:"document_ids"`
 	}{nonNil(documentIDs)}
@@ -554,7 +554,7 @@ func (s *KnowledgeBaseDocumentsService) GetBulkAgents(ctx context.Context, docum
 }
 
 // GetContent returns a document's extracted content as HTML.
-func (s *KnowledgeBaseDocumentsService) GetContent(ctx context.Context, documentID string, opts ...RequestOption) (string, error) {
+func (s *KnowledgeBaseDocumentsService) GetContent(ctx context.Context, documentID string, opts ...Option) (string, error) {
 	body, err := doStream(ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/convai/knowledge-base/%s/content", documentID), accept: acceptAny, opts: opts})
 	if err != nil {
 		return "", err
@@ -568,12 +568,12 @@ func (s *KnowledgeBaseDocumentsService) GetContent(ctx context.Context, document
 }
 
 // GetSourceFileURL returns a signed URL for downloading a document's source file.
-func (s *KnowledgeBaseDocumentsService) GetSourceFileURL(ctx context.Context, documentID string, opts ...RequestOption) (*SignedFileURL, error) {
+func (s *KnowledgeBaseDocumentsService) GetSourceFileURL(ctx context.Context, documentID string, opts ...Option) (*SignedFileURL, error) {
 	return getValue[SignedFileURL](ctx, s.cfg, pathf("/v1/convai/knowledge-base/%s/source-file-url", documentID), nil, opts)
 }
 
 // Move moves a document or folder into folderID (the root when empty).
-func (s *KnowledgeBaseDocumentsService) Move(ctx context.Context, documentID, folderID string, opts ...RequestOption) error {
+func (s *KnowledgeBaseDocumentsService) Move(ctx context.Context, documentID, folderID string, opts ...Option) error {
 	body := struct {
 		MoveTo string `json:"move_to,omitempty"`
 	}{folderID}
@@ -581,7 +581,7 @@ func (s *KnowledgeBaseDocumentsService) Move(ctx context.Context, documentID, fo
 }
 
 // BulkMove moves documents into folderID (the root when empty).
-func (s *KnowledgeBaseDocumentsService) BulkMove(ctx context.Context, documentIDs []string, folderID string, opts ...RequestOption) error {
+func (s *KnowledgeBaseDocumentsService) BulkMove(ctx context.Context, documentIDs []string, folderID string, opts ...Option) error {
 	body := struct {
 		DocumentIDs []string `json:"document_ids"`
 		MoveTo      string   `json:"move_to,omitempty"`
@@ -596,7 +596,7 @@ type DeletedDocument struct {
 
 // BulkDelete deletes several documents, returning per-document results
 // keyed by document ID. force deletes documents still used by agents.
-func (s *KnowledgeBaseDocumentsService) BulkDelete(ctx context.Context, documentIDs []string, force *bool, opts ...RequestOption) (map[string]BatchResult[DeletedDocument], error) {
+func (s *KnowledgeBaseDocumentsService) BulkDelete(ctx context.Context, documentIDs []string, force *bool, opts ...Option) (map[string]BatchResult[DeletedDocument], error) {
 	body := struct {
 		DocumentIDs []string `json:"document_ids"`
 		Force       *bool    `json:"force,omitempty"`
@@ -625,7 +625,7 @@ type KnowledgeBaseChunkPage struct {
 type KnowledgeBaseChunkService struct{ cfg *config }
 
 // Get returns one chunk. model may be empty.
-func (s *KnowledgeBaseChunkService) Get(ctx context.Context, documentID, chunkID string, model EmbeddingModel, opts ...RequestOption) (*KnowledgeBaseChunk, error) {
+func (s *KnowledgeBaseChunkService) Get(ctx context.Context, documentID, chunkID string, model EmbeddingModel, opts ...Option) (*KnowledgeBaseChunk, error) {
 	query := struct {
 		EmbeddingModel EmbeddingModel `query:"embedding_model"`
 	}{model}
@@ -644,12 +644,12 @@ type ChunkListRequest struct {
 }
 
 // List returns one page of a document's chunks.
-func (s *KnowledgeBaseChunksService) List(ctx context.Context, documentID string, req *ChunkListRequest, opts ...RequestOption) (*KnowledgeBaseChunkPage, error) {
+func (s *KnowledgeBaseChunksService) List(ctx context.Context, documentID string, req *ChunkListRequest, opts ...Option) (*KnowledgeBaseChunkPage, error) {
 	return getValue[KnowledgeBaseChunkPage](ctx, s.cfg, pathf("/v1/convai/knowledge-base/%s/chunks", documentID), req, opts)
 }
 
 // ListAll iterates over every chunk of a document.
-func (s *KnowledgeBaseChunksService) ListAll(ctx context.Context, documentID string, req *ChunkListRequest, opts ...RequestOption) iter.Seq2[KnowledgeBaseChunk, error] {
+func (s *KnowledgeBaseChunksService) ListAll(ctx context.Context, documentID string, req *ChunkListRequest, opts ...Option) iter.Seq2[KnowledgeBaseChunk, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[KnowledgeBaseChunk], error) {
 		params.Cursor = cursor
@@ -666,7 +666,7 @@ func (s *KnowledgeBaseChunksService) ListAll(ctx context.Context, documentID str
 type KnowledgeBaseSummariesService struct{ cfg *config }
 
 // Get returns summaries of the given documents keyed by document ID.
-func (s *KnowledgeBaseSummariesService) Get(ctx context.Context, documentIDs []string, opts ...RequestOption) (map[string]BatchResult[KnowledgeBaseDocument], error) {
+func (s *KnowledgeBaseSummariesService) Get(ctx context.Context, documentIDs []string, opts ...Option) (map[string]BatchResult[KnowledgeBaseDocument], error) {
 	query := struct {
 		DocumentIDs []string `query:"document_ids"`
 	}{documentIDs}

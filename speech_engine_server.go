@@ -104,14 +104,14 @@ func base64URLDecode(s string) ([]byte, error) {
 // Speech Engine API using the client's API key. Only needed when you accept
 // the WebSocket yourself; Handler verifies automatically.
 func (s *SpeechEngineService) VerifyRequest(r *http.Request) error {
-	if s.cfg.apiKey == "" {
+	if s.cfg.APIKey == "" {
 		return fmt.Errorf("%w: no api key configured on the client", ErrSpeechEngineAuth)
 	}
 	token := r.Header.Get(SpeechEngineAuthHeader)
 	if token == "" {
 		return fmt.Errorf("%w: missing %s header", ErrSpeechEngineAuth, SpeechEngineAuthHeader)
 	}
-	_, err := VerifySpeechEngineToken(token, s.cfg.apiKey, s.cfg.now())
+	_, err := VerifySpeechEngineToken(token, s.cfg.APIKey, s.cfg.Now())
 	return err
 }
 

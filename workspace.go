@@ -51,7 +51,7 @@ type ThirdPartyDisablingPolicyRequest struct {
 
 // SetThirdPartyDisablingPolicy sets the workspace default for whether third
 // parties may disable exposed API keys. req may be nil.
-func (s *WorkspaceService) SetThirdPartyDisablingPolicy(ctx context.Context, req *ThirdPartyDisablingPolicyRequest, opts ...RequestOption) (json.RawMessage, error) {
+func (s *WorkspaceService) SetThirdPartyDisablingPolicy(ctx context.Context, req *ThirdPartyDisablingPolicyRequest, opts ...Option) (json.RawMessage, error) {
 	return doRaw(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/workspaces/api-keys/third-party-disabling", body: orEmpty(req), opts: opts})
 }
 
@@ -107,7 +107,7 @@ type AnalyticsRequestsQuery struct {
 }
 
 // Get lists API requests made in the workspace. req may be nil.
-func (s *WorkspaceAnalyticsRequestsService) Get(ctx context.Context, req *AnalyticsRequestsQuery, opts ...RequestOption) (*AnalyticsQueryResult, error) {
+func (s *WorkspaceAnalyticsRequestsService) Get(ctx context.Context, req *AnalyticsRequestsQuery, opts ...Option) (*AnalyticsQueryResult, error) {
 	return doValue[AnalyticsQueryResult](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/workspace/analytics/requests", body: orEmpty(req), opts: opts})
 }
 
@@ -131,7 +131,7 @@ type UsageByProductQuery struct {
 }
 
 // GetUsageByProductOverTime returns workspace usage bucketed over time.
-func (s *WorkspaceUsageService) GetUsageByProductOverTime(ctx context.Context, req *UsageByProductQuery, opts ...RequestOption) (*AnalyticsQueryResult, error) {
+func (s *WorkspaceUsageService) GetUsageByProductOverTime(ctx context.Context, req *UsageByProductQuery, opts ...Option) (*AnalyticsQueryResult, error) {
 	return doValue[AnalyticsQueryResult](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/workspace/analytics/query/usage-by-product-over-time", body: orEmpty(req), opts: opts})
 }
 
@@ -180,12 +180,12 @@ type AuditLogsPage struct {
 }
 
 // List returns one page of audit log entries. req may be nil.
-func (s *WorkspaceAuditLogsService) List(ctx context.Context, req *AuditLogsListRequest, opts ...RequestOption) (*AuditLogsPage, error) {
+func (s *WorkspaceAuditLogsService) List(ctx context.Context, req *AuditLogsListRequest, opts ...Option) (*AuditLogsPage, error) {
 	return doValue[AuditLogsPage](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/workspace/audit-logs", query: req, opts: opts})
 }
 
 // ListAll iterates over every audit log entry, fetching pages on demand.
-func (s *WorkspaceAuditLogsService) ListAll(ctx context.Context, req *AuditLogsListRequest, opts ...RequestOption) iter.Seq2[AuditLogEntry, error] {
+func (s *WorkspaceAuditLogsService) ListAll(ctx context.Context, req *AuditLogsListRequest, opts ...Option) iter.Seq2[AuditLogEntry, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[AuditLogEntry], error) {
 		params.Cursor = cursor
@@ -240,7 +240,7 @@ type WorkspaceGroup struct {
 }
 
 // List returns every group in the workspace keyed by group ID.
-func (s *WorkspaceGroupsService) List(ctx context.Context, opts ...RequestOption) (map[string]WorkspaceGroup, error) {
+func (s *WorkspaceGroupsService) List(ctx context.Context, opts ...Option) (map[string]WorkspaceGroup, error) {
 	var out map[string]WorkspaceGroup
 	if err := doJSON(ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/workspace/groups", opts: opts}, &out); err != nil {
 		return nil, err
@@ -260,7 +260,7 @@ type groupsSearchQuery struct {
 }
 
 // Search returns the groups matching name.
-func (s *WorkspaceGroupsService) Search(ctx context.Context, name string, opts ...RequestOption) ([]WorkspaceGroupByName, error) {
+func (s *WorkspaceGroupsService) Search(ctx context.Context, name string, opts ...Option) ([]WorkspaceGroupByName, error) {
 	var out []WorkspaceGroupByName
 	if err := doJSON(ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/workspace/groups/search", query: groupsSearchQuery{Name: name}, opts: opts}, &out); err != nil {
 		return nil, err
@@ -276,12 +276,12 @@ type emailBody struct {
 }
 
 // Add adds the member with email to a group.
-func (s *WorkspaceGroupMembersService) Add(ctx context.Context, groupID, email string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *WorkspaceGroupMembersService) Add(ctx context.Context, groupID, email string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/workspace/groups/%s/members", groupID), body: emailBody{email}, opts: opts})
 }
 
 // Remove removes the member with email from a group.
-func (s *WorkspaceGroupMembersService) Remove(ctx context.Context, groupID, email string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *WorkspaceGroupMembersService) Remove(ctx context.Context, groupID, email string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/workspace/groups/%s/members/remove", groupID), body: emailBody{email}, opts: opts})
 }
 
@@ -312,19 +312,19 @@ type BulkInviteRequest struct {
 }
 
 // Create invites a user to the workspace.
-func (s *WorkspaceInvitesService) Create(ctx context.Context, req *InviteRequest, opts ...RequestOption) (*StatusResponse, error) {
+func (s *WorkspaceInvitesService) Create(ctx context.Context, req *InviteRequest, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/workspace/invites/add", body: orEmpty(req), opts: opts})
 }
 
 // CreateBatch invites several users to the workspace.
-func (s *WorkspaceInvitesService) CreateBatch(ctx context.Context, req *BulkInviteRequest, opts ...RequestOption) (*StatusResponse, error) {
+func (s *WorkspaceInvitesService) CreateBatch(ctx context.Context, req *BulkInviteRequest, opts ...Option) (*StatusResponse, error) {
 	body := *orEmpty(req)
 	body.Emails = nonNil(body.Emails)
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/workspace/invites/add-bulk", body: &body, opts: opts})
 }
 
 // Delete revokes the pending invitation for email.
-func (s *WorkspaceInvitesService) Delete(ctx context.Context, email string, opts ...RequestOption) (*StatusResponse, error) {
+func (s *WorkspaceInvitesService) Delete(ctx context.Context, email string, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: "/v1/workspace/invites", body: emailBody{email}, opts: opts})
 }
 
@@ -342,7 +342,7 @@ type WorkspaceMember struct {
 }
 
 // List returns the workspace members.
-func (s *WorkspaceMembersService) List(ctx context.Context, opts ...RequestOption) ([]WorkspaceMember, error) {
+func (s *WorkspaceMembersService) List(ctx context.Context, opts ...Option) ([]WorkspaceMember, error) {
 	var out []WorkspaceMember
 	if err := doJSON(ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/workspace/members", opts: opts}, &out); err != nil {
 		return nil, err
@@ -361,7 +361,7 @@ type MemberUpdateRequest struct {
 }
 
 // Update changes a member's role, seat or lock state.
-func (s *WorkspaceMembersService) Update(ctx context.Context, req *MemberUpdateRequest, opts ...RequestOption) (*StatusResponse, error) {
+func (s *WorkspaceMembersService) Update(ctx context.Context, req *MemberUpdateRequest, opts ...Option) (*StatusResponse, error) {
 	return doValue[StatusResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/workspace/members", body: orEmpty(req), opts: opts})
 }
 
@@ -423,7 +423,7 @@ type resourceTypeQuery struct {
 }
 
 // Get returns the sharing metadata of a resource.
-func (s *WorkspaceResourcesService) Get(ctx context.Context, resourceID string, resourceType WorkspaceResourceType, opts ...RequestOption) (*ResourceMetadata, error) {
+func (s *WorkspaceResourcesService) Get(ctx context.Context, resourceID string, resourceType WorkspaceResourceType, opts ...Option) (*ResourceMetadata, error) {
 	return doValue[ResourceMetadata](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/workspace/resources/%s", resourceID), query: resourceTypeQuery{resourceType}, opts: opts})
 }
 
@@ -446,12 +446,12 @@ type ResourceUnshareRequest struct {
 }
 
 // Share grants a user, group or API key a role on a resource.
-func (s *WorkspaceResourcesService) Share(ctx context.Context, resourceID string, req *ResourceShareRequest, opts ...RequestOption) (json.RawMessage, error) {
+func (s *WorkspaceResourcesService) Share(ctx context.Context, resourceID string, req *ResourceShareRequest, opts ...Option) (json.RawMessage, error) {
 	return doRaw(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/workspace/resources/%s/share", resourceID), body: orEmpty(req), opts: opts})
 }
 
 // Unshare removes a principal's access to a resource.
-func (s *WorkspaceResourcesService) Unshare(ctx context.Context, resourceID string, req *ResourceUnshareRequest, opts ...RequestOption) (json.RawMessage, error) {
+func (s *WorkspaceResourcesService) Unshare(ctx context.Context, resourceID string, req *ResourceUnshareRequest, opts ...Option) (json.RawMessage, error) {
 	return doRaw(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/workspace/resources/%s/unshare", resourceID), body: orEmpty(req), opts: opts})
 }
 
@@ -469,6 +469,6 @@ type apiKeyNameQuery struct {
 }
 
 // Disable disables the workspace API key with the given name.
-func (s *WorkspacesAPIKeysService) Disable(ctx context.Context, apiKeyName string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *WorkspacesAPIKeysService) Disable(ctx context.Context, apiKeyName string, opts ...Option) (json.RawMessage, error) {
 	return doRaw(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/workspaces/api-keys/disable", query: apiKeyNameQuery{apiKeyName}, opts: opts})
 }

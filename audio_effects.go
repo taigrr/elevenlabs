@@ -38,7 +38,7 @@ type AudioEffectsService struct{ cfg *config }
 
 // GetCatalog lists the filter presets, reverb environments and background
 // noises that audio_effects can reference.
-func (s *AudioEffectsService) GetCatalog(ctx context.Context, opts ...RequestOption) (*AudioEffectsCatalog, error) {
+func (s *AudioEffectsService) GetCatalog(ctx context.Context, opts ...Option) (*AudioEffectsCatalog, error) {
 	var out AudioEffectsCatalog
 	if err := doJSON(ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/audio-effects/catalog", opts: opts}, &out); err != nil {
 		return nil, err

@@ -108,19 +108,19 @@ type PronunciationDictionaryWithRules struct {
 }
 
 // CreateFromFile creates a pronunciation dictionary from a lexicon file.
-func (s *PronunciationDictionariesService) CreateFromFile(ctx context.Context, req *PronunciationDictionaryCreateFromFileRequest, opts ...RequestOption) (*AddPronunciationDictionaryResponse, error) {
+func (s *PronunciationDictionariesService) CreateFromFile(ctx context.Context, req *PronunciationDictionaryCreateFromFileRequest, opts ...Option) (*AddPronunciationDictionaryResponse, error) {
 	return doValue[AddPronunciationDictionaryResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/pronunciation-dictionaries/add-from-file", form: orEmpty(req), opts: opts})
 }
 
 // CreateFromRules creates a pronunciation dictionary from rules.
-func (s *PronunciationDictionariesService) CreateFromRules(ctx context.Context, req *PronunciationDictionaryCreateFromRulesRequest, opts ...RequestOption) (*AddPronunciationDictionaryResponse, error) {
+func (s *PronunciationDictionariesService) CreateFromRules(ctx context.Context, req *PronunciationDictionaryCreateFromRulesRequest, opts ...Option) (*AddPronunciationDictionaryResponse, error) {
 	body := *orEmpty(req)
 	body.Rules = nonNil(body.Rules)
 	return doValue[AddPronunciationDictionaryResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/pronunciation-dictionaries/add-from-rules", body: &body, opts: opts})
 }
 
 // Get returns a pronunciation dictionary and its latest rules.
-func (s *PronunciationDictionariesService) Get(ctx context.Context, dictionaryID string, opts ...RequestOption) (*PronunciationDictionaryWithRules, error) {
+func (s *PronunciationDictionariesService) Get(ctx context.Context, dictionaryID string, opts ...Option) (*PronunciationDictionaryWithRules, error) {
 	return doValue[PronunciationDictionaryWithRules](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/pronunciation-dictionaries/%s", dictionaryID), opts: opts})
 }
 
@@ -133,12 +133,12 @@ type PronunciationDictionaryUpdateRequest struct {
 }
 
 // Update edits a pronunciation dictionary's name or archived state.
-func (s *PronunciationDictionariesService) Update(ctx context.Context, dictionaryID string, req *PronunciationDictionaryUpdateRequest, opts ...RequestOption) (*PronunciationDictionaryMetadata, error) {
+func (s *PronunciationDictionariesService) Update(ctx context.Context, dictionaryID string, req *PronunciationDictionaryUpdateRequest, opts ...Option) (*PronunciationDictionaryMetadata, error) {
 	return doValue[PronunciationDictionaryMetadata](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/pronunciation-dictionaries/%s", dictionaryID), body: orEmpty(req), opts: opts})
 }
 
 // Download streams the PLS file of a dictionary version. The caller must close the returned reader.
-func (s *PronunciationDictionariesService) Download(ctx context.Context, dictionaryID, versionID string, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *PronunciationDictionariesService) Download(ctx context.Context, dictionaryID, versionID string, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/pronunciation-dictionaries/%s/%s/download", dictionaryID, versionID), accept: acceptAny, opts: opts})
 }
 
@@ -173,12 +173,12 @@ type GetPronunciationDictionariesResponse struct {
 }
 
 // List returns one page of pronunciation dictionaries. req may be nil.
-func (s *PronunciationDictionariesService) List(ctx context.Context, req *PronunciationDictionariesListRequest, opts ...RequestOption) (*GetPronunciationDictionariesResponse, error) {
+func (s *PronunciationDictionariesService) List(ctx context.Context, req *PronunciationDictionariesListRequest, opts ...Option) (*GetPronunciationDictionariesResponse, error) {
 	return doValue[GetPronunciationDictionariesResponse](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/pronunciation-dictionaries", query: req, opts: opts})
 }
 
 // ListAll iterates over every pronunciation dictionary, fetching pages on demand.
-func (s *PronunciationDictionariesService) ListAll(ctx context.Context, req *PronunciationDictionariesListRequest, opts ...RequestOption) iter.Seq2[PronunciationDictionaryMetadata, error] {
+func (s *PronunciationDictionariesService) ListAll(ctx context.Context, req *PronunciationDictionariesListRequest, opts ...Option) iter.Seq2[PronunciationDictionaryMetadata, error] {
 	var params PronunciationDictionariesListRequest
 	if req != nil {
 		params = *req
@@ -223,16 +223,16 @@ func nonNil[T any](s []T) []T {
 }
 
 // Set replaces all rules of a dictionary, creating a new version.
-func (s *PronunciationDictionaryRulesService) Set(ctx context.Context, dictionaryID string, rules []PronunciationRule, opts ...RequestOption) (*PronunciationDictionaryRulesResponse, error) {
+func (s *PronunciationDictionaryRulesService) Set(ctx context.Context, dictionaryID string, rules []PronunciationRule, opts ...Option) (*PronunciationDictionaryRulesResponse, error) {
 	return doValue[PronunciationDictionaryRulesResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/pronunciation-dictionaries/%s/set-rules", dictionaryID), body: pronunciationRulesBody{Rules: nonNil(rules)}, opts: opts})
 }
 
 // Add adds rules to a dictionary, creating a new version.
-func (s *PronunciationDictionaryRulesService) Add(ctx context.Context, dictionaryID string, rules []PronunciationRule, opts ...RequestOption) (*PronunciationDictionaryRulesResponse, error) {
+func (s *PronunciationDictionaryRulesService) Add(ctx context.Context, dictionaryID string, rules []PronunciationRule, opts ...Option) (*PronunciationDictionaryRulesResponse, error) {
 	return doValue[PronunciationDictionaryRulesResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/pronunciation-dictionaries/%s/add-rules", dictionaryID), body: pronunciationRulesBody{Rules: nonNil(rules)}, opts: opts})
 }
 
 // Remove removes the rules matching ruleStrings, creating a new version.
-func (s *PronunciationDictionaryRulesService) Remove(ctx context.Context, dictionaryID string, ruleStrings []string, opts ...RequestOption) (*PronunciationDictionaryRulesResponse, error) {
+func (s *PronunciationDictionaryRulesService) Remove(ctx context.Context, dictionaryID string, ruleStrings []string, opts ...Option) (*PronunciationDictionaryRulesResponse, error) {
 	return doValue[PronunciationDictionaryRulesResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/pronunciation-dictionaries/%s/remove-rules", dictionaryID), body: removeRulesBody{RuleStrings: nonNil(ruleStrings)}, opts: opts})
 }

@@ -85,8 +85,8 @@ func TestFlowsCreateAndWait(t *testing.T) {
 	}
 	// jitter is fixed at 0.5 → +10%.
 	want := []time.Duration{3300 * time.Millisecond, 7700 * time.Millisecond}
-	if len(ts.sleeps) != 2 || ts.sleeps[0] != want[0] || ts.sleeps[1] != want[1] {
-		t.Errorf("sleeps = %v, want %v", ts.sleeps, want)
+	if len(ts.Sleeps()) != 2 || ts.Sleeps()[0] != want[0] || ts.Sleeps()[1] != want[1] {
+		t.Errorf("sleeps = %v, want %v", ts.Sleeps(), want)
 	}
 }
 
@@ -107,8 +107,8 @@ func TestFlowsCreateAndWaitTimeout(t *testing.T) {
 		respond(http.StatusOK, contentTypeJSON, `{"id":"r","template_id":"t","status":"generating","outputs":{}}`),
 	))
 	now := time.Unix(0, 0)
-	client.cfg.now = func() time.Time { return now }
-	client.cfg.sleep = func(ctx context.Context, d time.Duration) error { now = now.Add(d); return nil }
+	client.cfg.Now = func() time.Time { return now }
+	client.cfg.Sleep = func(ctx context.Context, d time.Duration) error { now = now.Add(d); return nil }
 	_, err := client.Flows.Templates.Runs.CreateAndWait(context.Background(), "t", &TemplateRunCreateRequest{}, &FlowsWaitOptions{WaitTimeout: 10 * time.Second})
 	var te *FlowsWaitTimeoutError
 	if !errors.Is(err, ErrFlowsWaitTimeout) || !errors.As(err, &te) || te.ID != "r" || te.TemplateID != "t" || te.LastStatus != GenerationStatusGenerating {

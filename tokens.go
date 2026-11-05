@@ -34,6 +34,6 @@ type SingleUseToken struct {
 type TokensSingleUseService struct{ cfg *config }
 
 // Create issues a single-use token, valid for 15 minutes, for the given purpose.
-func (s *TokensSingleUseService) Create(ctx context.Context, tokenType SingleUseTokenType, opts ...RequestOption) (*SingleUseToken, error) {
+func (s *TokensSingleUseService) Create(ctx context.Context, tokenType SingleUseTokenType, opts ...Option) (*SingleUseToken, error) {
 	return doValue[SingleUseToken](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/single-use-token/" + url.PathEscape(string(tokenType)), opts: opts})
 }

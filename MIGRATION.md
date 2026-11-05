@@ -25,9 +25,9 @@ go get github.com/taigrr/elevenlabs/v2@latest
 | --- | --- |
 | `client.New(apiKey)` (returns `Client` value) | `elevenlabs.NewClient(elevenlabs.WithAPIKey(apiKey))` (returns `*Client`; defaults to `$ELEVENLABS_API_KEY`) |
 | `c.WithEndpoint(url)` | `elevenlabs.WithBaseURL(url)` or `elevenlabs.WithEnvironment(env)` |
-| `c.WithAPIKey(key)` | `elevenlabs.WithAPIKey(key)` option, or `elevenlabs.WithRequestAPIKey(key)` per request |
+| `c.WithAPIKey(key)` | `elevenlabs.WithAPIKey(key)` option, passed to NewClient or to a single call |
 | `c.WithHTTPClient(hc)` | `elevenlabs.WithHTTPClient(hc)` |
-| (none) | `WithTimeout`, `WithMaxRetries`, `WithHeader`, `WithUserAgent`, per-request `RequestOption`s |
+| (none) | `WithTimeout`, `WithMaxRetries`, `WithHeader`, `WithUserAgent`, the same options per call |
 
 Requests are now retried by default (2 retries for 408/409/429/5xx) and time out after 240 seconds per attempt; use `WithMaxRetries(0)` / `WithTimeout(0)` to restore the old behavior.
 

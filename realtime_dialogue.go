@@ -119,8 +119,8 @@ type TextToDialogueStream struct{ s *socket }
 
 // StreamInput opens a text-to-dialogue WebSocket
 // (wss://…/v1/text-to-dialogue/stream-input). req may be nil.
-func (s *TextToDialogueService) StreamInput(ctx context.Context, req *TextToDialogueStreamInputRequest, opts ...RequestOption) (*TextToDialogueStream, error) {
-	sock, err := s.cfg.dial(ctx, dialConfig{path: "/v1/text-to-dialogue/stream-input", query: req, opts: opts})
+func (s *TextToDialogueService) StreamInput(ctx context.Context, req *TextToDialogueStreamInputRequest, opts ...Option) (*TextToDialogueStream, error) {
+	sock, err := dial(ctx, s.cfg, dialConfig{path: "/v1/text-to-dialogue/stream-input", query: req, opts: opts})
 	if err != nil {
 		return nil, err
 	}
@@ -162,7 +162,7 @@ func (c *TextToDialogueStream) Recv(ctx context.Context) (*DialogueStreamOutput,
 // AudioReader returns a reader over the decoded audio of successive Recv
 // calls, ending with io.EOF after the final message.
 func (c *TextToDialogueStream) AudioReader(ctx context.Context) io.Reader {
-	return &audioReader{next: func() ([]byte, error) {
+	return &audioReader{Next: func() ([]byte, error) {
 		out, err := c.Recv(ctx)
 		if err != nil {
 			return nil, err
@@ -183,8 +183,8 @@ type TextToDialogueMultiStream struct{ s *socket }
 
 // MultiStreamInput opens a multi-context text-to-dialogue WebSocket
 // (wss://…/v1/text-to-dialogue/multi-stream-input). req may be nil.
-func (s *TextToDialogueService) MultiStreamInput(ctx context.Context, req *TextToDialogueStreamInputRequest, opts ...RequestOption) (*TextToDialogueMultiStream, error) {
-	sock, err := s.cfg.dial(ctx, dialConfig{path: "/v1/text-to-dialogue/multi-stream-input", query: req, opts: opts})
+func (s *TextToDialogueService) MultiStreamInput(ctx context.Context, req *TextToDialogueStreamInputRequest, opts ...Option) (*TextToDialogueMultiStream, error) {
+	sock, err := dial(ctx, s.cfg, dialConfig{path: "/v1/text-to-dialogue/multi-stream-input", query: req, opts: opts})
 	if err != nil {
 		return nil, err
 	}

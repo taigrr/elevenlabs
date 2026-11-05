@@ -115,7 +115,7 @@ func (t translateStream) recv(ctx context.Context) (*RealtimeTranslateMessage, e
 }
 
 func (t translateStream) audioReader(ctx context.Context) io.Reader {
-	return &audioReader{next: func() ([]byte, error) {
+	return &audioReader{Next: func() ([]byte, error) {
 		for {
 			msg, err := t.recv(ctx)
 			if err != nil {
@@ -145,8 +145,8 @@ type DubbingRealtime struct{ t translateStream }
 
 // Realtime opens a realtime dubbing session (wss://…/v1/dubbing/realtime).
 // req may be nil.
-func (s *DubbingService) Realtime(ctx context.Context, req *DubbingRealtimeRequest, opts ...RequestOption) (*DubbingRealtime, error) {
-	sock, err := s.cfg.dial(ctx, dialConfig{path: "/v1/dubbing/realtime", query: req, opts: opts})
+func (s *DubbingService) Realtime(ctx context.Context, req *DubbingRealtimeRequest, opts ...Option) (*DubbingRealtime, error) {
+	sock, err := dial(ctx, s.cfg, dialConfig{path: "/v1/dubbing/realtime", query: req, opts: opts})
 	if err != nil {
 		return nil, err
 	}
@@ -226,8 +226,8 @@ type TranslationRealtime struct{ t translateStream }
 
 // Realtime opens a realtime translation session
 // (wss://…/v1/translation/realtime). req may be nil.
-func (s *TranslationService) Realtime(ctx context.Context, req *TranslationRealtimeRequest, opts ...RequestOption) (*TranslationRealtime, error) {
-	sock, err := s.cfg.dial(ctx, dialConfig{
+func (s *TranslationService) Realtime(ctx context.Context, req *TranslationRealtimeRequest, opts ...Option) (*TranslationRealtime, error) {
+	sock, err := dial(ctx, s.cfg, dialConfig{
 		path:     "/v1/translation/realtime",
 		query:    req,
 		opts:     opts,

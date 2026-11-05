@@ -40,12 +40,12 @@ type ConvAISettings struct {
 }
 
 // Get returns the workspace settings.
-func (s *ConvAISettingsService) Get(ctx context.Context, opts ...RequestOption) (*ConvAISettings, error) {
+func (s *ConvAISettingsService) Get(ctx context.Context, opts ...Option) (*ConvAISettings, error) {
 	return getValue[ConvAISettings](ctx, s.cfg, "/v1/convai/settings", nil, opts)
 }
 
 // Update changes the workspace settings. Only set fields are changed.
-func (s *ConvAISettingsService) Update(ctx context.Context, req *ConvAISettings, opts ...RequestOption) (*ConvAISettings, error) {
+func (s *ConvAISettingsService) Update(ctx context.Context, req *ConvAISettings, opts ...Option) (*ConvAISettings, error) {
 	return sendValue[ConvAISettings](ctx, s.cfg, http.MethodPatch, "/v1/convai/settings", nil, orEmpty(req), opts)
 }
 
@@ -99,12 +99,12 @@ type secretBody struct {
 }
 
 // List returns one page of secrets. req may be nil.
-func (s *ConvAISecretsService) List(ctx context.Context, req *SecretListRequest, opts ...RequestOption) (*SecretsPage, error) {
+func (s *ConvAISecretsService) List(ctx context.Context, req *SecretListRequest, opts ...Option) (*SecretsPage, error) {
 	return getValue[SecretsPage](ctx, s.cfg, "/v1/convai/secrets", req, opts)
 }
 
 // ListAll iterates over every secret.
-func (s *ConvAISecretsService) ListAll(ctx context.Context, req *SecretListRequest, opts ...RequestOption) iter.Seq2[Secret, error] {
+func (s *ConvAISecretsService) ListAll(ctx context.Context, req *SecretListRequest, opts ...Option) iter.Seq2[Secret, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[Secret], error) {
 		params.Cursor = cursor
@@ -118,27 +118,27 @@ func (s *ConvAISecretsService) ListAll(ctx context.Context, req *SecretListReque
 }
 
 // Create stores a new secret.
-func (s *ConvAISecretsService) Create(ctx context.Context, name, value string, opts ...RequestOption) (*Secret, error) {
+func (s *ConvAISecretsService) Create(ctx context.Context, name, value string, opts ...Option) (*Secret, error) {
 	return sendValue[Secret](ctx, s.cfg, http.MethodPost, "/v1/convai/secrets", nil, secretBody{"new", name, value}, opts)
 }
 
 // Get returns a secret's metadata.
-func (s *ConvAISecretsService) Get(ctx context.Context, secretID string, opts ...RequestOption) (*Secret, error) {
+func (s *ConvAISecretsService) Get(ctx context.Context, secretID string, opts ...Option) (*Secret, error) {
 	return getValue[Secret](ctx, s.cfg, pathf("/v1/convai/secrets/%s", secretID), nil, opts)
 }
 
 // Delete deletes a secret.
-func (s *ConvAISecretsService) Delete(ctx context.Context, secretID string, opts ...RequestOption) error {
+func (s *ConvAISecretsService) Delete(ctx context.Context, secretID string, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/secrets/%s", secretID), nil, nil, opts)
 }
 
 // Update renames a secret and replaces its value.
-func (s *ConvAISecretsService) Update(ctx context.Context, secretID, name, value string, opts ...RequestOption) (*Secret, error) {
+func (s *ConvAISecretsService) Update(ctx context.Context, secretID, name, value string, opts ...Option) (*Secret, error) {
 	return sendValue[Secret](ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/secrets/%s", secretID), nil, secretBody{"update", name, value}, opts)
 }
 
 // GetDependencies lists the resources of one type that use a secret. req may be nil.
-func (s *ConvAISecretsService) GetDependencies(ctx context.Context, secretID string, resourceType SecretDependencyType, req *PageRequest, opts ...RequestOption) (*SecretDependencies, error) {
+func (s *ConvAISecretsService) GetDependencies(ctx context.Context, secretID string, resourceType SecretDependencyType, req *PageRequest, opts ...Option) (*SecretDependencies, error) {
 	return getValue[SecretDependencies](ctx, s.cfg, pathf("/v1/convai/secrets/%s/dependencies/%s", secretID, string(resourceType)), req, opts)
 }
 
@@ -189,11 +189,11 @@ type DashboardSettings struct {
 }
 
 // Get returns the dashboard settings.
-func (s *ConvAIDashboardSettingsService) Get(ctx context.Context, opts ...RequestOption) (*DashboardSettings, error) {
+func (s *ConvAIDashboardSettingsService) Get(ctx context.Context, opts ...Option) (*DashboardSettings, error) {
 	return getValue[DashboardSettings](ctx, s.cfg, "/v1/convai/settings/dashboard", nil, opts)
 }
 
 // Update replaces the dashboard charts.
-func (s *ConvAIDashboardSettingsService) Update(ctx context.Context, req *DashboardSettings, opts ...RequestOption) (*DashboardSettings, error) {
+func (s *ConvAIDashboardSettingsService) Update(ctx context.Context, req *DashboardSettings, opts ...Option) (*DashboardSettings, error) {
 	return sendValue[DashboardSettings](ctx, s.cfg, http.MethodPatch, "/v1/convai/settings/dashboard", nil, orEmpty(req), opts)
 }

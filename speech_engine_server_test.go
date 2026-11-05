@@ -109,7 +109,7 @@ func TestExtractLLMText(t *testing.T) {
 func TestSpeechEngineHandler(t *testing.T) {
 	now := time.Unix(1_700_000_000, 0)
 	client := NewClient(WithAPIKey("sk_test"))
-	client.cfg.now = func() time.Time { return now }
+	client.cfg.Now = func() time.Time { return now }
 
 	var mu sync.Mutex
 	var events []string

@@ -42,7 +42,7 @@ type Model struct {
 }
 
 // List returns the available models.
-func (s *ModelsService) List(ctx context.Context, opts ...RequestOption) ([]Model, error) {
+func (s *ModelsService) List(ctx context.Context, opts ...Option) ([]Model, error) {
 	var models []Model
 	if err := doJSON(ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/models", opts: opts}, &models); err != nil {
 		return nil, err

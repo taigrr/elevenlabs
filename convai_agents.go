@@ -367,12 +367,12 @@ type TestInvocation struct {
 }
 
 // List returns one page of agents. req may be nil.
-func (s *AgentsService) List(ctx context.Context, req *AgentsListRequest, opts ...RequestOption) (*AgentsPage, error) {
+func (s *AgentsService) List(ctx context.Context, req *AgentsListRequest, opts ...Option) (*AgentsPage, error) {
 	return getValue[AgentsPage](ctx, s.cfg, "/v1/convai/agents", req, opts)
 }
 
 // ListAll iterates over every agent.
-func (s *AgentsService) ListAll(ctx context.Context, req *AgentsListRequest, opts ...RequestOption) iter.Seq2[AgentSummary, error] {
+func (s *AgentsService) ListAll(ctx context.Context, req *AgentsListRequest, opts ...Option) iter.Seq2[AgentSummary, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[AgentSummary], error) {
 		params.Cursor = cursor
@@ -385,29 +385,29 @@ func (s *AgentsService) ListAll(ctx context.Context, req *AgentsListRequest, opt
 }
 
 // Create creates an agent.
-func (s *AgentsService) Create(ctx context.Context, req *AgentCreateRequest, opts ...RequestOption) (*AgentCreateResponse, error) {
+func (s *AgentsService) Create(ctx context.Context, req *AgentCreateRequest, opts ...Option) (*AgentCreateResponse, error) {
 	req = orEmpty(req)
 	return sendValue[AgentCreateResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/agents/create", req, req, opts)
 }
 
 // Get returns an agent. req may be nil.
-func (s *AgentsService) Get(ctx context.Context, agentID string, req *AgentGetRequest, opts ...RequestOption) (*Agent, error) {
+func (s *AgentsService) Get(ctx context.Context, agentID string, req *AgentGetRequest, opts ...Option) (*Agent, error) {
 	return getValue[Agent](ctx, s.cfg, pathf("/v1/convai/agents/%s", agentID), req, opts)
 }
 
 // Delete deletes an agent. req may be nil.
-func (s *AgentsService) Delete(ctx context.Context, agentID string, req *ForceRequest, opts ...RequestOption) error {
+func (s *AgentsService) Delete(ctx context.Context, agentID string, req *ForceRequest, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/agents/%s", agentID), req, nil, opts)
 }
 
 // Update changes an agent's settings.
-func (s *AgentsService) Update(ctx context.Context, agentID string, req *AgentUpdateRequest, opts ...RequestOption) (*Agent, error) {
+func (s *AgentsService) Update(ctx context.Context, agentID string, req *AgentUpdateRequest, opts ...Option) (*Agent, error) {
 	req = orEmpty(req)
 	return sendValue[Agent](ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/agents/%s", agentID), req, req, opts)
 }
 
 // Duplicate copies an agent. name may be empty to use the default name.
-func (s *AgentsService) Duplicate(ctx context.Context, agentID, name string, opts ...RequestOption) (*AgentCreateResponse, error) {
+func (s *AgentsService) Duplicate(ctx context.Context, agentID, name string, opts ...Option) (*AgentCreateResponse, error) {
 	body := struct {
 		Name string `json:"name,omitempty"`
 	}{name}
@@ -415,18 +415,18 @@ func (s *AgentsService) Duplicate(ctx context.Context, agentID, name string, opt
 }
 
 // SimulateConversation runs a simulated conversation against an agent.
-func (s *AgentsService) SimulateConversation(ctx context.Context, agentID string, req *AgentSimulationRequest, opts ...RequestOption) (*AgentSimulationResponse, error) {
+func (s *AgentsService) SimulateConversation(ctx context.Context, agentID string, req *AgentSimulationRequest, opts ...Option) (*AgentSimulationResponse, error) {
 	return sendValue[AgentSimulationResponse](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/agents/%s/simulate-conversation", agentID), nil, orEmpty(req), opts)
 }
 
 // SimulateConversationStream runs a simulated conversation and streams the
 // partial results. The caller must close the returned body.
-func (s *AgentsService) SimulateConversationStream(ctx context.Context, agentID string, req *AgentSimulationRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *AgentsService) SimulateConversationStream(ctx context.Context, agentID string, req *AgentSimulationRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/convai/agents/%s/simulate-conversation/stream", agentID), body: orEmpty(req), accept: acceptAny, opts: opts})
 }
 
 // RunTests runs tests against an agent.
-func (s *AgentsService) RunTests(ctx context.Context, agentID string, req *AgentRunTestsRequest, opts ...RequestOption) (*TestInvocation, error) {
+func (s *AgentsService) RunTests(ctx context.Context, agentID string, req *AgentRunTestsRequest, opts ...Option) (*TestInvocation, error) {
 	return sendValue[TestInvocation](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/agents/%s/run-tests", agentID), nil, orEmpty(req), opts)
 }
 
@@ -591,43 +591,43 @@ type BranchMergeRequest struct {
 }
 
 // List returns an agent's branches. req may be nil.
-func (s *AgentBranchesService) List(ctx context.Context, agentID string, req *AgentBranchListRequest, opts ...RequestOption) (*AgentBranchList, error) {
+func (s *AgentBranchesService) List(ctx context.Context, agentID string, req *AgentBranchListRequest, opts ...Option) (*AgentBranchList, error) {
 	return getValue[AgentBranchList](ctx, s.cfg, pathf("/v1/convai/agents/%s/branches", agentID), req, opts)
 }
 
 // Create creates a branch.
-func (s *AgentBranchesService) Create(ctx context.Context, agentID string, req *AgentBranchCreateRequest, opts ...RequestOption) (*AgentBranchCreateResponse, error) {
+func (s *AgentBranchesService) Create(ctx context.Context, agentID string, req *AgentBranchCreateRequest, opts ...Option) (*AgentBranchCreateResponse, error) {
 	return sendValue[AgentBranchCreateResponse](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/agents/%s/branches", agentID), nil, orEmpty(req), opts)
 }
 
 // Get returns a branch.
-func (s *AgentBranchesService) Get(ctx context.Context, agentID, branchID string, opts ...RequestOption) (*AgentBranch, error) {
+func (s *AgentBranchesService) Get(ctx context.Context, agentID, branchID string, opts ...Option) (*AgentBranch, error) {
 	return getValue[AgentBranch](ctx, s.cfg, pathf("/v1/convai/agents/%s/branches/%s", agentID, branchID), nil, opts)
 }
 
 // Update changes a branch.
-func (s *AgentBranchesService) Update(ctx context.Context, agentID, branchID string, req *AgentBranchUpdateRequest, opts ...RequestOption) (*AgentBranch, error) {
+func (s *AgentBranchesService) Update(ctx context.Context, agentID, branchID string, req *AgentBranchUpdateRequest, opts ...Option) (*AgentBranch, error) {
 	return sendValue[AgentBranch](ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/agents/%s/branches/%s", agentID, branchID), nil, orEmpty(req), opts)
 }
 
 // PreviewMerge previews merging sourceBranchID into req.TargetBranchID.
-func (s *AgentBranchesService) PreviewMerge(ctx context.Context, agentID, sourceBranchID string, req *MergePreviewRequest, opts ...RequestOption) (*MergePreview, error) {
+func (s *AgentBranchesService) PreviewMerge(ctx context.Context, agentID, sourceBranchID string, req *MergePreviewRequest, opts ...Option) (*MergePreview, error) {
 	return getValue[MergePreview](ctx, s.cfg, pathf("/v1/convai/agents/%s/branches/%s/merge-preview", agentID, sourceBranchID), orEmpty(req), opts)
 }
 
 // Merge merges sourceBranchID into req.TargetBranchID.
-func (s *AgentBranchesService) Merge(ctx context.Context, agentID, sourceBranchID string, req *BranchMergeRequest, opts ...RequestOption) (json.RawMessage, error) {
+func (s *AgentBranchesService) Merge(ctx context.Context, agentID, sourceBranchID string, req *BranchMergeRequest, opts ...Option) (json.RawMessage, error) {
 	req = orEmpty(req)
 	return sendRaw(ctx, s.cfg, http.MethodPost, pathf("/v1/convai/agents/%s/branches/%s/merge", agentID, sourceBranchID), req, req, opts)
 }
 
 // PreviewRebase previews rebasing branchID. req may be nil.
-func (s *AgentBranchesService) PreviewRebase(ctx context.Context, agentID, branchID string, req *RebasePreviewRequest, opts ...RequestOption) (*MergePreview, error) {
+func (s *AgentBranchesService) PreviewRebase(ctx context.Context, agentID, branchID string, req *RebasePreviewRequest, opts ...Option) (*MergePreview, error) {
 	return getValue[MergePreview](ctx, s.cfg, pathf("/v1/convai/agents/%s/branches/%s/rebase-preview", agentID, branchID), req, opts)
 }
 
 // Rebase rebases branchID onto sourceBranchID (the main branch when empty).
-func (s *AgentBranchesService) Rebase(ctx context.Context, agentID, branchID, sourceBranchID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *AgentBranchesService) Rebase(ctx context.Context, agentID, branchID, sourceBranchID string, opts ...Option) (json.RawMessage, error) {
 	query := struct {
 		SourceBranchID string `query:"source_branch_id"`
 	}{sourceBranchID}
@@ -684,12 +684,12 @@ type AgentDeploymentResponse struct {
 }
 
 // List returns an agent's deployment history. req may be nil.
-func (s *AgentDeploymentsService) List(ctx context.Context, agentID string, req *PageNumberRequest, opts ...RequestOption) (*AgentDeploymentList, error) {
+func (s *AgentDeploymentsService) List(ctx context.Context, agentID string, req *PageNumberRequest, opts ...Option) (*AgentDeploymentList, error) {
 	return getValue[AgentDeploymentList](ctx, s.cfg, pathf("/v1/convai/agents/%s/deployments", agentID), req, opts)
 }
 
 // Create sets the traffic split between branches.
-func (s *AgentDeploymentsService) Create(ctx context.Context, agentID string, traffic []BranchTraffic, opts ...RequestOption) (*AgentDeploymentResponse, error) {
+func (s *AgentDeploymentsService) Create(ctx context.Context, agentID string, traffic []BranchTraffic, opts ...Option) (*AgentDeploymentResponse, error) {
 	type deploymentRequest struct {
 		Requests []BranchTraffic `json:"requests"`
 	}
@@ -718,13 +718,13 @@ type branchQuery struct {
 }
 
 // Create creates or replaces a branch's draft.
-func (s *AgentDraftsService) Create(ctx context.Context, agentID string, req *AgentDraftCreateRequest, opts ...RequestOption) (json.RawMessage, error) {
+func (s *AgentDraftsService) Create(ctx context.Context, agentID string, req *AgentDraftCreateRequest, opts ...Option) (json.RawMessage, error) {
 	req = orEmpty(req)
 	return sendRaw(ctx, s.cfg, http.MethodPost, pathf("/v1/convai/agents/%s/drafts", agentID), req, req, opts)
 }
 
 // Delete discards a branch's draft.
-func (s *AgentDraftsService) Delete(ctx context.Context, agentID, branchID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *AgentDraftsService) Delete(ctx context.Context, agentID, branchID string, opts ...Option) (json.RawMessage, error) {
 	return sendRaw(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/agents/%s/drafts", agentID), branchQuery{branchID}, nil, opts)
 }
 
@@ -752,7 +752,7 @@ type AgentIDResponse struct {
 }
 
 // Create uploads the audio played while callers are on hold.
-func (s *AgentHoldAudioService) Create(ctx context.Context, agentID string, audio File, opts ...RequestOption) (*HoldAudioResponse, error) {
+func (s *AgentHoldAudioService) Create(ctx context.Context, agentID string, audio File, opts ...Option) (*HoldAudioResponse, error) {
 	form := struct {
 		HoldAudioFile File `form:"hold_audio_file"`
 	}{audio}
@@ -760,7 +760,7 @@ func (s *AgentHoldAudioService) Create(ctx context.Context, agentID string, audi
 }
 
 // Delete removes an agent's hold audio.
-func (s *AgentHoldAudioService) Delete(ctx context.Context, agentID string, opts ...RequestOption) (*AgentIDResponse, error) {
+func (s *AgentHoldAudioService) Delete(ctx context.Context, agentID string, opts ...Option) (*AgentIDResponse, error) {
 	return sendValue[AgentIDResponse](ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/agents/%s/hold-audio", agentID), nil, nil, opts)
 }
 
@@ -773,7 +773,7 @@ type AgentKnowledgeBaseSize struct {
 }
 
 // Size returns the number of pages in an agent's knowledge base.
-func (s *AgentKnowledgeBaseService) Size(ctx context.Context, agentID string, opts ...RequestOption) (*AgentKnowledgeBaseSize, error) {
+func (s *AgentKnowledgeBaseService) Size(ctx context.Context, agentID string, opts ...Option) (*AgentKnowledgeBaseSize, error) {
 	return getValue[AgentKnowledgeBaseSize](ctx, s.cfg, pathf("/v1/convai/agent/%s/knowledge-base/size", agentID), nil, opts)
 }
 
@@ -798,7 +798,7 @@ type AgentLink struct {
 }
 
 // Get returns an agent's shareable link.
-func (s *AgentLinkService) Get(ctx context.Context, agentID string, opts ...RequestOption) (*AgentLink, error) {
+func (s *AgentLinkService) Get(ctx context.Context, agentID string, opts ...Option) (*AgentLink, error) {
 	return getValue[AgentLink](ctx, s.cfg, pathf("/v1/convai/agents/%s/link", agentID), nil, opts)
 }
 
@@ -826,7 +826,7 @@ type LLMUsageResponse struct {
 }
 
 // Calculate estimates the LLM cost of an agent. req may be nil.
-func (s *AgentLLMUsageService) Calculate(ctx context.Context, agentID string, req *LLMUsageRequest, opts ...RequestOption) (*LLMUsageResponse, error) {
+func (s *AgentLLMUsageService) Calculate(ctx context.Context, agentID string, req *LLMUsageRequest, opts ...Option) (*LLMUsageResponse, error) {
 	return sendValue[LLMUsageResponse](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/agent/%s/llm-usage/calculate", agentID), nil, orEmpty(req), opts)
 }
 
@@ -967,12 +967,12 @@ func mergeProposalPath(agentID, proposalID string) string {
 }
 
 // List returns one page of merge proposals. req may be nil.
-func (s *AgentMergeProposalsService) List(ctx context.Context, agentID string, req *MergeProposalListRequest, opts ...RequestOption) (*MergeProposalPage, error) {
+func (s *AgentMergeProposalsService) List(ctx context.Context, agentID string, req *MergeProposalListRequest, opts ...Option) (*MergeProposalPage, error) {
 	return getValue[MergeProposalPage](ctx, s.cfg, pathf("/v1/convai/agents/%s/merge-proposals", agentID), req, opts)
 }
 
 // ListAll iterates over every merge proposal.
-func (s *AgentMergeProposalsService) ListAll(ctx context.Context, agentID string, req *MergeProposalListRequest, opts ...RequestOption) iter.Seq2[MergeProposal, error] {
+func (s *AgentMergeProposalsService) ListAll(ctx context.Context, agentID string, req *MergeProposalListRequest, opts ...Option) iter.Seq2[MergeProposal, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[MergeProposal], error) {
 		params.Cursor = cursor
@@ -985,22 +985,22 @@ func (s *AgentMergeProposalsService) ListAll(ctx context.Context, agentID string
 }
 
 // Create opens a merge proposal.
-func (s *AgentMergeProposalsService) Create(ctx context.Context, agentID string, req *MergeProposalCreateRequest, opts ...RequestOption) (*MergeProposalCreateResponse, error) {
+func (s *AgentMergeProposalsService) Create(ctx context.Context, agentID string, req *MergeProposalCreateRequest, opts ...Option) (*MergeProposalCreateResponse, error) {
 	return sendValue[MergeProposalCreateResponse](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/agents/%s/merge-proposals", agentID), nil, orEmpty(req), opts)
 }
 
 // Get returns a merge proposal.
-func (s *AgentMergeProposalsService) Get(ctx context.Context, agentID, proposalID string, opts ...RequestOption) (*MergeProposal, error) {
+func (s *AgentMergeProposalsService) Get(ctx context.Context, agentID, proposalID string, opts ...Option) (*MergeProposal, error) {
 	return getValue[MergeProposal](ctx, s.cfg, mergeProposalPath(agentID, proposalID), nil, opts)
 }
 
 // Update changes or closes a merge proposal.
-func (s *AgentMergeProposalsService) Update(ctx context.Context, agentID, proposalID string, req *MergeProposalUpdateRequest, opts ...RequestOption) (*MergeProposal, error) {
+func (s *AgentMergeProposalsService) Update(ctx context.Context, agentID, proposalID string, req *MergeProposalUpdateRequest, opts ...Option) (*MergeProposal, error) {
 	return sendValue[MergeProposal](ctx, s.cfg, http.MethodPatch, mergeProposalPath(agentID, proposalID), nil, orEmpty(req), opts)
 }
 
 // SubmitReview reviews a merge proposal. comment may be empty.
-func (s *AgentMergeProposalsService) SubmitReview(ctx context.Context, agentID, proposalID string, state MergeProposalReviewState, comment string, opts ...RequestOption) (*MergeProposal, error) {
+func (s *AgentMergeProposalsService) SubmitReview(ctx context.Context, agentID, proposalID string, state MergeProposalReviewState, comment string, opts ...Option) (*MergeProposal, error) {
 	body := struct {
 		State   MergeProposalReviewState `json:"state"`
 		Comment string                   `json:"comment,omitempty"`
@@ -1009,7 +1009,7 @@ func (s *AgentMergeProposalsService) SubmitReview(ctx context.Context, agentID, 
 }
 
 // AddComment comments on a merge proposal.
-func (s *AgentMergeProposalsService) AddComment(ctx context.Context, agentID, proposalID, comment string, opts ...RequestOption) (*MergeProposal, error) {
+func (s *AgentMergeProposalsService) AddComment(ctx context.Context, agentID, proposalID, comment string, opts ...Option) (*MergeProposal, error) {
 	body := struct {
 		Body string `json:"body"`
 	}{comment}
@@ -1017,7 +1017,7 @@ func (s *AgentMergeProposalsService) AddComment(ctx context.Context, agentID, pr
 }
 
 // Merge merges a merge proposal. req may be nil.
-func (s *AgentMergeProposalsService) Merge(ctx context.Context, agentID, proposalID string, req *MergeOptions, opts ...RequestOption) (*MergeProposal, error) {
+func (s *AgentMergeProposalsService) Merge(ctx context.Context, agentID, proposalID string, req *MergeOptions, opts ...Option) (*MergeProposal, error) {
 	return sendValue[MergeProposal](ctx, s.cfg, http.MethodPost, mergeProposalPath(agentID, proposalID)+"/merge", nil, orEmpty(req), opts)
 }
 
@@ -1098,7 +1098,7 @@ func procedurePath(agentID, branchID string) string {
 }
 
 // List returns a branch's procedures. agentVersionID may be empty.
-func (s *AgentProceduresService) List(ctx context.Context, agentID, branchID, agentVersionID string, opts ...RequestOption) (*ProcedureList, error) {
+func (s *AgentProceduresService) List(ctx context.Context, agentID, branchID, agentVersionID string, opts ...Option) (*ProcedureList, error) {
 	query := struct {
 		AgentVersionID string `query:"agent_version_id"`
 	}{agentVersionID}
@@ -1106,22 +1106,22 @@ func (s *AgentProceduresService) List(ctx context.Context, agentID, branchID, ag
 }
 
 // Create creates a procedure. req may be nil.
-func (s *AgentProceduresService) Create(ctx context.Context, agentID, branchID string, req *ProcedureCreateRequest, opts ...RequestOption) (*ProcedureCreateResponse, error) {
+func (s *AgentProceduresService) Create(ctx context.Context, agentID, branchID string, req *ProcedureCreateRequest, opts ...Option) (*ProcedureCreateResponse, error) {
 	return sendValue[ProcedureCreateResponse](ctx, s.cfg, http.MethodPost, procedurePath(agentID, branchID), nil, orEmpty(req), opts)
 }
 
 // Compile compiles a branch's procedures into a workflow.
-func (s *AgentProceduresService) Compile(ctx context.Context, agentID, branchID string, opts ...RequestOption) (*CompiledProcedures, error) {
+func (s *AgentProceduresService) Compile(ctx context.Context, agentID, branchID string, opts ...Option) (*CompiledProcedures, error) {
 	return sendValue[CompiledProcedures](ctx, s.cfg, http.MethodPost, procedurePath(agentID, branchID)+"/compile", nil, nil, opts)
 }
 
 // Get returns a procedure. req may be nil.
-func (s *AgentProceduresService) Get(ctx context.Context, agentID, branchID, procedureID string, req *ProcedureGetRequest, opts ...RequestOption) (*Procedure, error) {
+func (s *AgentProceduresService) Get(ctx context.Context, agentID, branchID, procedureID string, req *ProcedureGetRequest, opts ...Option) (*Procedure, error) {
 	return getValue[Procedure](ctx, s.cfg, procedurePath(agentID, branchID)+pathf("/%s", procedureID), req, opts)
 }
 
 // Remove removes a procedure from a branch.
-func (s *AgentProceduresService) Remove(ctx context.Context, agentID, branchID, procedureID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *AgentProceduresService) Remove(ctx context.Context, agentID, branchID, procedureID string, opts ...Option) (json.RawMessage, error) {
 	return sendRaw(ctx, s.cfg, http.MethodDelete, procedurePath(agentID, branchID)+pathf("/%s", procedureID), nil, nil, opts)
 }
 
@@ -1133,17 +1133,17 @@ func procedureDraftPath(agentID, branchID, procedureID string) string {
 }
 
 // Get returns a procedure draft.
-func (s *AgentProcedureDraftsService) Get(ctx context.Context, agentID, branchID, procedureID string, opts ...RequestOption) (*Procedure, error) {
+func (s *AgentProcedureDraftsService) Get(ctx context.Context, agentID, branchID, procedureID string, opts ...Option) (*Procedure, error) {
 	return getValue[Procedure](ctx, s.cfg, procedureDraftPath(agentID, branchID, procedureID), nil, opts)
 }
 
 // Delete discards a procedure draft.
-func (s *AgentProcedureDraftsService) Delete(ctx context.Context, agentID, branchID, procedureID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *AgentProcedureDraftsService) Delete(ctx context.Context, agentID, branchID, procedureID string, opts ...Option) (json.RawMessage, error) {
 	return sendRaw(ctx, s.cfg, http.MethodDelete, procedureDraftPath(agentID, branchID, procedureID), nil, nil, opts)
 }
 
 // Update creates or replaces a procedure draft.
-func (s *AgentProcedureDraftsService) Update(ctx context.Context, agentID, branchID, procedureID string, req *ProcedureDraftUpdateRequest, opts ...RequestOption) (*Procedure, error) {
+func (s *AgentProcedureDraftsService) Update(ctx context.Context, agentID, branchID, procedureID string, req *ProcedureDraftUpdateRequest, opts ...Option) (*Procedure, error) {
 	return sendValue[Procedure](ctx, s.cfg, http.MethodPatch, procedureDraftPath(agentID, branchID, procedureID), nil, orEmpty(req), opts)
 }
 
@@ -1169,7 +1169,7 @@ type BatchResult[T any] struct {
 func (r BatchResult[T]) OK() bool { return r.Status == "success" }
 
 // Get returns summaries of the given agents keyed by agent ID.
-func (s *AgentSummariesService) Get(ctx context.Context, agentIDs []string, opts ...RequestOption) (map[string]BatchResult[AgentSummary], error) {
+func (s *AgentSummariesService) Get(ctx context.Context, agentIDs []string, opts ...Option) (map[string]BatchResult[AgentSummary], error) {
 	query := struct {
 		AgentIDs []string `query:"agent_ids"`
 	}{agentIDs}
@@ -1184,7 +1184,7 @@ func (s *AgentSummariesService) Get(ctx context.Context, agentIDs []string, opts
 type AgentVersionsService struct{ cfg *config }
 
 // Get returns an agent version's metadata.
-func (s *AgentVersionsService) Get(ctx context.Context, agentID, versionID string, opts ...RequestOption) (*AgentVersion, error) {
+func (s *AgentVersionsService) Get(ctx context.Context, agentID, versionID string, opts ...Option) (*AgentVersion, error) {
 	return getValue[AgentVersion](ctx, s.cfg, pathf("/v1/convai/agents/%s/versions/%s", agentID, versionID), nil, opts)
 }
 
@@ -1203,7 +1203,7 @@ type AgentWidget struct {
 }
 
 // Get returns an agent's widget configuration. conversationSignature may be empty.
-func (s *AgentWidgetService) Get(ctx context.Context, agentID, conversationSignature string, opts ...RequestOption) (*AgentWidget, error) {
+func (s *AgentWidgetService) Get(ctx context.Context, agentID, conversationSignature string, opts ...Option) (*AgentWidget, error) {
 	query := struct {
 		ConversationSignature string `query:"conversation_signature"`
 	}{conversationSignature}
@@ -1220,7 +1220,7 @@ type AgentAvatarResponse struct {
 }
 
 // Create uploads the widget avatar image.
-func (s *AgentAvatarService) Create(ctx context.Context, agentID string, avatar File, opts ...RequestOption) (*AgentAvatarResponse, error) {
+func (s *AgentAvatarService) Create(ctx context.Context, agentID string, avatar File, opts ...Option) (*AgentAvatarResponse, error) {
 	form := struct {
 		AvatarFile File `form:"avatar_file"`
 	}{avatar}

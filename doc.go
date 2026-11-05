@@ -17,8 +17,8 @@
 // official SDK, for example client.TextToSpeech.Convert,
 // client.Voices.Settings.Get or client.History.List. Every method that
 // performs I/O takes a context.Context first and accepts trailing
-// RequestOption values (WithRequestHeader, WithQueryParam, WithBodyParam,
-// WithRequestTimeout, WithRequestMaxRetries, WithRequestAPIKey).
+// Option values (WithHeader, WithQueryParam, WithBodyParam,
+// WithTimeout, WithMaxRetries, WithAPIKey).
 //
 // # Request parameters
 //

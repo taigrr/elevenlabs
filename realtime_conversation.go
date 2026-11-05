@@ -291,7 +291,7 @@ type ConversationSession struct {
 }
 
 // Connect starts an agent conversation (wss://…/v1/convai/conversation).
-func (s *ConversationalAIService) Connect(ctx context.Context, req *ConversationRequest, opts ...RequestOption) (*ConversationSession, error) {
+func (s *ConversationalAIService) Connect(ctx context.Context, req *ConversationRequest, opts ...Option) (*ConversationSession, error) {
 	if req == nil || req.AgentID == "" {
 		return nil, fmt.Errorf("%w: agent id is required", ErrInvalidParameter)
 	}
@@ -311,7 +311,7 @@ func (s *ConversationalAIService) Connect(ctx context.Context, req *Conversation
 		}
 		dc = dialConfig{rawURL: signed.SignedURL, opts: opts, noAPIKey: true}
 	}
-	sock, err := s.cfg.dial(ctx, dc)
+	sock, err := dial(ctx, s.cfg, dc)
 	if err != nil {
 		return nil, err
 	}

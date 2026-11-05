@@ -11,6 +11,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
 )
 
 // SongMetadata describes a generated song.
@@ -60,14 +62,14 @@ const defaultMusicFilename = "generated_music.mp3"
 
 // ComposeDetailed generates a song and returns its metadata together with a
 // streaming reader over the audio. The caller must close the response.
-func (s *MusicService) ComposeDetailed(ctx context.Context, req *MusicComposeDetailedRequest, opts ...RequestOption) (*MusicDetailedResponse, error) {
+func (s *MusicService) ComposeDetailed(ctx context.Context, req *MusicComposeDetailedRequest, opts ...Option) (*MusicDetailedResponse, error) {
 	req = orEmpty(req)
 	r := &request{method: http.MethodPost, path: "/v1/music/detailed", query: req, body: req, accept: acceptAny, opts: opts}
-	resp, cancel, err := s.cfg.send(ctx, r)
+	resp, cancel, err := send(ctx, s.cfg, r)
 	if err != nil {
 		return nil, err
 	}
-	body := &cancelOnClose{ReadCloser: resp.Body, cancel: cancel}
+	body := &transport.CancelOnClose{ReadCloser: resp.Body, Cancel: cancel}
 	out, err := parseMusicMultipart(body, resp.Header)
 	if err != nil {
 		body.Close()

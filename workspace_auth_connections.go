@@ -80,7 +80,7 @@ type AuthConnectionList struct {
 }
 
 // List returns the workspace auth connections.
-func (s *WorkspaceAuthConnectionsService) List(ctx context.Context, opts ...RequestOption) (*AuthConnectionList, error) {
+func (s *WorkspaceAuthConnectionsService) List(ctx context.Context, opts ...Option) (*AuthConnectionList, error) {
 	return doValue[AuthConnectionList](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/workspace/auth-connections", opts: opts})
 }
 
@@ -255,7 +255,7 @@ type authBody struct {
 func (a authBody) MarshalJSON() ([]byte, error) { return withAuthType(a.authType, a.v) }
 
 // Create creates an auth connection.
-func (s *WorkspaceAuthConnectionsService) Create(ctx context.Context, req AuthConnectionCreateRequest, opts ...RequestOption) (*AuthConnection, error) {
+func (s *WorkspaceAuthConnectionsService) Create(ctx context.Context, req AuthConnectionCreateRequest, opts ...Option) (*AuthConnection, error) {
 	var body any = struct{}{}
 	if req != nil {
 		body = authBody{req.authConnectionAuthType(), req}
@@ -264,7 +264,7 @@ func (s *WorkspaceAuthConnectionsService) Create(ctx context.Context, req AuthCo
 }
 
 // Update edits an auth connection.
-func (s *WorkspaceAuthConnectionsService) Update(ctx context.Context, authConnectionID string, req AuthConnectionUpdateRequest, opts ...RequestOption) (*AuthConnection, error) {
+func (s *WorkspaceAuthConnectionsService) Update(ctx context.Context, authConnectionID string, req AuthConnectionUpdateRequest, opts ...Option) (*AuthConnection, error) {
 	var body any = struct{}{}
 	if req != nil {
 		body = authBody{req.authConnectionUpdateAuthType(), req}
@@ -273,6 +273,6 @@ func (s *WorkspaceAuthConnectionsService) Update(ctx context.Context, authConnec
 }
 
 // Delete deletes an auth connection.
-func (s *WorkspaceAuthConnectionsService) Delete(ctx context.Context, authConnectionID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *WorkspaceAuthConnectionsService) Delete(ctx context.Context, authConnectionID string, opts ...Option) (json.RawMessage, error) {
 	return doRaw(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/workspace/auth-connections/%s", authConnectionID), opts: opts})
 }

@@ -19,7 +19,7 @@ func newUserService(cfg *config) *UserService {
 }
 
 // Get returns information about the authenticated user.
-func (s *UserService) Get(ctx context.Context, opts ...RequestOption) (*User, error) {
+func (s *UserService) Get(ctx context.Context, opts ...Option) (*User, error) {
 	return doValue[User](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/user", opts: opts})
 }
 
@@ -27,7 +27,7 @@ func (s *UserService) Get(ctx context.Context, opts ...RequestOption) (*User, er
 type UserSubscriptionService struct{ cfg *config }
 
 // Get returns extended subscription information for the authenticated user.
-func (s *UserSubscriptionService) Get(ctx context.Context, opts ...RequestOption) (*Subscription, error) {
+func (s *UserSubscriptionService) Get(ctx context.Context, opts ...Option) (*Subscription, error) {
 	return doValue[Subscription](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/user/subscription", opts: opts})
 }
 

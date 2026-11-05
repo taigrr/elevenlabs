@@ -133,7 +133,7 @@ type AudioWithTimestamps struct {
 // TextToSpeechService groups the /v1/text-to-speech endpoints.
 type TextToSpeechService struct{ cfg *config }
 
-func (s *TextToSpeechService) request(voiceID, suffix string, req *TextToSpeechRequest, accept string, opts []RequestOption) *request {
+func (s *TextToSpeechService) request(voiceID, suffix string, req *TextToSpeechRequest, accept string, opts []Option) *request {
 	req = orEmpty(req)
 	return &request{
 		method: http.MethodPost,
@@ -147,25 +147,25 @@ func (s *TextToSpeechService) request(voiceID, suffix string, req *TextToSpeechR
 
 // Convert synthesizes speech and returns the complete audio. The caller must
 // close the returned reader.
-func (s *TextToSpeechService) Convert(ctx context.Context, voiceID string, req *TextToSpeechRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *TextToSpeechService) Convert(ctx context.Context, voiceID string, req *TextToSpeechRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, s.request(voiceID, "", req, acceptAny, opts))
 }
 
 // Stream synthesizes speech and streams audio as it is generated. The caller
 // must close the returned reader.
-func (s *TextToSpeechService) Stream(ctx context.Context, voiceID string, req *TextToSpeechRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *TextToSpeechService) Stream(ctx context.Context, voiceID string, req *TextToSpeechRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, s.request(voiceID, "/stream", req, acceptAny, opts))
 }
 
 // ConvertWithTimestamps synthesizes speech and returns base64 audio with
 // character-level timing.
-func (s *TextToSpeechService) ConvertWithTimestamps(ctx context.Context, voiceID string, req *TextToSpeechRequest, opts ...RequestOption) (*AudioWithTimestamps, error) {
+func (s *TextToSpeechService) ConvertWithTimestamps(ctx context.Context, voiceID string, req *TextToSpeechRequest, opts ...Option) (*AudioWithTimestamps, error) {
 	return doValue[AudioWithTimestamps](ctx, s.cfg, s.request(voiceID, "/with-timestamps", req, contentTypeJSON, opts))
 }
 
 // StreamWithTimestamps streams base64 audio chunks with character-level
 // timing. The caller must close the returned stream.
-func (s *TextToSpeechService) StreamWithTimestamps(ctx context.Context, voiceID string, req *TextToSpeechRequest, opts ...RequestOption) (*Stream[AudioWithTimestamps], error) {
+func (s *TextToSpeechService) StreamWithTimestamps(ctx context.Context, voiceID string, req *TextToSpeechRequest, opts ...Option) (*Stream[AudioWithTimestamps], error) {
 	body, err := doStream(ctx, s.cfg, s.request(voiceID, "/stream/with-timestamps", req, contentTypeJSON, opts))
 	if err != nil {
 		return nil, err

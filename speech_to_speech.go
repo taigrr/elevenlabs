@@ -32,7 +32,7 @@ type SpeechToSpeechRequest struct {
 	FileFormat AudioFileFormat `form:"file_format"`
 }
 
-func (s *SpeechToSpeechService) request(voiceID, suffix string, req *SpeechToSpeechRequest, opts []RequestOption) *request {
+func (s *SpeechToSpeechService) request(voiceID, suffix string, req *SpeechToSpeechRequest, opts []Option) *request {
 	req = orEmpty(req)
 	return &request{
 		method: http.MethodPost,
@@ -46,12 +46,12 @@ func (s *SpeechToSpeechService) request(voiceID, suffix string, req *SpeechToSpe
 
 // Convert transforms the audio into the given voice and returns the
 // complete result. The caller must close the returned reader.
-func (s *SpeechToSpeechService) Convert(ctx context.Context, voiceID string, req *SpeechToSpeechRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *SpeechToSpeechService) Convert(ctx context.Context, voiceID string, req *SpeechToSpeechRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, s.request(voiceID, "", req, opts))
 }
 
 // Stream transforms the audio into the given voice and streams the result
 // as it is generated. The caller must close the returned reader.
-func (s *SpeechToSpeechService) Stream(ctx context.Context, voiceID string, req *SpeechToSpeechRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *SpeechToSpeechService) Stream(ctx context.Context, voiceID string, req *SpeechToSpeechRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, s.request(voiceID, "/stream", req, opts))
 }

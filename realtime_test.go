@@ -106,7 +106,7 @@ func TestTextToSpeechStreamInput(t *testing.T) {
 	stream, err := client.TextToSpeech.StreamInput(ctx, "voice 1", &TextToSpeechStreamInputRequest{
 		ModelID: "eleven_flash_v2_5", OutputFormat: "pcm_16000", SyncAlignment: Ptr(true),
 		InactivityTimeout: Ptr(30), Seed: Ptr(uint32(7)), ApplyTextNormalization: TextNormalizationOn,
-	}, WithRequestHeader("X-Extra", "1"), WithQueryParam("extra", "x"))
+	}, WithHeader("X-Extra", "1"), WithQueryParam("extra", "x"))
 	if err != nil {
 		t.Fatal(err)
 	}

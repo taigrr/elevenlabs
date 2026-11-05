@@ -102,12 +102,12 @@ type EnvironmentVariablesPage struct {
 }
 
 // List returns one page of environment variables. req may be nil.
-func (s *EnvironmentVariablesService) List(ctx context.Context, req *EnvironmentVariablesListRequest, opts ...RequestOption) (*EnvironmentVariablesPage, error) {
+func (s *EnvironmentVariablesService) List(ctx context.Context, req *EnvironmentVariablesListRequest, opts ...Option) (*EnvironmentVariablesPage, error) {
 	return doValue[EnvironmentVariablesPage](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/convai/environment-variables", query: req, opts: opts})
 }
 
 // ListAll iterates over every environment variable, fetching pages on demand.
-func (s *EnvironmentVariablesService) ListAll(ctx context.Context, req *EnvironmentVariablesListRequest, opts ...RequestOption) iter.Seq2[EnvironmentVariable, error] {
+func (s *EnvironmentVariablesService) ListAll(ctx context.Context, req *EnvironmentVariablesListRequest, opts ...Option) iter.Seq2[EnvironmentVariable, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[EnvironmentVariable], error) {
 		params.Cursor = cursor
@@ -130,7 +130,7 @@ type EnvironmentVariableCreateRequest struct {
 }
 
 // Create creates an environment variable.
-func (s *EnvironmentVariablesService) Create(ctx context.Context, req *EnvironmentVariableCreateRequest, opts ...RequestOption) (*EnvironmentVariable, error) {
+func (s *EnvironmentVariablesService) Create(ctx context.Context, req *EnvironmentVariableCreateRequest, opts ...Option) (*EnvironmentVariable, error) {
 	body := *orEmpty(req)
 	if body.Values == nil {
 		body.Values = map[string]EnvironmentVariableValue{}
@@ -139,12 +139,12 @@ func (s *EnvironmentVariablesService) Create(ctx context.Context, req *Environme
 }
 
 // Get returns an environment variable.
-func (s *EnvironmentVariablesService) Get(ctx context.Context, envVarID string, opts ...RequestOption) (*EnvironmentVariable, error) {
+func (s *EnvironmentVariablesService) Get(ctx context.Context, envVarID string, opts ...Option) (*EnvironmentVariable, error) {
 	return doValue[EnvironmentVariable](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/convai/environment-variables/%s", envVarID), opts: opts})
 }
 
 // Delete deletes an environment variable.
-func (s *EnvironmentVariablesService) Delete(ctx context.Context, envVarID string, opts ...RequestOption) error {
+func (s *EnvironmentVariablesService) Delete(ctx context.Context, envVarID string, opts ...Option) error {
 	return doJSON(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/convai/environment-variables/%s", envVarID), opts: opts}, nil)
 }
 
@@ -156,7 +156,7 @@ type EnvironmentVariableUpdateRequest struct {
 }
 
 // Update edits the values of an environment variable.
-func (s *EnvironmentVariablesService) Update(ctx context.Context, envVarID string, req *EnvironmentVariableUpdateRequest, opts ...RequestOption) (*EnvironmentVariable, error) {
+func (s *EnvironmentVariablesService) Update(ctx context.Context, envVarID string, req *EnvironmentVariableUpdateRequest, opts ...Option) (*EnvironmentVariable, error) {
 	body := *orEmpty(req)
 	if body.Values == nil {
 		body.Values = map[string]*EnvironmentVariableValue{}
@@ -180,7 +180,7 @@ type AgentEnvironmentList struct {
 }
 
 // List returns the workspace environments.
-func (s *EnvironmentsService) List(ctx context.Context, opts ...RequestOption) (*AgentEnvironmentList, error) {
+func (s *EnvironmentsService) List(ctx context.Context, opts ...Option) (*AgentEnvironmentList, error) {
 	return doValue[AgentEnvironmentList](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/convai/environments", opts: opts})
 }
 
@@ -189,11 +189,11 @@ type nameBody struct {
 }
 
 // Create creates an environment named name.
-func (s *EnvironmentsService) Create(ctx context.Context, name string, opts ...RequestOption) (*AgentEnvironment, error) {
+func (s *EnvironmentsService) Create(ctx context.Context, name string, opts ...Option) (*AgentEnvironment, error) {
 	return doValue[AgentEnvironment](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/convai/environments", body: nameBody{name}, opts: opts})
 }
 
 // Delete deletes an environment.
-func (s *EnvironmentsService) Delete(ctx context.Context, environment string, opts ...RequestOption) error {
+func (s *EnvironmentsService) Delete(ctx context.Context, environment string, opts ...Option) error {
 	return doJSON(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/convai/environments/%s", environment), opts: opts}, nil)
 }

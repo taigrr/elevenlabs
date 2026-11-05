@@ -144,24 +144,24 @@ type VoiceDesignPreviews struct {
 
 // CreatePreviews generates voice previews from a description. Deprecated
 // upstream in favor of Design.
-func (s *TextToVoiceService) CreatePreviews(ctx context.Context, req *VoicePreviewsRequest, opts ...RequestOption) (*VoiceDesignPreviews, error) {
+func (s *TextToVoiceService) CreatePreviews(ctx context.Context, req *VoicePreviewsRequest, opts ...Option) (*VoiceDesignPreviews, error) {
 	req = orEmpty(req)
 	return doValue[VoiceDesignPreviews](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/text-to-voice/create-previews", query: req, body: req, opts: opts})
 }
 
 // Create saves a generated voice preview as a voice in the library.
-func (s *TextToVoiceService) Create(ctx context.Context, req *CreateVoiceFromPreviewRequest, opts ...RequestOption) (*Voice, error) {
+func (s *TextToVoiceService) Create(ctx context.Context, req *CreateVoiceFromPreviewRequest, opts ...Option) (*Voice, error) {
 	return doValue[Voice](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/text-to-voice", body: orEmpty(req), opts: opts})
 }
 
 // Design generates voice previews from a prompt.
-func (s *TextToVoiceService) Design(ctx context.Context, req *VoiceDesignRequest, opts ...RequestOption) (*VoiceDesignPreviews, error) {
+func (s *TextToVoiceService) Design(ctx context.Context, req *VoiceDesignRequest, opts ...Option) (*VoiceDesignPreviews, error) {
 	req = orEmpty(req)
 	return doValue[VoiceDesignPreviews](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/text-to-voice/design", query: req, body: req, opts: opts})
 }
 
 // Remix generates previews of an existing voice modified by a prompt.
-func (s *TextToVoiceService) Remix(ctx context.Context, voiceID string, req *VoiceRemixRequest, opts ...RequestOption) (*VoiceDesignPreviews, error) {
+func (s *TextToVoiceService) Remix(ctx context.Context, voiceID string, req *VoiceRemixRequest, opts ...Option) (*VoiceDesignPreviews, error) {
 	req = orEmpty(req)
 	return doValue[VoiceDesignPreviews](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/text-to-voice/%s/remix", voiceID), query: req, body: req, opts: opts})
 }
@@ -171,6 +171,6 @@ type TextToVoicePreviewService struct{ cfg *config }
 
 // Stream streams the audio of a voice preview created with StreamPreviews.
 // The caller must close the returned reader.
-func (s *TextToVoicePreviewService) Stream(ctx context.Context, generatedVoiceID string, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *TextToVoicePreviewService) Stream(ctx context.Context, generatedVoiceID string, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/text-to-voice/%s/stream", generatedVoiceID), accept: acceptAny, opts: opts})
 }

@@ -339,21 +339,21 @@ func newMusicService(cfg *config) *MusicService {
 
 // VideoToMusic generates a soundtrack for videos. The caller must close the
 // returned reader.
-func (s *MusicService) VideoToMusic(ctx context.Context, req *VideoToMusicRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *MusicService) VideoToMusic(ctx context.Context, req *VideoToMusicRequest, opts ...Option) (io.ReadCloser, error) {
 	req = orEmpty(req)
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/video-to-music", query: req, form: req, accept: acceptAny, opts: opts})
 }
 
 // Compose generates a song and returns the complete audio. The caller must
 // close the returned reader.
-func (s *MusicService) Compose(ctx context.Context, req *MusicComposeRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *MusicService) Compose(ctx context.Context, req *MusicComposeRequest, opts ...Option) (io.ReadCloser, error) {
 	req = orEmpty(req)
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music", query: req, body: req, accept: acceptAny, opts: opts})
 }
 
 // Stream generates a song and streams the audio as it is produced. The
 // caller must close the returned reader.
-func (s *MusicService) Stream(ctx context.Context, req *MusicStreamRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *MusicService) Stream(ctx context.Context, req *MusicStreamRequest, opts ...Option) (io.ReadCloser, error) {
 	req = orEmpty(req)
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/stream", query: req, body: req, accept: acceptAny, opts: opts})
 }
@@ -361,7 +361,7 @@ func (s *MusicService) Stream(ctx context.Context, req *MusicStreamRequest, opts
 // ComposeDetailedStream generates a song and streams newline-delimited JSON
 // messages (typed as strings by the official SDK, so they are exposed as raw
 // JSON). The caller must close the returned stream.
-func (s *MusicService) ComposeDetailedStream(ctx context.Context, req *MusicComposeDetailedStreamRequest, opts ...RequestOption) (*Stream[json.RawMessage], error) {
+func (s *MusicService) ComposeDetailedStream(ctx context.Context, req *MusicComposeDetailedStreamRequest, opts ...Option) (*Stream[json.RawMessage], error) {
 	req = orEmpty(req)
 	body, err := doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/detailed/stream", query: req, body: req, accept: contentTypeJSON, opts: opts})
 	if err != nil {
@@ -371,13 +371,13 @@ func (s *MusicService) ComposeDetailedStream(ctx context.Context, req *MusicComp
 }
 
 // Upload uploads a song for later inpainting (enterprise only).
-func (s *MusicService) Upload(ctx context.Context, req *MusicUploadRequest, opts ...RequestOption) (*MusicUpload, error) {
+func (s *MusicService) Upload(ctx context.Context, req *MusicUploadRequest, opts ...Option) (*MusicUpload, error) {
 	return doValue[MusicUpload](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/upload", form: orEmpty(req), opts: opts})
 }
 
 // SeparateStems splits audio into stems and returns a zip archive. The
 // caller must close the returned reader.
-func (s *MusicService) SeparateStems(ctx context.Context, req *SeparateStemsRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *MusicService) SeparateStems(ctx context.Context, req *SeparateStemsRequest, opts ...Option) (io.ReadCloser, error) {
 	req = orEmpty(req)
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/stem-separation", query: req, form: req, accept: acceptAny, opts: opts})
 }
@@ -399,7 +399,7 @@ type CompositionPlanCreateRequest struct {
 
 // Create generates a composition plan from a prompt. Free of credits but
 // rate limited.
-func (s *MusicCompositionPlanService) Create(ctx context.Context, req *CompositionPlanCreateRequest, opts ...RequestOption) (*MusicCompositionPlan, error) {
+func (s *MusicCompositionPlanService) Create(ctx context.Context, req *CompositionPlanCreateRequest, opts ...Option) (*MusicCompositionPlan, error) {
 	return doValue[MusicCompositionPlan](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/plan", body: orEmpty(req), opts: opts})
 }
 
@@ -520,12 +520,12 @@ type MusicFinetuneUpdateRequest struct {
 type MusicFinetunesService struct{ cfg *config }
 
 // List returns one page of music finetunes. req may be nil.
-func (s *MusicFinetunesService) List(ctx context.Context, req *MusicFinetunesListRequest, opts ...RequestOption) (*MusicFinetunePage, error) {
+func (s *MusicFinetunesService) List(ctx context.Context, req *MusicFinetunesListRequest, opts ...Option) (*MusicFinetunePage, error) {
 	return doValue[MusicFinetunePage](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/music/finetunes", query: req, opts: opts})
 }
 
 // ListAll iterates over every music finetune matching req, fetching pages on demand.
-func (s *MusicFinetunesService) ListAll(ctx context.Context, req *MusicFinetunesListRequest, opts ...RequestOption) iter.Seq2[MusicFinetune, error] {
+func (s *MusicFinetunesService) ListAll(ctx context.Context, req *MusicFinetunesListRequest, opts ...Option) iter.Seq2[MusicFinetune, error] {
 	var params MusicFinetunesListRequest
 	if req != nil {
 		params = *req
@@ -545,21 +545,21 @@ func (s *MusicFinetunesService) ListAll(ctx context.Context, req *MusicFinetunes
 }
 
 // Create starts training a music finetune from audio files.
-func (s *MusicFinetunesService) Create(ctx context.Context, req *MusicFinetuneCreateRequest, opts ...RequestOption) (*MusicFinetune, error) {
+func (s *MusicFinetunesService) Create(ctx context.Context, req *MusicFinetuneCreateRequest, opts ...Option) (*MusicFinetune, error) {
 	return doValue[MusicFinetune](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/music/finetunes", form: orEmpty(req), opts: opts})
 }
 
 // Get returns a music finetune.
-func (s *MusicFinetunesService) Get(ctx context.Context, finetuneID string, opts ...RequestOption) (*MusicFinetune, error) {
+func (s *MusicFinetunesService) Get(ctx context.Context, finetuneID string, opts ...Option) (*MusicFinetune, error) {
 	return doValue[MusicFinetune](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/music/finetunes/%s", finetuneID), opts: opts})
 }
 
 // Delete deletes a music finetune and returns it.
-func (s *MusicFinetunesService) Delete(ctx context.Context, finetuneID string, opts ...RequestOption) (*MusicFinetune, error) {
+func (s *MusicFinetunesService) Delete(ctx context.Context, finetuneID string, opts ...Option) (*MusicFinetune, error) {
 	return doValue[MusicFinetune](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/music/finetunes/%s", finetuneID), opts: opts})
 }
 
 // Update modifies a music finetune.
-func (s *MusicFinetunesService) Update(ctx context.Context, finetuneID string, req *MusicFinetuneUpdateRequest, opts ...RequestOption) (*MusicFinetune, error) {
+func (s *MusicFinetunesService) Update(ctx context.Context, finetuneID string, req *MusicFinetuneUpdateRequest, opts ...Option) (*MusicFinetune, error) {
 	return doValue[MusicFinetune](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/music/finetunes/%s", finetuneID), body: orEmpty(req), opts: opts})
 }

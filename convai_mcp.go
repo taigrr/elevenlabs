@@ -134,7 +134,7 @@ func newMCPServersService(cfg *config) *MCPServersService {
 }
 
 // List returns all MCP servers in the workspace.
-func (s *MCPServersService) List(ctx context.Context, opts ...RequestOption) ([]MCPServer, error) {
+func (s *MCPServersService) List(ctx context.Context, opts ...Option) ([]MCPServer, error) {
 	out, err := getValue[struct {
 		MCPServers []MCPServer `json:"mcp_servers"`
 	}](ctx, s.cfg, "/v1/convai/mcp-servers", nil, opts)
@@ -145,7 +145,7 @@ func (s *MCPServersService) List(ctx context.Context, opts ...RequestOption) ([]
 }
 
 // Create registers an MCP server.
-func (s *MCPServersService) Create(ctx context.Context, config *MCPServerConfig, opts ...RequestOption) (*MCPServer, error) {
+func (s *MCPServersService) Create(ctx context.Context, config *MCPServerConfig, opts ...Option) (*MCPServer, error) {
 	body := struct {
 		Config *MCPServerConfig `json:"config"`
 	}{orEmpty(config)}
@@ -153,17 +153,17 @@ func (s *MCPServersService) Create(ctx context.Context, config *MCPServerConfig,
 }
 
 // Get returns an MCP server.
-func (s *MCPServersService) Get(ctx context.Context, mcpServerID string, opts ...RequestOption) (*MCPServer, error) {
+func (s *MCPServersService) Get(ctx context.Context, mcpServerID string, opts ...Option) (*MCPServer, error) {
 	return getValue[MCPServer](ctx, s.cfg, pathf("/v1/convai/mcp-servers/%s", mcpServerID), nil, opts)
 }
 
 // Delete deletes an MCP server.
-func (s *MCPServersService) Delete(ctx context.Context, mcpServerID string, opts ...RequestOption) error {
+func (s *MCPServersService) Delete(ctx context.Context, mcpServerID string, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/mcp-servers/%s", mcpServerID), nil, nil, opts)
 }
 
 // Update changes an MCP server's configuration.
-func (s *MCPServersService) Update(ctx context.Context, mcpServerID string, req *UpdateMCPServerRequest, opts ...RequestOption) (*MCPServer, error) {
+func (s *MCPServersService) Update(ctx context.Context, mcpServerID string, req *UpdateMCPServerRequest, opts ...Option) (*MCPServer, error) {
 	return sendValue[MCPServer](ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/mcp-servers/%s", mcpServerID), nil, orEmpty(req), opts)
 }
 
@@ -171,7 +171,7 @@ func (s *MCPServersService) Update(ctx context.Context, mcpServerID string, req 
 type MCPApprovalPolicyService struct{ cfg *config }
 
 // Update sets a server's approval policy.
-func (s *MCPApprovalPolicyService) Update(ctx context.Context, mcpServerID string, policy MCPApprovalPolicy, opts ...RequestOption) (*MCPServer, error) {
+func (s *MCPApprovalPolicyService) Update(ctx context.Context, mcpServerID string, policy MCPApprovalPolicy, opts ...Option) (*MCPServer, error) {
 	body := struct {
 		ApprovalPolicy MCPApprovalPolicy `json:"approval_policy"`
 	}{policy}
@@ -191,12 +191,12 @@ type MCPToolApprovalRequest struct {
 }
 
 // Create approves a tool.
-func (s *MCPToolApprovalsService) Create(ctx context.Context, mcpServerID string, req *MCPToolApprovalRequest, opts ...RequestOption) (*MCPServer, error) {
+func (s *MCPToolApprovalsService) Create(ctx context.Context, mcpServerID string, req *MCPToolApprovalRequest, opts ...Option) (*MCPServer, error) {
 	return sendValue[MCPServer](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/mcp-servers/%s/tool-approvals", mcpServerID), nil, orEmpty(req), opts)
 }
 
 // Delete removes a tool's approval.
-func (s *MCPToolApprovalsService) Delete(ctx context.Context, mcpServerID, toolName string, opts ...RequestOption) (*MCPServer, error) {
+func (s *MCPToolApprovalsService) Delete(ctx context.Context, mcpServerID, toolName string, opts ...Option) (*MCPServer, error) {
 	return sendValue[MCPServer](ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/mcp-servers/%s/tool-approvals/%s", mcpServerID, toolName), nil, nil, opts)
 }
 
@@ -211,23 +211,23 @@ type MCPEnvironmentRequest struct {
 
 // Create adds a tool configuration override. config.ToolName is required.
 // env may be nil.
-func (s *MCPToolConfigsService) Create(ctx context.Context, mcpServerID string, config *MCPToolConfig, env *MCPEnvironmentRequest, opts ...RequestOption) (*MCPServer, error) {
+func (s *MCPToolConfigsService) Create(ctx context.Context, mcpServerID string, config *MCPToolConfig, env *MCPEnvironmentRequest, opts ...Option) (*MCPServer, error) {
 	return sendValue[MCPServer](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/mcp-servers/%s/tool-configs", mcpServerID), env, orEmpty(config), opts)
 }
 
 // Get returns a tool configuration override.
-func (s *MCPToolConfigsService) Get(ctx context.Context, mcpServerID, toolName string, opts ...RequestOption) (*MCPToolConfig, error) {
+func (s *MCPToolConfigsService) Get(ctx context.Context, mcpServerID, toolName string, opts ...Option) (*MCPToolConfig, error) {
 	return getValue[MCPToolConfig](ctx, s.cfg, pathf("/v1/convai/mcp-servers/%s/tool-configs/%s", mcpServerID, toolName), nil, opts)
 }
 
 // Delete removes a tool configuration override.
-func (s *MCPToolConfigsService) Delete(ctx context.Context, mcpServerID, toolName string, opts ...RequestOption) (*MCPServer, error) {
+func (s *MCPToolConfigsService) Delete(ctx context.Context, mcpServerID, toolName string, opts ...Option) (*MCPServer, error) {
 	return sendValue[MCPServer](ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/mcp-servers/%s/tool-configs/%s", mcpServerID, toolName), nil, nil, opts)
 }
 
 // Update changes a tool configuration override. ToolName in config is
 // ignored by the server. env may be nil.
-func (s *MCPToolConfigsService) Update(ctx context.Context, mcpServerID, toolName string, config *MCPToolConfig, env *MCPEnvironmentRequest, opts ...RequestOption) (*MCPServer, error) {
+func (s *MCPToolConfigsService) Update(ctx context.Context, mcpServerID, toolName string, config *MCPToolConfig, env *MCPEnvironmentRequest, opts ...Option) (*MCPServer, error) {
 	return sendValue[MCPServer](ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/mcp-servers/%s/tool-configs/%s", mcpServerID, toolName), env, orEmpty(config), opts)
 }
 
@@ -265,6 +265,6 @@ type MCPToolList struct {
 }
 
 // List connects to the server and lists its tools. env may be nil.
-func (s *MCPToolsService) List(ctx context.Context, mcpServerID string, env *MCPEnvironmentRequest, opts ...RequestOption) (*MCPToolList, error) {
+func (s *MCPToolsService) List(ctx context.Context, mcpServerID string, env *MCPEnvironmentRequest, opts ...Option) (*MCPToolList, error) {
 	return getValue[MCPToolList](ctx, s.cfg, pathf("/v1/convai/mcp-servers/%s/tools", mcpServerID), env, opts)
 }

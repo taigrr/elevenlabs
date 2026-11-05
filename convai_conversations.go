@@ -257,26 +257,26 @@ type SIPMessagesPage struct {
 
 // GetSignedURL returns a signed URL for starting a WebSocket conversation
 // with a private agent.
-func (s *ConversationsService) GetSignedURL(ctx context.Context, req *SessionRequest, opts ...RequestOption) (*SignedURL, error) {
+func (s *ConversationsService) GetSignedURL(ctx context.Context, req *SessionRequest, opts ...Option) (*SignedURL, error) {
 	r := *orEmpty(req)
 	r.ParticipantName = ""
 	return getValue[SignedURL](ctx, s.cfg, "/v1/convai/conversation/get-signed-url", &r, opts)
 }
 
 // GetWebRTCToken returns a token for starting a WebRTC conversation.
-func (s *ConversationsService) GetWebRTCToken(ctx context.Context, req *SessionRequest, opts ...RequestOption) (*WebRTCToken, error) {
+func (s *ConversationsService) GetWebRTCToken(ctx context.Context, req *SessionRequest, opts ...Option) (*WebRTCToken, error) {
 	r := *orEmpty(req)
 	r.IncludeConversationID = nil
 	return getValue[WebRTCToken](ctx, s.cfg, "/v1/convai/conversation/token", &r, opts)
 }
 
 // List returns one page of conversations. req may be nil.
-func (s *ConversationsService) List(ctx context.Context, req *ConversationListRequest, opts ...RequestOption) (*ConversationsPage, error) {
+func (s *ConversationsService) List(ctx context.Context, req *ConversationListRequest, opts ...Option) (*ConversationsPage, error) {
 	return getValue[ConversationsPage](ctx, s.cfg, "/v1/convai/conversations", req, opts)
 }
 
 // ListAll iterates over every conversation matching req.
-func (s *ConversationsService) ListAll(ctx context.Context, req *ConversationListRequest, opts ...RequestOption) iter.Seq2[ConversationSummary, error] {
+func (s *ConversationsService) ListAll(ctx context.Context, req *ConversationListRequest, opts ...Option) iter.Seq2[ConversationSummary, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[ConversationSummary], error) {
 		params.Cursor = cursor
@@ -290,7 +290,7 @@ func (s *ConversationsService) ListAll(ctx context.Context, req *ConversationLis
 
 // Resolve finds a conversation of an agent by an external reference such as
 // a call SID.
-func (s *ConversationsService) Resolve(ctx context.Context, agentID, reference string, opts ...RequestOption) (*Conversation, error) {
+func (s *ConversationsService) Resolve(ctx context.Context, agentID, reference string, opts ...Option) (*Conversation, error) {
 	query := struct {
 		AgentID   string `query:"agent_id"`
 		Reference string `query:"reference"`
@@ -299,7 +299,7 @@ func (s *ConversationsService) Resolve(ctx context.Context, agentID, reference s
 }
 
 // Get returns a conversation. format may be empty.
-func (s *ConversationsService) Get(ctx context.Context, conversationID string, format ConversationGetFormat, opts ...RequestOption) (*Conversation, error) {
+func (s *ConversationsService) Get(ctx context.Context, conversationID string, format ConversationGetFormat, opts ...Option) (*Conversation, error) {
 	query := struct {
 		Format ConversationGetFormat `query:"format"`
 	}{format}
@@ -307,13 +307,13 @@ func (s *ConversationsService) Get(ctx context.Context, conversationID string, f
 }
 
 // Delete deletes a conversation.
-func (s *ConversationsService) Delete(ctx context.Context, conversationID string, opts ...RequestOption) (json.RawMessage, error) {
+func (s *ConversationsService) Delete(ctx context.Context, conversationID string, opts ...Option) (json.RawMessage, error) {
 	return sendRaw(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/conversations/%s", conversationID), nil, nil, opts)
 }
 
 // GetSummary returns a compact summary of a conversation. maxMessages limits
 // the messages included; nil uses the server default.
-func (s *ConversationsService) GetSummary(ctx context.Context, conversationID string, maxMessages *int, opts ...RequestOption) (*ConversationBrief, error) {
+func (s *ConversationsService) GetSummary(ctx context.Context, conversationID string, maxMessages *int, opts ...Option) (*ConversationBrief, error) {
 	query := struct {
 		MaxMessages *int `query:"max_messages"`
 	}{maxMessages}
@@ -321,7 +321,7 @@ func (s *ConversationsService) GetSummary(ctx context.Context, conversationID st
 }
 
 // GetSIPMessages returns the SIP messages logged for a conversation. req may be nil.
-func (s *ConversationsService) GetSIPMessages(ctx context.Context, conversationID string, req *PageRequest, opts ...RequestOption) (*SIPMessagesPage, error) {
+func (s *ConversationsService) GetSIPMessages(ctx context.Context, conversationID string, req *PageRequest, opts ...Option) (*SIPMessagesPage, error) {
 	return getValue[SIPMessagesPage](ctx, s.cfg, pathf("/v1/convai/conversations/%s/sip-messages", conversationID), req, opts)
 }
 
@@ -329,13 +329,13 @@ func (s *ConversationsService) GetSIPMessages(ctx context.Context, conversationI
 type ConversationAnalysisService struct{ cfg *config }
 
 // Run re-runs the full analysis of a conversation.
-func (s *ConversationAnalysisService) Run(ctx context.Context, conversationID string, opts ...RequestOption) (*Conversation, error) {
+func (s *ConversationAnalysisService) Run(ctx context.Context, conversationID string, opts ...Option) (*Conversation, error) {
 	return sendValue[Conversation](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/conversations/%s/analysis/run", conversationID), nil, nil, opts)
 }
 
 // RunEvaluation runs one evaluation criterion. scope is "conversation",
 // "agent" or empty.
-func (s *ConversationAnalysisService) RunEvaluation(ctx context.Context, conversationID, evaluationID, scope string, opts ...RequestOption) (*Conversation, error) {
+func (s *ConversationAnalysisService) RunEvaluation(ctx context.Context, conversationID, evaluationID, scope string, opts ...Option) (*Conversation, error) {
 	body := struct {
 		EvaluationID string `json:"evaluation_id"`
 		Scope        string `json:"scope,omitempty"`
@@ -347,7 +347,7 @@ func (s *ConversationAnalysisService) RunEvaluation(ctx context.Context, convers
 type ConversationAudioService struct{ cfg *config }
 
 // Get streams a conversation's recording. The caller must close it.
-func (s *ConversationAudioService) Get(ctx context.Context, conversationID string, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *ConversationAudioService) Get(ctx context.Context, conversationID string, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/convai/conversations/%s/audio", conversationID), accept: acceptAny, opts: opts})
 }
 
@@ -364,7 +364,7 @@ const (
 )
 
 // Create rates a conversation. An empty score clears the rating.
-func (s *ConversationFeedbackService) Create(ctx context.Context, conversationID string, score FeedbackScore, opts ...RequestOption) (json.RawMessage, error) {
+func (s *ConversationFeedbackService) Create(ctx context.Context, conversationID string, score FeedbackScore, opts ...Option) (json.RawMessage, error) {
 	body := struct {
 		Feedback *FeedbackScore `json:"feedback"`
 	}{}
@@ -383,7 +383,7 @@ type FileUploadResponse struct {
 }
 
 // Create uploads a file into a conversation.
-func (s *ConversationFilesService) Create(ctx context.Context, conversationID string, file File, opts ...RequestOption) (*FileUploadResponse, error) {
+func (s *ConversationFilesService) Create(ctx context.Context, conversationID string, file File, opts ...Option) (*FileUploadResponse, error) {
 	form := struct {
 		File File `form:"file"`
 	}{file}
@@ -391,7 +391,7 @@ func (s *ConversationFilesService) Create(ctx context.Context, conversationID st
 }
 
 // Delete removes an uploaded file from a conversation.
-func (s *ConversationFilesService) Delete(ctx context.Context, conversationID, fileID string, opts ...RequestOption) (*FileUploadResponse, error) {
+func (s *ConversationFilesService) Delete(ctx context.Context, conversationID, fileID string, opts ...Option) (*FileUploadResponse, error) {
 	return sendValue[FileUploadResponse](ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/conversations/%s/files/%s", conversationID, fileID), nil, nil, opts)
 }
 
@@ -438,12 +438,12 @@ type MessageSearchRequest struct {
 }
 
 // TextSearch runs a full-text search over conversation messages.
-func (s *ConversationMessagesService) TextSearch(ctx context.Context, req *MessageTextSearchRequest, opts ...RequestOption) (*MessageSearchPage, error) {
+func (s *ConversationMessagesService) TextSearch(ctx context.Context, req *MessageTextSearchRequest, opts ...Option) (*MessageSearchPage, error) {
 	return getValue[MessageSearchPage](ctx, s.cfg, "/v1/convai/conversations/messages/text-search", req, opts)
 }
 
 // Search runs a semantic search over conversation messages.
-func (s *ConversationMessagesService) Search(ctx context.Context, req *MessageSearchRequest, opts ...RequestOption) (*MessageSearchPage, error) {
+func (s *ConversationMessagesService) Search(ctx context.Context, req *MessageSearchRequest, opts ...Option) (*MessageSearchPage, error) {
 	return getValue[MessageSearchPage](ctx, s.cfg, "/v1/convai/conversations/messages/smart-search", req, opts)
 }
 
@@ -475,7 +475,7 @@ type ConversationTagRequest struct {
 }
 
 // Assign adds tags to a conversation.
-func (s *ConversationTagsService) Assign(ctx context.Context, conversationID string, tagIDs []string, opts ...RequestOption) error {
+func (s *ConversationTagsService) Assign(ctx context.Context, conversationID string, tagIDs []string, opts ...Option) error {
 	body := struct {
 		TagIDs []string `json:"tag_ids"`
 	}{nonNil(tagIDs)}
@@ -483,17 +483,17 @@ func (s *ConversationTagsService) Assign(ctx context.Context, conversationID str
 }
 
 // Unassign removes a tag from a conversation.
-func (s *ConversationTagsService) Unassign(ctx context.Context, conversationID, tagID string, opts ...RequestOption) error {
+func (s *ConversationTagsService) Unassign(ctx context.Context, conversationID, tagID string, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/conversations/%s/tags/%s", conversationID, tagID), nil, nil, opts)
 }
 
 // List returns one page of tags. req may be nil.
-func (s *ConversationTagsService) List(ctx context.Context, req *PageRequest, opts ...RequestOption) (*ConversationTagsPage, error) {
+func (s *ConversationTagsService) List(ctx context.Context, req *PageRequest, opts ...Option) (*ConversationTagsPage, error) {
 	return getValue[ConversationTagsPage](ctx, s.cfg, "/v1/convai/tags", req, opts)
 }
 
 // ListAll iterates over every tag.
-func (s *ConversationTagsService) ListAll(ctx context.Context, req *PageRequest, opts ...RequestOption) iter.Seq2[ConversationTag, error] {
+func (s *ConversationTagsService) ListAll(ctx context.Context, req *PageRequest, opts ...Option) iter.Seq2[ConversationTag, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[ConversationTag], error) {
 		params.Cursor = cursor
@@ -506,22 +506,22 @@ func (s *ConversationTagsService) ListAll(ctx context.Context, req *PageRequest,
 }
 
 // Create creates a tag.
-func (s *ConversationTagsService) Create(ctx context.Context, req *ConversationTagRequest, opts ...RequestOption) (*ConversationTag, error) {
+func (s *ConversationTagsService) Create(ctx context.Context, req *ConversationTagRequest, opts ...Option) (*ConversationTag, error) {
 	return sendValue[ConversationTag](ctx, s.cfg, http.MethodPost, "/v1/convai/tags", nil, orEmpty(req), opts)
 }
 
 // Get returns a tag.
-func (s *ConversationTagsService) Get(ctx context.Context, tagID string, opts ...RequestOption) (*ConversationTag, error) {
+func (s *ConversationTagsService) Get(ctx context.Context, tagID string, opts ...Option) (*ConversationTag, error) {
 	return getValue[ConversationTag](ctx, s.cfg, pathf("/v1/convai/tags/%s", tagID), nil, opts)
 }
 
 // Delete deletes a tag.
-func (s *ConversationTagsService) Delete(ctx context.Context, tagID string, opts ...RequestOption) error {
+func (s *ConversationTagsService) Delete(ctx context.Context, tagID string, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/tags/%s", tagID), nil, nil, opts)
 }
 
 // Update changes a tag.
-func (s *ConversationTagsService) Update(ctx context.Context, tagID string, req *ConversationTagRequest, opts ...RequestOption) (*ConversationTag, error) {
+func (s *ConversationTagsService) Update(ctx context.Context, tagID string, req *ConversationTagRequest, opts ...Option) (*ConversationTag, error) {
 	return sendValue[ConversationTag](ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/tags/%s", tagID), nil, orEmpty(req), opts)
 }
 
@@ -552,6 +552,6 @@ type AgentTopics struct {
 }
 
 // Get returns an agent's conversation topics. req may be nil.
-func (s *ConversationTopicsService) Get(ctx context.Context, agentID string, req *TopicsRequest, opts ...RequestOption) (*AgentTopics, error) {
+func (s *ConversationTopicsService) Get(ctx context.Context, agentID string, req *TopicsRequest, opts ...Option) (*AgentTopics, error) {
 	return getValue[AgentTopics](ctx, s.cfg, pathf("/v1/convai/agents/%s/topics", agentID), req, opts)
 }

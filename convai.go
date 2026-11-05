@@ -311,18 +311,18 @@ type ForceRequest struct {
 	Force *bool `query:"force"`
 }
 
-func doNoContent(ctx context.Context, cfg *config, method, path string, query, body any, opts []RequestOption) error {
+func doNoContent(ctx context.Context, cfg *config, method, path string, query, body any, opts []Option) error {
 	return doJSON(ctx, cfg, &request{method: method, path: path, query: query, body: body, opts: opts}, nil)
 }
 
-func getValue[T any](ctx context.Context, cfg *config, path string, query any, opts []RequestOption) (*T, error) {
+func getValue[T any](ctx context.Context, cfg *config, path string, query any, opts []Option) (*T, error) {
 	return doValue[T](ctx, cfg, &request{method: http.MethodGet, path: path, query: query, opts: opts})
 }
 
-func sendValue[T any](ctx context.Context, cfg *config, method, path string, query, body any, opts []RequestOption) (*T, error) {
+func sendValue[T any](ctx context.Context, cfg *config, method, path string, query, body any, opts []Option) (*T, error) {
 	return doValue[T](ctx, cfg, &request{method: method, path: path, query: query, body: body, opts: opts})
 }
 
-func sendRaw(ctx context.Context, cfg *config, method, path string, query, body any, opts []RequestOption) (json.RawMessage, error) {
+func sendRaw(ctx context.Context, cfg *config, method, path string, query, body any, opts []Option) (json.RawMessage, error) {
 	return doRaw(ctx, cfg, &request{method: method, path: path, query: query, body: body, opts: opts})
 }

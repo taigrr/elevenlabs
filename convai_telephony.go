@@ -227,7 +227,7 @@ type PhoneNumbersPage struct {
 type PhoneNumbersService struct{ cfg *config }
 
 // List returns all phone numbers. req may be nil.
-func (s *PhoneNumbersService) List(ctx context.Context, req *PhoneNumberListRequest, opts ...RequestOption) ([]PhoneNumber, error) {
+func (s *PhoneNumbersService) List(ctx context.Context, req *PhoneNumberListRequest, opts ...Option) ([]PhoneNumber, error) {
 	out, err := getValue[[]PhoneNumber](ctx, s.cfg, "/v1/convai/phone-numbers", req, opts)
 	if err != nil {
 		return nil, err
@@ -236,7 +236,7 @@ func (s *PhoneNumbersService) List(ctx context.Context, req *PhoneNumberListRequ
 }
 
 // Create imports a phone number and returns its ID.
-func (s *PhoneNumbersService) Create(ctx context.Context, req *CreatePhoneNumberRequest, opts ...RequestOption) (string, error) {
+func (s *PhoneNumbersService) Create(ctx context.Context, req *CreatePhoneNumberRequest, opts ...Option) (string, error) {
 	out, err := sendValue[struct {
 		PhoneNumberID string `json:"phone_number_id"`
 	}](ctx, s.cfg, http.MethodPost, "/v1/convai/phone-numbers", nil, orEmpty(req), opts)
@@ -247,27 +247,27 @@ func (s *PhoneNumbersService) Create(ctx context.Context, req *CreatePhoneNumber
 }
 
 // Get returns a phone number.
-func (s *PhoneNumbersService) Get(ctx context.Context, phoneNumberID string, opts ...RequestOption) (*PhoneNumber, error) {
+func (s *PhoneNumbersService) Get(ctx context.Context, phoneNumberID string, opts ...Option) (*PhoneNumber, error) {
 	return getValue[PhoneNumber](ctx, s.cfg, pathf("/v1/convai/phone-numbers/%s", phoneNumberID), nil, opts)
 }
 
 // Delete deletes a phone number.
-func (s *PhoneNumbersService) Delete(ctx context.Context, phoneNumberID string, opts ...RequestOption) error {
+func (s *PhoneNumbersService) Delete(ctx context.Context, phoneNumberID string, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/phone-numbers/%s", phoneNumberID), nil, nil, opts)
 }
 
 // Update changes a phone number.
-func (s *PhoneNumbersService) Update(ctx context.Context, phoneNumberID string, req *UpdatePhoneNumberRequest, opts ...RequestOption) (*PhoneNumber, error) {
+func (s *PhoneNumbersService) Update(ctx context.Context, phoneNumberID string, req *UpdatePhoneNumberRequest, opts ...Option) (*PhoneNumber, error) {
 	return sendValue[PhoneNumber](ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/phone-numbers/%s", phoneNumberID), nil, orEmpty(req), opts)
 }
 
 // ListV2 returns one page of phone numbers. req may be nil.
-func (s *PhoneNumbersService) ListV2(ctx context.Context, req *PhoneNumberListV2Request, opts ...RequestOption) (*PhoneNumbersPage, error) {
+func (s *PhoneNumbersService) ListV2(ctx context.Context, req *PhoneNumberListV2Request, opts ...Option) (*PhoneNumbersPage, error) {
 	return getValue[PhoneNumbersPage](ctx, s.cfg, "/v1/convai/v2/phone-numbers", req, opts)
 }
 
 // ListAll iterates over every phone number using ListV2.
-func (s *PhoneNumbersService) ListAll(ctx context.Context, req *PhoneNumberListV2Request, opts ...RequestOption) iter.Seq2[PhoneNumber, error] {
+func (s *PhoneNumbersService) ListAll(ctx context.Context, req *PhoneNumberListV2Request, opts ...Option) iter.Seq2[PhoneNumber, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[PhoneNumber], error) {
 		params.Cursor = cursor
@@ -281,7 +281,7 @@ func (s *PhoneNumbersService) ListAll(ctx context.Context, req *PhoneNumberListV
 }
 
 // GetSIPMessages returns one page of stored SIP messages. req may be nil.
-func (s *PhoneNumbersService) GetSIPMessages(ctx context.Context, phoneNumberID string, req *PageRequest, opts ...RequestOption) (*SIPMessagesPage, error) {
+func (s *PhoneNumbersService) GetSIPMessages(ctx context.Context, phoneNumberID string, req *PageRequest, opts ...Option) (*SIPMessagesPage, error) {
 	return getValue[SIPMessagesPage](ctx, s.cfg, pathf("/v1/convai/phone-numbers/%s/sip-messages", phoneNumberID), req, opts)
 }
 
@@ -289,7 +289,7 @@ func (s *PhoneNumbersService) GetSIPMessages(ctx context.Context, phoneNumberID 
 type TwilioService struct{ cfg *config }
 
 // OutboundCall starts an outbound call via Twilio.
-func (s *TwilioService) OutboundCall(ctx context.Context, req *TwilioOutboundCallRequest, opts ...RequestOption) (*OutboundCallResponse, error) {
+func (s *TwilioService) OutboundCall(ctx context.Context, req *TwilioOutboundCallRequest, opts ...Option) (*OutboundCallResponse, error) {
 	return sendValue[OutboundCallResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/twilio/outbound-call", nil, orEmpty(req), opts)
 }
 
@@ -303,7 +303,7 @@ type TwilioRegisterCallRequest struct {
 }
 
 // RegisterCall registers a Twilio call and returns the TwiML to answer it with.
-func (s *TwilioService) RegisterCall(ctx context.Context, req *TwilioRegisterCallRequest, opts ...RequestOption) (string, error) {
+func (s *TwilioService) RegisterCall(ctx context.Context, req *TwilioRegisterCallRequest, opts ...Option) (string, error) {
 	const path = "/v1/convai/twilio/register-call"
 	body, err := doStream(ctx, s.cfg, &request{method: http.MethodPost, path: path, body: orEmpty(req), accept: acceptAny, opts: opts})
 	if err != nil {
@@ -321,7 +321,7 @@ func (s *TwilioService) RegisterCall(ctx context.Context, req *TwilioRegisterCal
 type SIPTrunkService struct{ cfg *config }
 
 // OutboundCall starts an outbound call via a SIP trunk.
-func (s *SIPTrunkService) OutboundCall(ctx context.Context, req *OutboundCallRequest, opts ...RequestOption) (*OutboundCallResponse, error) {
+func (s *SIPTrunkService) OutboundCall(ctx context.Context, req *OutboundCallRequest, opts ...Option) (*OutboundCallResponse, error) {
 	return sendValue[OutboundCallResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/sip-trunk/outbound-call", nil, orEmpty(req), opts)
 }
 
@@ -329,7 +329,7 @@ func (s *SIPTrunkService) OutboundCall(ctx context.Context, req *OutboundCallReq
 type ExotelService struct{ cfg *config }
 
 // OutboundCall starts an outbound call via Exotel.
-func (s *ExotelService) OutboundCall(ctx context.Context, req *OutboundCallRequest, opts ...RequestOption) (*OutboundCallResponse, error) {
+func (s *ExotelService) OutboundCall(ctx context.Context, req *OutboundCallRequest, opts ...Option) (*OutboundCallResponse, error) {
 	return sendValue[OutboundCallResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/exotel/outbound-call", nil, orEmpty(req), opts)
 }
 
@@ -376,13 +376,13 @@ type WhatsAppOutboundMessageRequest struct {
 }
 
 // OutboundCall starts an outbound call via WhatsApp.
-func (s *WhatsAppService) OutboundCall(ctx context.Context, req *WhatsAppOutboundCallRequest, opts ...RequestOption) (*OutboundCallResponse, error) {
+func (s *WhatsAppService) OutboundCall(ctx context.Context, req *WhatsAppOutboundCallRequest, opts ...Option) (*OutboundCallResponse, error) {
 	return sendValue[OutboundCallResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/whatsapp/outbound-call", nil, orEmpty(req), opts)
 }
 
 // OutboundMessage sends a WhatsApp template message and returns the
 // conversation ID.
-func (s *WhatsAppService) OutboundMessage(ctx context.Context, req *WhatsAppOutboundMessageRequest, opts ...RequestOption) (string, error) {
+func (s *WhatsAppService) OutboundMessage(ctx context.Context, req *WhatsAppOutboundMessageRequest, opts ...Option) (string, error) {
 	out, err := sendValue[struct {
 		ConversationID string `json:"conversation_id"`
 	}](ctx, s.cfg, http.MethodPost, "/v1/convai/whatsapp/outbound-message", nil, orEmpty(req), opts)
@@ -426,22 +426,22 @@ type WhatsAppAccountListRequest struct {
 }
 
 // Get returns a WhatsApp account.
-func (s *WhatsAppAccountsService) Get(ctx context.Context, phoneNumberID string, opts ...RequestOption) (*WhatsAppAccount, error) {
+func (s *WhatsAppAccountsService) Get(ctx context.Context, phoneNumberID string, opts ...Option) (*WhatsAppAccount, error) {
 	return getValue[WhatsAppAccount](ctx, s.cfg, pathf("/v1/convai/whatsapp-accounts/%s", phoneNumberID), nil, opts)
 }
 
 // Delete disconnects a WhatsApp account.
-func (s *WhatsAppAccountsService) Delete(ctx context.Context, phoneNumberID string, opts ...RequestOption) error {
+func (s *WhatsAppAccountsService) Delete(ctx context.Context, phoneNumberID string, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/whatsapp-accounts/%s", phoneNumberID), nil, nil, opts)
 }
 
 // Update changes a WhatsApp account.
-func (s *WhatsAppAccountsService) Update(ctx context.Context, phoneNumberID string, req *UpdateWhatsAppAccountRequest, opts ...RequestOption) error {
+func (s *WhatsAppAccountsService) Update(ctx context.Context, phoneNumberID string, req *UpdateWhatsAppAccountRequest, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/whatsapp-accounts/%s", phoneNumberID), nil, orEmpty(req), opts)
 }
 
 // List returns the connected WhatsApp accounts. req may be nil.
-func (s *WhatsAppAccountsService) List(ctx context.Context, req *WhatsAppAccountListRequest, opts ...RequestOption) ([]WhatsAppAccount, error) {
+func (s *WhatsAppAccountsService) List(ctx context.Context, req *WhatsAppAccountListRequest, opts ...Option) ([]WhatsAppAccount, error) {
 	out, err := getValue[struct {
 		Items []WhatsAppAccount `json:"items"`
 	}](ctx, s.cfg, "/v1/convai/whatsapp-accounts", req, opts)
@@ -575,17 +575,17 @@ type BatchCallExportRequest struct {
 }
 
 // Create submits a batch call.
-func (s *BatchCallsService) Create(ctx context.Context, req *CreateBatchCallRequest, opts ...RequestOption) (*BatchCall, error) {
+func (s *BatchCallsService) Create(ctx context.Context, req *CreateBatchCallRequest, opts ...Option) (*BatchCall, error) {
 	return sendValue[BatchCall](ctx, s.cfg, http.MethodPost, "/v1/convai/batch-calling/submit", nil, orEmpty(req), opts)
 }
 
 // List returns one page of the workspace's batch calls. req may be nil.
-func (s *BatchCallsService) List(ctx context.Context, req *BatchCallListRequest, opts ...RequestOption) (*BatchCallsPage, error) {
+func (s *BatchCallsService) List(ctx context.Context, req *BatchCallListRequest, opts ...Option) (*BatchCallsPage, error) {
 	return getValue[BatchCallsPage](ctx, s.cfg, "/v1/convai/batch-calling/workspace", req, opts)
 }
 
 // ListAll iterates over every batch call.
-func (s *BatchCallsService) ListAll(ctx context.Context, req *BatchCallListRequest, opts ...RequestOption) iter.Seq2[BatchCall, error] {
+func (s *BatchCallsService) ListAll(ctx context.Context, req *BatchCallListRequest, opts ...Option) iter.Seq2[BatchCall, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.LastDoc, func(ctx context.Context, cursor string) (page[BatchCall], error) {
 		params.LastDoc = cursor
@@ -599,27 +599,27 @@ func (s *BatchCallsService) ListAll(ctx context.Context, req *BatchCallListReque
 }
 
 // Get returns a batch call with its recipients.
-func (s *BatchCallsService) Get(ctx context.Context, batchID string, opts ...RequestOption) (*BatchCallDetails, error) {
+func (s *BatchCallsService) Get(ctx context.Context, batchID string, opts ...Option) (*BatchCallDetails, error) {
 	return getValue[BatchCallDetails](ctx, s.cfg, pathf("/v1/convai/batch-calling/%s", batchID), nil, opts)
 }
 
 // Delete deletes a batch call.
-func (s *BatchCallsService) Delete(ctx context.Context, batchID string, opts ...RequestOption) error {
+func (s *BatchCallsService) Delete(ctx context.Context, batchID string, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/batch-calling/%s", batchID), nil, nil, opts)
 }
 
 // Cancel cancels a running batch call.
-func (s *BatchCallsService) Cancel(ctx context.Context, batchID string, opts ...RequestOption) (*BatchCall, error) {
+func (s *BatchCallsService) Cancel(ctx context.Context, batchID string, opts ...Option) (*BatchCall, error) {
 	return sendValue[BatchCall](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/batch-calling/%s/cancel", batchID), nil, nil, opts)
 }
 
 // Retry retries the failed and unanswered calls of a batch.
-func (s *BatchCallsService) Retry(ctx context.Context, batchID string, opts ...RequestOption) (*BatchCall, error) {
+func (s *BatchCallsService) Retry(ctx context.Context, batchID string, opts ...Option) (*BatchCall, error) {
 	return sendValue[BatchCall](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/batch-calling/%s/retry", batchID), nil, nil, opts)
 }
 
 // Export streams a CSV export of a batch call's recipients. The caller
 // must close it. req may be nil.
-func (s *BatchCallsService) Export(ctx context.Context, batchID string, req *BatchCallExportRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *BatchCallsService) Export(ctx context.Context, batchID string, req *BatchCallExportRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/convai/batch-calling/%s/export", batchID), query: req, accept: acceptAny, opts: opts})
 }

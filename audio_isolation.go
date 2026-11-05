@@ -43,13 +43,13 @@ type AudioIsolationStreamRequest struct {
 
 // Convert removes background noise from audio and returns the isolated
 // audio. The caller must close the returned reader.
-func (s *AudioIsolationService) Convert(ctx context.Context, req *AudioIsolationRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *AudioIsolationService) Convert(ctx context.Context, req *AudioIsolationRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/audio-isolation", form: orEmpty(req), accept: acceptAny, opts: opts})
 }
 
 // Stream removes background noise from audio and streams the isolated audio
 // as it is produced. The caller must close the returned reader.
-func (s *AudioIsolationService) Stream(ctx context.Context, req *AudioIsolationStreamRequest, opts ...RequestOption) (io.ReadCloser, error) {
+func (s *AudioIsolationService) Stream(ctx context.Context, req *AudioIsolationStreamRequest, opts ...Option) (io.ReadCloser, error) {
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/audio-isolation/stream", form: orEmpty(req), accept: acceptAny, opts: opts})
 }
 
@@ -86,14 +86,14 @@ type AudioIsolationHistory struct {
 }
 
 // List returns one page of audio isolation history. req may be nil.
-func (s *AudioIsolationService) List(ctx context.Context, req *AudioIsolationListRequest, opts ...RequestOption) (*AudioIsolationHistory, error) {
+func (s *AudioIsolationService) List(ctx context.Context, req *AudioIsolationListRequest, opts ...Option) (*AudioIsolationHistory, error) {
 	return doValue[AudioIsolationHistory](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/audio-isolation/history", query: req, opts: opts})
 }
 
 // ListAll iterates over audio isolation history items, fetching pages on
 // demand. The API only paginates searches (1-based Page, starting at
 // req.Page or 1); without req.Search only the first page is returned.
-func (s *AudioIsolationService) ListAll(ctx context.Context, req *AudioIsolationListRequest, opts ...RequestOption) iter.Seq2[AudioIsolationHistoryItem, error] {
+func (s *AudioIsolationService) ListAll(ctx context.Context, req *AudioIsolationListRequest, opts ...Option) iter.Seq2[AudioIsolationHistoryItem, error] {
 	var params AudioIsolationListRequest
 	if req != nil {
 		params = *req
@@ -119,6 +119,6 @@ func (s *AudioIsolationService) ListAll(ctx context.Context, req *AudioIsolation
 }
 
 // Delete deletes an audio isolation history item.
-func (s *AudioIsolationService) Delete(ctx context.Context, historyItemID string, opts ...RequestOption) error {
+func (s *AudioIsolationService) Delete(ctx context.Context, historyItemID string, opts ...Option) error {
 	return doJSON(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/audio-isolation/history/%s", historyItemID), opts: opts}, nil)
 }

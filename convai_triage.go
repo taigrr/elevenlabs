@@ -193,29 +193,29 @@ type AssignableUser struct {
 type TriageTicketsService struct{ cfg *config }
 
 // List returns one page of an agent's tickets. req may be nil.
-func (s *TriageTicketsService) List(ctx context.Context, agentID string, req *TriageTicketListRequest, opts ...RequestOption) (*TriageTicketsPage, error) {
+func (s *TriageTicketsService) List(ctx context.Context, agentID string, req *TriageTicketListRequest, opts ...Option) (*TriageTicketsPage, error) {
 	return getValue[TriageTicketsPage](ctx, s.cfg, pathf("/v1/convai/agents/%s/triage-tickets", agentID), req, opts)
 }
 
 // ListAll iterates over every ticket of an agent.
-func (s *TriageTicketsService) ListAll(ctx context.Context, agentID string, req *TriageTicketListRequest, opts ...RequestOption) iter.Seq2[TriageTicket, error] {
+func (s *TriageTicketsService) ListAll(ctx context.Context, agentID string, req *TriageTicketListRequest, opts ...Option) iter.Seq2[TriageTicket, error] {
 	return s.iterate(ctx, req, func(ctx context.Context, p *TriageTicketListRequest) (*TriageTicketsPage, error) {
 		return s.List(ctx, agentID, p, opts...)
 	})
 }
 
 // CreateManual raises a ticket on an agent.
-func (s *TriageTicketsService) CreateManual(ctx context.Context, agentID string, req *CreateManualTicketRequest, opts ...RequestOption) (*TriageTicket, error) {
+func (s *TriageTicketsService) CreateManual(ctx context.Context, agentID string, req *CreateManualTicketRequest, opts ...Option) (*TriageTicket, error) {
 	return sendValue[TriageTicket](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/agents/%s/triage-tickets", agentID), nil, orEmpty(req), opts)
 }
 
 // ListForWorkspace returns one page of the workspace's tickets. req may be nil.
-func (s *TriageTicketsService) ListForWorkspace(ctx context.Context, req *TriageTicketListRequest, opts ...RequestOption) (*TriageTicketsPage, error) {
+func (s *TriageTicketsService) ListForWorkspace(ctx context.Context, req *TriageTicketListRequest, opts ...Option) (*TriageTicketsPage, error) {
 	return getValue[TriageTicketsPage](ctx, s.cfg, "/v1/convai/triage-tickets", req, opts)
 }
 
 // ListAllForWorkspace iterates over every ticket of the workspace.
-func (s *TriageTicketsService) ListAllForWorkspace(ctx context.Context, req *TriageTicketListRequest, opts ...RequestOption) iter.Seq2[TriageTicket, error] {
+func (s *TriageTicketsService) ListAllForWorkspace(ctx context.Context, req *TriageTicketListRequest, opts ...Option) iter.Seq2[TriageTicket, error] {
 	return s.iterate(ctx, req, func(ctx context.Context, p *TriageTicketListRequest) (*TriageTicketsPage, error) {
 		return s.ListForWorkspace(ctx, p, opts...)
 	})
@@ -236,13 +236,13 @@ func (s *TriageTicketsService) iterate(ctx context.Context, req *TriageTicketLis
 
 // Create raises a ticket about a conversation, or adds to the
 // conversation's open ticket.
-func (s *TriageTicketsService) Create(ctx context.Context, req *CreateTriageTicketRequest, opts ...RequestOption) (*TriageTicket, error) {
+func (s *TriageTicketsService) Create(ctx context.Context, req *CreateTriageTicketRequest, opts ...Option) (*TriageTicket, error) {
 	return sendValue[TriageTicket](ctx, s.cfg, http.MethodPost, "/v1/convai/triage-tickets", nil, orEmpty(req), opts)
 }
 
 // ListAssignableUsers lists the workspace members that can be assigned to
 // an agent's tickets.
-func (s *TriageTicketsService) ListAssignableUsers(ctx context.Context, agentID string, opts ...RequestOption) ([]AssignableUser, error) {
+func (s *TriageTicketsService) ListAssignableUsers(ctx context.Context, agentID string, opts ...Option) ([]AssignableUser, error) {
 	out, err := getValue[[]AssignableUser](ctx, s.cfg, pathf("/v1/convai/agents/%s/triage-tickets/assignable-users", agentID), nil, opts)
 	if err != nil {
 		return nil, err
@@ -251,22 +251,22 @@ func (s *TriageTicketsService) ListAssignableUsers(ctx context.Context, agentID 
 }
 
 // Get returns a ticket.
-func (s *TriageTicketsService) Get(ctx context.Context, ticketID string, opts ...RequestOption) (*TriageTicket, error) {
+func (s *TriageTicketsService) Get(ctx context.Context, ticketID string, opts ...Option) (*TriageTicket, error) {
 	return getValue[TriageTicket](ctx, s.cfg, pathf("/v1/convai/triage-tickets/%s", ticketID), nil, opts)
 }
 
 // Delete deletes a ticket.
-func (s *TriageTicketsService) Delete(ctx context.Context, ticketID string, opts ...RequestOption) error {
+func (s *TriageTicketsService) Delete(ctx context.Context, ticketID string, opts ...Option) error {
 	return doNoContent(ctx, s.cfg, http.MethodDelete, pathf("/v1/convai/triage-tickets/%s", ticketID), nil, nil, opts)
 }
 
 // Update changes a ticket.
-func (s *TriageTicketsService) Update(ctx context.Context, ticketID string, req *UpdateTriageTicketRequest, opts ...RequestOption) (*TriageTicket, error) {
+func (s *TriageTicketsService) Update(ctx context.Context, ticketID string, req *UpdateTriageTicketRequest, opts ...Option) (*TriageTicket, error) {
 	return sendValue[TriageTicket](ctx, s.cfg, http.MethodPatch, pathf("/v1/convai/triage-tickets/%s", ticketID), nil, orEmpty(req), opts)
 }
 
 // AddComment adds a ticket-level comment.
-func (s *TriageTicketsService) AddComment(ctx context.Context, ticketID, comment string, opts ...RequestOption) (*TriageTicket, error) {
+func (s *TriageTicketsService) AddComment(ctx context.Context, ticketID, comment string, opts ...Option) (*TriageTicket, error) {
 	body := struct {
 		Comment string `json:"comment"`
 	}{comment}
@@ -274,7 +274,7 @@ func (s *TriageTicketsService) AddComment(ctx context.Context, ticketID, comment
 }
 
 // Merge folds the source tickets into this ticket.
-func (s *TriageTicketsService) Merge(ctx context.Context, ticketID string, sourceTicketIDs []string, opts ...RequestOption) (*TriageTicket, error) {
+func (s *TriageTicketsService) Merge(ctx context.Context, ticketID string, sourceTicketIDs []string, opts ...Option) (*TriageTicket, error) {
 	body := struct {
 		SourceTicketIDs []string `json:"source_ticket_ids"`
 	}{sourceTicketIDs}
@@ -282,6 +282,6 @@ func (s *TriageTicketsService) Merge(ctx context.Context, ticketID string, sourc
 }
 
 // AddTurnComment adds a comment on one transcript turn.
-func (s *TriageTicketsService) AddTurnComment(ctx context.Context, ticketID string, req TurnCommentInput, opts ...RequestOption) (*TriageTicket, error) {
+func (s *TriageTicketsService) AddTurnComment(ctx context.Context, ticketID string, req TurnCommentInput, opts ...Option) (*TriageTicket, error) {
 	return sendValue[TriageTicket](ctx, s.cfg, http.MethodPost, pathf("/v1/convai/triage-tickets/%s/turn-comments", ticketID), nil, req, opts)
 }

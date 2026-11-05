@@ -41,6 +41,6 @@ type ForcedAlignment struct {
 }
 
 // Create aligns a transcript with audio, returning character and word timing.
-func (s *ForcedAlignmentService) Create(ctx context.Context, req *ForcedAlignmentRequest, opts ...RequestOption) (*ForcedAlignment, error) {
+func (s *ForcedAlignmentService) Create(ctx context.Context, req *ForcedAlignmentRequest, opts ...Option) (*ForcedAlignment, error) {
 	return doValue[ForcedAlignment](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/forced-alignment", form: orEmpty(req), opts: opts})
 }

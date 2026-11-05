@@ -150,7 +150,7 @@ type OrderList struct {
 }
 
 // List returns orders. req may be nil.
-func (s *ProductionOrdersService) List(ctx context.Context, req *OrdersListRequest, opts ...RequestOption) (*OrderList, error) {
+func (s *ProductionOrdersService) List(ctx context.Context, req *OrdersListRequest, opts ...Option) (*OrderList, error) {
 	return doValue[OrderList](ctx, s.cfg, &request{method: http.MethodGet, path: "/v1/productions/orders", query: req, opts: opts})
 }
 
@@ -167,12 +167,12 @@ type OrderCreateResponse struct {
 }
 
 // Create opens a new order. req may be nil.
-func (s *ProductionOrdersService) Create(ctx context.Context, req *OrderCreateRequest, opts ...RequestOption) (*OrderCreateResponse, error) {
+func (s *ProductionOrdersService) Create(ctx context.Context, req *OrderCreateRequest, opts ...Option) (*OrderCreateResponse, error) {
 	return doValue[OrderCreateResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/productions/orders", body: orEmpty(req), opts: opts})
 }
 
 // Get returns an order.
-func (s *ProductionOrdersService) Get(ctx context.Context, orderID string, opts ...RequestOption) (*Order, error) {
+func (s *ProductionOrdersService) Get(ctx context.Context, orderID string, opts ...Option) (*Order, error) {
 	return doValue[Order](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/productions/orders/%s", orderID), opts: opts})
 }
 
@@ -186,7 +186,7 @@ type OrderUpdateResponse struct {
 }
 
 // Update renames an order.
-func (s *ProductionOrdersService) Update(ctx context.Context, orderID, name string, opts ...RequestOption) (*OrderUpdateResponse, error) {
+func (s *ProductionOrdersService) Update(ctx context.Context, orderID, name string, opts ...Option) (*OrderUpdateResponse, error) {
 	return doValue[OrderUpdateResponse](ctx, s.cfg, &request{method: http.MethodPatch, path: pathf("/v1/productions/orders/%s", orderID), body: wrappedRequest[nameBody]{nameBody{name}}, opts: opts})
 }
 
@@ -198,7 +198,7 @@ type OrderSubmitResponse struct {
 }
 
 // Submit submits an order for fulfilment.
-func (s *ProductionOrdersService) Submit(ctx context.Context, orderID string, opts ...RequestOption) (*OrderSubmitResponse, error) {
+func (s *ProductionOrdersService) Submit(ctx context.Context, orderID string, opts ...Option) (*OrderSubmitResponse, error) {
 	return doValue[OrderSubmitResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/productions/orders/%s/submit", orderID), opts: opts})
 }
 
@@ -219,7 +219,7 @@ type DeliverableList struct {
 }
 
 // List returns the deliverables of an order.
-func (s *ProductionDeliverablesService) List(ctx context.Context, orderID string, opts ...RequestOption) (*DeliverableList, error) {
+func (s *ProductionDeliverablesService) List(ctx context.Context, orderID string, opts ...Option) (*DeliverableList, error) {
 	return doValue[DeliverableList](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/productions/orders/%s/deliverables", orderID), opts: opts})
 }
 
@@ -240,7 +240,7 @@ type OrderItemUpsertResponse struct {
 }
 
 // Upsert adds or replaces an order item.
-func (s *ProductionItemsService) Upsert(ctx context.Context, orderID string, req *OrderItemUpsertRequest, opts ...RequestOption) (*OrderItemUpsertResponse, error) {
+func (s *ProductionItemsService) Upsert(ctx context.Context, orderID string, req *OrderItemUpsertRequest, opts ...Option) (*OrderItemUpsertResponse, error) {
 	return doValue[OrderItemUpsertResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/productions/orders/%s/items", orderID), body: wrappedRequest[*OrderItemUpsertRequest]{orEmpty(req)}, opts: opts})
 }
 
@@ -250,7 +250,7 @@ type SuccessResponse struct {
 }
 
 // Remove deletes an order item.
-func (s *ProductionItemsService) Remove(ctx context.Context, orderID, itemID string, opts ...RequestOption) (*SuccessResponse, error) {
+func (s *ProductionItemsService) Remove(ctx context.Context, orderID, itemID string, opts ...Option) (*SuccessResponse, error) {
 	return doValue[SuccessResponse](ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/productions/orders/%s/items/%s", orderID, itemID), opts: opts})
 }
 
@@ -279,7 +279,7 @@ type ProductionLanguages struct {
 }
 
 // List returns the languages supported for an item kind.
-func (s *ProductionLanguagesService) List(ctx context.Context, kind OrderItemKind, opts ...RequestOption) (*ProductionLanguages, error) {
+func (s *ProductionLanguagesService) List(ctx context.Context, kind OrderItemKind, opts ...Option) (*ProductionLanguages, error) {
 	return doValue[ProductionLanguages](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/productions/orders/languages/%s", string(kind)), opts: opts})
 }
 
@@ -305,7 +305,7 @@ type MediaRegisterResponse struct {
 }
 
 // Register uploads or links source media for an order.
-func (s *ProductionMediaService) Register(ctx context.Context, orderID string, req *MediaRegisterRequest, opts ...RequestOption) (*MediaRegisterResponse, error) {
+func (s *ProductionMediaService) Register(ctx context.Context, orderID string, req *MediaRegisterRequest, opts ...Option) (*MediaRegisterResponse, error) {
 	return doValue[MediaRegisterResponse](ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/productions/orders/%s/media", orderID), form: orEmpty(req), opts: opts})
 }
 
@@ -319,6 +319,6 @@ type OrderMedia struct {
 }
 
 // Get returns registered media.
-func (s *ProductionMediaService) Get(ctx context.Context, orderID, mediaID string, opts ...RequestOption) (*OrderMedia, error) {
+func (s *ProductionMediaService) Get(ctx context.Context, orderID, mediaID string, opts ...Option) (*OrderMedia, error) {
 	return doValue[OrderMedia](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/productions/orders/%s/media/%s", orderID, mediaID), opts: opts})
 }

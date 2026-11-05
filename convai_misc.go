@@ -25,7 +25,7 @@ type LiveCountRequest struct {
 }
 
 // Get returns the number of active conversations. req may be nil.
-func (s *ConvAILiveCountService) Get(ctx context.Context, req *LiveCountRequest, opts ...RequestOption) (int, error) {
+func (s *ConvAILiveCountService) Get(ctx context.Context, req *LiveCountRequest, opts ...Option) (int, error) {
 	out, err := getValue[struct {
 		Count int `json:"count"`
 	}](ctx, s.cfg, "/v1/convai/analytics/live-count", req, opts)
@@ -60,7 +60,7 @@ type LLMList struct {
 }
 
 // List returns the LLMs that can be used with agents.
-func (s *ConvAILLMService) List(ctx context.Context, opts ...RequestOption) (*LLMList, error) {
+func (s *ConvAILLMService) List(ctx context.Context, opts ...Option) (*LLMList, error) {
 	return getValue[LLMList](ctx, s.cfg, "/v1/convai/llm/list", nil, opts)
 }
 
@@ -69,7 +69,7 @@ type ConvAILLMUsageService struct{ cfg *config }
 
 // Calculate estimates per-LLM costs for an agent configuration without
 // an existing agent. PromptLength, NumberOfPages and RAGEnabled are required.
-func (s *ConvAILLMUsageService) Calculate(ctx context.Context, req *LLMUsageRequest, opts ...RequestOption) (*LLMUsageResponse, error) {
+func (s *ConvAILLMUsageService) Calculate(ctx context.Context, req *LLMUsageRequest, opts ...Option) (*LLMUsageResponse, error) {
 	return sendValue[LLMUsageResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/llm-usage/calculate", nil, orEmpty(req), opts)
 }
 
@@ -99,7 +99,7 @@ type ClientSecret struct {
 
 // CreateClientSecret creates an ephemeral client secret for the
 // OpenAI-compatible realtime API. req may be nil.
-func (s *ConvAIRealtimeService) CreateClientSecret(ctx context.Context, req *CreateClientSecretRequest, opts ...RequestOption) (*ClientSecret, error) {
+func (s *ConvAIRealtimeService) CreateClientSecret(ctx context.Context, req *CreateClientSecretRequest, opts ...Option) (*ClientSecret, error) {
 	return sendValue[ClientSecret](ctx, s.cfg, http.MethodPost, "/v1/convai/realtime/client_secrets", nil, orEmpty(req), opts)
 }
 
@@ -150,12 +150,12 @@ type ConversationUsersPage struct {
 }
 
 // List returns one page of end users who talked to your agents. req may be nil.
-func (s *ConvAIUsersService) List(ctx context.Context, req *ConversationUsersListRequest, opts ...RequestOption) (*ConversationUsersPage, error) {
+func (s *ConvAIUsersService) List(ctx context.Context, req *ConversationUsersListRequest, opts ...Option) (*ConversationUsersPage, error) {
 	return getValue[ConversationUsersPage](ctx, s.cfg, "/v1/convai/users", req, opts)
 }
 
 // ListAll iterates over every conversation user.
-func (s *ConvAIUsersService) ListAll(ctx context.Context, req *ConversationUsersListRequest, opts ...RequestOption) iter.Seq2[ConversationUser, error] {
+func (s *ConvAIUsersService) ListAll(ctx context.Context, req *ConversationUsersListRequest, opts ...Option) iter.Seq2[ConversationUser, error] {
 	params := *orEmpty(req)
 	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[ConversationUser], error) {
 		params.Cursor = cursor
