@@ -1,6 +1,6 @@
 //go:build integration
 
-package elevenlabs
+package integration_test
 
 import (
 	"bytes"
@@ -11,6 +11,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/taigrr/elevenlabs/v2"
 
 	"github.com/taigrr/elevenlabs/v2/convai"
 	"github.com/taigrr/elevenlabs/v2/convai/agents"
@@ -24,7 +26,7 @@ import (
 
 // Live tests against api.elevenlabs.io. Run with:
 //
-//	ELEVENLABS_API_KEY=... go test -tags integration -run Live -v .
+//	ELEVENLABS_API_KEY=... go test -tags integration -run Live -v ./integration/
 //
 // They consume a small amount of credits.
 
@@ -33,23 +35,23 @@ const (
 	liveVoiceB = "21m00Tcm4TlvDq8ikWAM"
 )
 
-func liveClient(t *testing.T) *Client {
+func liveClient(t *testing.T) *elevenlabs.Client {
 	t.Helper()
-	key := os.Getenv(APIKeyEnvVar)
+	key := os.Getenv(elevenlabs.APIKeyEnvVar)
 	if key == "" {
 		key = os.Getenv("XI_API_KEY")
 	}
 	if key == "" {
 		t.Skip("ELEVENLABS_API_KEY or XI_API_KEY not set")
 	}
-	return NewClient(WithAPIKey(key), WithTimeout(60*time.Second))
+	return elevenlabs.NewClient(elevenlabs.WithAPIKey(key), elevenlabs.WithTimeout(60*time.Second))
 }
 
 // skipIfForbidden skips when the key lacks a permission for the feature
 // under test, so restricted keys can still run the rest of the suite.
 func skipIfForbidden(t *testing.T, err error) {
 	t.Helper()
-	var apiErr *APIError
+	var apiErr *elevenlabs.APIError
 	if errors.As(err, &apiErr) && (apiErr.StatusCode == 403 || apiErr.Status == "missing_permissions") {
 		t.Skipf("api key not permitted: %v", err)
 	}
@@ -63,7 +65,7 @@ func liveCtx(t *testing.T) context.Context {
 }
 
 // livePCM synthesizes a short 16 kHz PCM utterance for the audio-input sockets.
-func livePCM(t *testing.T, c *Client, text string) []byte {
+func livePCM(t *testing.T, c *elevenlabs.Client, text string) []byte {
 	t.Helper()
 	rc, err := c.TextToSpeech.Convert(liveCtx(t), liveVoiceA, &texttospeech.ConvertRequest{
 		Text: text, ModelID: "eleven_flash_v2_5", OutputFormat: "pcm_16000",
@@ -99,7 +101,7 @@ func TestLiveREST(t *testing.T) {
 	if err != nil || len(voices.Voices) == 0 {
 		t.Fatalf("voices: %v", err)
 	}
-	if _, err := c.Voices.Get(ctx, "does-not-exist-voice", nil); !errors.Is(err, ErrNotFound) && !errors.Is(err, ErrBadRequest) {
+	if _, err := c.Voices.Get(ctx, "does-not-exist-voice", nil); !errors.Is(err, elevenlabs.ErrNotFound) && !errors.Is(err, elevenlabs.ErrBadRequest) {
 		t.Errorf("missing voice err = %v", err)
 	}
 	if len(livePCM(t, c, "Hello.")) == 0 {
@@ -111,7 +113,7 @@ func TestLiveTextToSpeechStreamInput(t *testing.T) {
 	c := liveClient(t)
 	ctx := liveCtx(t)
 	stream, err := c.TextToSpeech.StreamInput(ctx, liveVoiceA, &texttospeech.StreamInputRequest{
-		ModelID: "eleven_flash_v2_5", OutputFormat: "pcm_16000", SyncAlignment: Ptr(true),
+		ModelID: "eleven_flash_v2_5", OutputFormat: "pcm_16000", SyncAlignment: elevenlabs.Ptr(true),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -183,7 +185,7 @@ func TestLiveTextToDialogueStreamInput(t *testing.T) {
 		stream.Send(ctx, &texttodialogue.StreamMessage{Voices: []string{liveVoiceA, liveVoiceB}}),
 		stream.SendInputs(ctx,
 			texttodialogue.StreamInput{Text: "Did the Go client work?", VoiceID: liveVoiceA},
-			texttodialogue.StreamInput{Text: "It did!", VoiceID: liveVoiceB, NewTurn: Ptr(true)}),
+			texttodialogue.StreamInput{Text: "It did!", VoiceID: liveVoiceB, NewTurn: elevenlabs.Ptr(true)}),
 		stream.Flush(ctx),
 		stream.CloseSend(ctx),
 	); err != nil {
@@ -236,7 +238,7 @@ func TestLiveSpeechToTextRealtime(t *testing.T) {
 	ctx := liveCtx(t)
 	conn, err := c.SpeechToText.Realtime(ctx, &speechtotext.RealtimeRequest{
 		ModelID: "scribe_v2_realtime", AudioFormat: speechtotext.RealtimeAudioPCM16000, SampleRate: 16000,
-		IncludeTimestamps: Ptr(true),
+		IncludeTimestamps: elevenlabs.Ptr(true),
 	})
 	if err != nil {
 		t.Fatal(err)

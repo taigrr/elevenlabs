@@ -68,3 +68,37 @@ func ExampleService_StreamInput() {
 		log.Fatal(err)
 	}
 }
+
+func ExampleService_MultiStreamInput() {
+	ctx := context.Background()
+	client := elevenlabs.NewClient()
+
+	stream, err := client.TextToSpeech.MultiStreamInput(ctx, "JBFqnCBsd6RMkjVDRZzb", &texttospeech.StreamInputRequest{
+		ModelID: "eleven_flash_v2_5",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer stream.Close()
+
+	go func() {
+		_ = stream.Send(ctx, &texttospeech.InitializeConnectionMulti{ContextID: "greeting"})
+		_ = stream.SendText(ctx, "greeting", "Hello from a multi-context socket. ")
+		_ = stream.FlushContext(ctx, "greeting")
+		_ = stream.CloseContext(ctx, "greeting")
+	}()
+
+	var audio []byte
+	for {
+		out, err := stream.Recv(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+		audio = append(audio, out.Audio...)
+		if out.IsFinal && out.ContextID == "greeting" {
+			break
+		}
+	}
+	_ = stream.CloseSend(ctx)
+	_ = os.WriteFile("greeting.mp3", audio, 0o644)
+}
