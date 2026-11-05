@@ -6,6 +6,8 @@ import (
 	"io"
 	"iter"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // AgentsService groups the /v1/convai/agents endpoints.
@@ -145,15 +147,15 @@ const (
 
 // AgentsListRequest holds the optional parameters of AgentsService.List.
 type AgentsListRequest struct {
-	PageSize            *int          `query:"page_size"`
-	Search              string        `query:"search"`
-	Archived            *bool         `query:"archived"`
-	ShowOnlyOwnedAgents *bool         `query:"show_only_owned_agents"`
-	CreatedByUserID     string        `query:"created_by_user_id"`
-	Tags                []string      `query:"tags"`
-	SortDirection       SortDirection `query:"sort_direction"`
-	SortBy              AgentSortBy   `query:"sort_by"`
-	Cursor              string        `query:"cursor"`
+	PageSize            *int                `query:"page_size"`
+	Search              string              `query:"search"`
+	Archived            *bool               `query:"archived"`
+	ShowOnlyOwnedAgents *bool               `query:"show_only_owned_agents"`
+	CreatedByUserID     string              `query:"created_by_user_id"`
+	Tags                []string            `query:"tags"`
+	SortDirection       types.SortDirection `query:"sort_direction"`
+	SortBy              AgentSortBy         `query:"sort_by"`
+	Cursor              string              `query:"cursor"`
 }
 
 // AgentCreateRequest is the body of AgentsService.Create.

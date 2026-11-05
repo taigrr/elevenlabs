@@ -1,7 +1,15 @@
 package elevenlabs
 
 import (
+	"github.com/taigrr/elevenlabs/v2/audioeffects"
+	"github.com/taigrr/elevenlabs/v2/audioisolation"
 	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/soundeffects"
+	"github.com/taigrr/elevenlabs/v2/speechtospeech"
+	"github.com/taigrr/elevenlabs/v2/speechtotext"
+	"github.com/taigrr/elevenlabs/v2/texttodialogue"
+	"github.com/taigrr/elevenlabs/v2/texttospeech"
+	"github.com/taigrr/elevenlabs/v2/texttovoice"
 )
 
 // Client is the entry point to the ElevenLabs API. Endpoints are grouped into
@@ -14,8 +22,8 @@ type Client struct {
 
 	Assets *AssetsService
 	// AudioEffects lists the presets usable in audio_effects.
-	AudioEffects              *AudioEffectsService
-	AudioIsolation            *AudioIsolationService
+	AudioEffects              *audioeffects.Service
+	AudioIsolation            *audioisolation.Service
 	AudioNative               *AudioNativeService
 	ForcedAlignment           *ForcedAlignmentService
 	History                   *HistoryService
@@ -23,12 +31,12 @@ type Client struct {
 	Music                     *MusicService
 	PronunciationDictionaries *PronunciationDictionariesService
 	Samples                   *SamplesService
-	SpeechToSpeech            *SpeechToSpeechService
-	SpeechToText              *SpeechToTextService
-	TextToDialogue            *TextToDialogueService
-	TextToSoundEffects        *TextToSoundEffectsService
-	TextToSpeech              *TextToSpeechService
-	TextToVoice               *TextToVoiceService
+	SpeechToSpeech            *speechtospeech.Service
+	SpeechToText              *speechtotext.Service
+	TextToDialogue            *texttodialogue.Service
+	TextToSoundEffects        *soundeffects.Service
+	TextToSpeech              *texttospeech.Service
+	TextToVoice               *texttovoice.Service
 	Tokens                    *TokensService
 	// Translation holds the realtime translation WebSocket.
 	Translation *TranslationService
@@ -72,8 +80,8 @@ func newClient(cfg *config) *Client {
 	return &Client{
 		cfg:                       cfg,
 		Assets:                    &AssetsService{cfg: cfg},
-		AudioEffects:              &AudioEffectsService{cfg: cfg},
-		AudioIsolation:            &AudioIsolationService{cfg: cfg},
+		AudioEffects:              audioeffects.NewService(fromConfig(cfg)),
+		AudioIsolation:            audioisolation.NewService(fromConfig(cfg)),
 		AudioNative:               &AudioNativeService{cfg: cfg},
 		ForcedAlignment:           &ForcedAlignmentService{cfg: cfg},
 		History:                   &HistoryService{cfg: cfg},
@@ -81,12 +89,12 @@ func newClient(cfg *config) *Client {
 		Music:                     newMusicService(cfg),
 		PronunciationDictionaries: newPronunciationDictionariesService(cfg),
 		Samples:                   &SamplesService{cfg: cfg},
-		SpeechToSpeech:            &SpeechToSpeechService{cfg: cfg},
-		SpeechToText:              newSpeechToTextService(cfg),
-		TextToDialogue:            &TextToDialogueService{cfg: cfg},
-		TextToSoundEffects:        &TextToSoundEffectsService{cfg: cfg},
-		TextToSpeech:              &TextToSpeechService{cfg: cfg},
-		TextToVoice:               newTextToVoiceService(cfg),
+		SpeechToSpeech:            speechtospeech.NewService(fromConfig(cfg)),
+		SpeechToText:              speechtotext.NewService(fromConfig(cfg)),
+		TextToDialogue:            texttodialogue.NewService(fromConfig(cfg)),
+		TextToSoundEffects:        soundeffects.NewService(fromConfig(cfg)),
+		TextToSpeech:              texttospeech.NewService(fromConfig(cfg)),
+		TextToVoice:               texttovoice.NewService(fromConfig(cfg)),
 		Tokens:                    newTokensService(cfg),
 		Translation:               &TranslationService{cfg: cfg},
 		Usage:                     &UsageService{cfg: cfg},
@@ -109,3 +117,8 @@ func newClient(cfg *config) *Client {
 
 // BaseURL returns the base URL requests are sent to.
 func (c *Client) BaseURL() string { return c.cfg.BaseURL }
+
+// fromConfig makes a service share the client's configuration.
+func fromConfig(cfg *config) Option {
+	return func(c *requestconfig.Config) { *c = *cfg.Clone() }
+}

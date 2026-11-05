@@ -20,14 +20,3 @@ func ExampleSpeechEngineService_Handler() {
 	http.Handle("/api/speech-engine/ws", handler)
 	// log.Fatal(http.ListenAndServe(":3001", nil))
 }
-
-func ExampleAudioEffectsService_GetCatalog() {
-	client := elevenlabs.NewClient()
-	catalog, err := client.AudioEffects.GetCatalog(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, preset := range catalog.FilterPresets {
-		log.Println(preset.FilterPresetID, preset.Name)
-	}
-}

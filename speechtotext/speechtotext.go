@@ -1,26 +1,37 @@
-package elevenlabs
+package speechtotext
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
-// SpeechToTextService groups the /v1/speech-to-text endpoints.
+// Service groups the /v1/speech-to-text endpoints.
 //
-// Convert returns a SpeechToTextConvertResponse union whose populated field
+// Convert returns a ConvertResponse union whose populated field
 // depends on the request, mirroring the typed overloads of the official SDK:
 // Webhook when Webhook is true, Multichannel when UseMultiChannel is true and
 // Chunk otherwise.
-type SpeechToTextService struct {
-	cfg *config
+type Service struct {
+	cfg *requestconfig.Config
 
-	Transcripts *SpeechToTextTranscriptsService
+	Transcripts *TranscriptsService
 }
 
-func newSpeechToTextService(cfg *config) *SpeechToTextService {
-	return &SpeechToTextService{cfg: cfg, Transcripts: &SpeechToTextTranscriptsService{cfg: cfg}}
+// NewService returns a Service configured by opts. Without option.WithAPIKey
+// the key is read from the ELEVENLABS_API_KEY environment variable.
+func NewService(opts ...option.RequestOption) *Service {
+	return newService(requestconfig.Build(opts...))
+}
+
+func newService(cfg *requestconfig.Config) *Service {
+	return &Service{cfg: cfg, Transcripts: &TranscriptsService{cfg: cfg}}
 }
 
 // TimestampsGranularity controls transcript timestamp granularity.
@@ -33,13 +44,13 @@ const (
 	TimestampsGranularityCharacter TimestampsGranularity = "character"
 )
 
-// SpeechToTextFileFormat describes the input audio encoding.
-type SpeechToTextFileFormat string
+// FileFormat describes the input audio encoding.
+type FileFormat string
 
-// SpeechToTextFileFormat values.
+// FileFormat values.
 const (
-	SpeechToTextFileFormatPCMS16LE16 SpeechToTextFileFormat = "pcm_s16le_16"
-	SpeechToTextFileFormatOther      SpeechToTextFileFormat = "other"
+	FileFormatPCMS16LE16 FileFormat = "pcm_s16le_16"
+	FileFormatOther      FileFormat = "other"
 )
 
 // MultichannelOutputStyle controls how multichannel transcripts are returned.
@@ -53,8 +64,8 @@ const (
 
 // Speech-to-text model IDs.
 const (
-	SpeechToTextModelScribeV1 = "scribe_v1"
-	SpeechToTextModelScribeV2 = "scribe_v2"
+	ModelScribeV1 = "scribe_v1"
+	ModelScribeV2 = "scribe_v2"
 )
 
 // ExportFormat is an additional transcript export format.
@@ -82,18 +93,18 @@ type ExportOptions struct {
 	MaxSegmentChars             *int         `json:"max_segment_chars,omitempty"`
 }
 
-// SpeechToTextConvertRequest is the request of SpeechToTextService.Convert.
+// ConvertRequest is the request of Service.Convert.
 // Either File or CloudStorageURL/SourceURL must be set.
-type SpeechToTextConvertRequest struct {
+type ConvertRequest struct {
 	// Token is a single-use token for client-side authentication.
 	Token string `form:"-" query:"token"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `form:"-" query:"enable_logging"`
 
-	// ModelID is the transcription model, e.g. SpeechToTextModelScribeV1. Required.
+	// ModelID is the transcription model, e.g. ModelScribeV1. Required.
 	ModelID string `form:"model_id"`
 	// File is the audio or video to transcribe.
-	File *File `form:"file"`
+	File *types.File `form:"file"`
 	// LanguageCode is an ISO-639-1 or ISO-639-3 code; detected when empty.
 	LanguageCode string `form:"language_code"`
 	// TranscriptEdit is a JSON-encoded transcript edit.
@@ -111,7 +122,7 @@ type SpeechToTextConvertRequest struct {
 	// AdditionalFormats requests additional export formats.
 	AdditionalFormats []ExportOptions `form:"additional_formats"`
 	// FileFormat describes the input encoding.
-	FileFormat SpeechToTextFileFormat `form:"file_format"`
+	FileFormat FileFormat `form:"file_format"`
 	// CloudStorageURL is an HTTPS URL of the file to transcribe.
 	CloudStorageURL string `form:"cloud_storage_url"`
 	// SourceURL is a hosted video or audio URL (e.g. YouTube) to transcribe.
@@ -146,33 +157,33 @@ type SpeechToTextConvertRequest struct {
 	Keyterms []string `form:"keyterms"`
 }
 
-// SpeechToTextCharacter is character-level timing within a word.
-type SpeechToTextCharacter struct {
+// Character is character-level timing within a word.
+type Character struct {
 	Text  string   `json:"text"`
 	Start *float64 `json:"start,omitempty"`
 	End   *float64 `json:"end,omitempty"`
 }
 
-// SpeechToTextWordType classifies a transcript token.
-type SpeechToTextWordType string
+// WordType classifies a transcript token.
+type WordType string
 
-// SpeechToTextWordType values.
+// WordType values.
 const (
-	SpeechToTextWordTypeWord       SpeechToTextWordType = "word"
-	SpeechToTextWordTypeSpacing    SpeechToTextWordType = "spacing"
-	SpeechToTextWordTypeAudioEvent SpeechToTextWordType = "audio_event"
+	WordTypeWord       WordType = "word"
+	WordTypeSpacing    WordType = "spacing"
+	WordTypeAudioEvent WordType = "audio_event"
 )
 
-// SpeechToTextWord is a word, spacing or audio event in a transcript.
-type SpeechToTextWord struct {
-	Text         string                  `json:"text"`
-	Start        *float64                `json:"start,omitempty"`
-	End          *float64                `json:"end,omitempty"`
-	Type         SpeechToTextWordType    `json:"type"`
-	SpeakerID    *string                 `json:"speaker_id,omitempty"`
-	Logprob      float64                 `json:"logprob"`
-	Characters   []SpeechToTextCharacter `json:"characters,omitempty"`
-	ChannelIndex *int                    `json:"channel_index,omitempty"`
+// Word is a word, spacing or audio event in a transcript.
+type Word struct {
+	Text         string      `json:"text"`
+	Start        *float64    `json:"start,omitempty"`
+	End          *float64    `json:"end,omitempty"`
+	Type         WordType    `json:"type"`
+	SpeakerID    *string     `json:"speaker_id,omitempty"`
+	Logprob      float64     `json:"logprob"`
+	Characters   []Character `json:"characters,omitempty"`
+	ChannelIndex *int        `json:"channel_index,omitempty"`
 }
 
 // AdditionalFormatResponse is a transcript rendered in an additional format.
@@ -192,12 +203,12 @@ type DetectedEntity struct {
 	EndChar    int    `json:"end_char"`
 }
 
-// SpeechToTextChunk is a single-channel transcript.
-type SpeechToTextChunk struct {
+// Chunk is a single-channel transcript.
+type Chunk struct {
 	LanguageCode        string                      `json:"language_code"`
 	LanguageProbability float64                     `json:"language_probability"`
 	Text                string                      `json:"text"`
-	Words               []SpeechToTextWord          `json:"words"`
+	Words               []Word                      `json:"words"`
 	ChannelIndex        *int                        `json:"channel_index,omitempty"`
 	AdditionalFormats   []*AdditionalFormatResponse `json:"additional_formats,omitempty"`
 	TranscriptionID     *string                     `json:"transcription_id,omitempty"`
@@ -207,52 +218,52 @@ type SpeechToTextChunk struct {
 	EditedTranscript json.RawMessage `json:"edited_transcript,omitempty"`
 }
 
-// MultichannelSpeechToText is a transcript with one chunk per channel.
-type MultichannelSpeechToText struct {
-	Transcripts       []SpeechToTextChunk `json:"transcripts"`
-	TranscriptionID   *string             `json:"transcription_id,omitempty"`
-	AudioDurationSecs *float64            `json:"audio_duration_secs,omitempty"`
+// Multichannel is a transcript with one chunk per channel.
+type Multichannel struct {
+	Transcripts       []Chunk  `json:"transcripts"`
+	TranscriptionID   *string  `json:"transcription_id,omitempty"`
+	AudioDurationSecs *float64 `json:"audio_duration_secs,omitempty"`
 }
 
-// SpeechToTextWebhookAck is returned when results will be delivered by webhook.
-type SpeechToTextWebhookAck struct {
+// WebhookAck is returned when results will be delivered by webhook.
+type WebhookAck struct {
 	Message         string  `json:"message"`
 	RequestID       string  `json:"request_id"`
 	TranscriptionID *string `json:"transcription_id,omitempty"`
 }
 
-// SpeechToTextConvertResponse is a union: exactly one field is non-nil.
-type SpeechToTextConvertResponse struct {
-	Chunk        *SpeechToTextChunk
-	Multichannel *MultichannelSpeechToText
-	Webhook      *SpeechToTextWebhookAck
+// ConvertResponse is a union: exactly one field is non-nil.
+type ConvertResponse struct {
+	Chunk        *Chunk
+	Multichannel *Multichannel
+	Webhook      *WebhookAck
 }
 
 // UnmarshalJSON selects the union variant from the keys present.
-func (r *SpeechToTextConvertResponse) UnmarshalJSON(data []byte) error {
+func (r *ConvertResponse) UnmarshalJSON(data []byte) error {
 	var keys map[string]json.RawMessage
 	if err := json.Unmarshal(data, &keys); err != nil {
 		return err
 	}
-	*r = SpeechToTextConvertResponse{}
+	*r = ConvertResponse{}
 	_, hasTranscripts := keys["transcripts"]
 	_, hasText := keys["text"]
 	_, hasMessage := keys["message"]
 	switch {
 	case hasTranscripts:
-		r.Multichannel = new(MultichannelSpeechToText)
+		r.Multichannel = new(Multichannel)
 		return json.Unmarshal(data, r.Multichannel)
 	case hasMessage && !hasText:
-		r.Webhook = new(SpeechToTextWebhookAck)
+		r.Webhook = new(WebhookAck)
 		return json.Unmarshal(data, r.Webhook)
 	default:
-		r.Chunk = new(SpeechToTextChunk)
+		r.Chunk = new(Chunk)
 		return json.Unmarshal(data, r.Chunk)
 	}
 }
 
 // MarshalJSON encodes the populated variant.
-func (r SpeechToTextConvertResponse) MarshalJSON() ([]byte, error) {
+func (r ConvertResponse) MarshalJSON() ([]byte, error) {
 	switch {
 	case r.Chunk != nil:
 		return json.Marshal(r.Chunk)
@@ -265,20 +276,20 @@ func (r SpeechToTextConvertResponse) MarshalJSON() ([]byte, error) {
 }
 
 // Convert transcribes an audio or video file. Uploads are streamed.
-func (s *SpeechToTextService) Convert(ctx context.Context, req *SpeechToTextConvertRequest, opts ...Option) (*SpeechToTextConvertResponse, error) {
+func (s *Service) Convert(ctx context.Context, req *ConvertRequest, opts ...option.RequestOption) (*ConvertResponse, error) {
 	if req == nil || req.ModelID == "" {
 		return nil, fmt.Errorf("elevenlabs: speech to text: model id is required")
 	}
-	return doValue[SpeechToTextConvertResponse](ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/speech-to-text", query: req, form: req, opts: opts})
+	return transport.DoValue[ConvertResponse](ctx, s.cfg, &transport.Request{Method: http.MethodPost, Path: "/v1/speech-to-text", Query: req, Form: req, Opts: opts})
 }
 
-// SpeechToTextTranscriptsService groups the /v1/speech-to-text/transcripts endpoints.
-type SpeechToTextTranscriptsService struct{ cfg *config }
+// TranscriptsService groups the /v1/speech-to-text/transcripts endpoints.
+type TranscriptsService struct{ cfg *requestconfig.Config }
 
 // Transcript is a stored transcript: exactly one field is non-nil.
 type Transcript struct {
-	Chunk        *SpeechToTextChunk
-	Multichannel *MultichannelSpeechToText
+	Chunk        *Chunk
+	Multichannel *Multichannel
 }
 
 // UnmarshalJSON selects the union variant from the keys present.
@@ -289,10 +300,10 @@ func (t *Transcript) UnmarshalJSON(data []byte) error {
 	}
 	*t = Transcript{}
 	if _, ok := keys["transcripts"]; ok {
-		t.Multichannel = new(MultichannelSpeechToText)
+		t.Multichannel = new(Multichannel)
 		return json.Unmarshal(data, t.Multichannel)
 	}
-	t.Chunk = new(SpeechToTextChunk)
+	t.Chunk = new(Chunk)
 	return json.Unmarshal(data, t.Chunk)
 }
 
@@ -308,12 +319,12 @@ func (t Transcript) MarshalJSON() ([]byte, error) {
 }
 
 // Get returns a previously generated transcript.
-func (s *SpeechToTextTranscriptsService) Get(ctx context.Context, transcriptionID string, opts ...Option) (*Transcript, error) {
-	return doValue[Transcript](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/speech-to-text/transcripts/%s", transcriptionID), opts: opts})
+func (s *TranscriptsService) Get(ctx context.Context, transcriptionID string, opts ...option.RequestOption) (*Transcript, error) {
+	return transport.DoValue[Transcript](ctx, s.cfg, &transport.Request{Method: http.MethodGet, Path: transport.Pathf("/v1/speech-to-text/transcripts/%s", transcriptionID), Opts: opts})
 }
 
 // Delete deletes a transcript. The API's response body is untyped and is
 // returned as raw JSON (nil when empty).
-func (s *SpeechToTextTranscriptsService) Delete(ctx context.Context, transcriptionID string, opts ...Option) (json.RawMessage, error) {
-	return doRaw(ctx, s.cfg, &request{method: http.MethodDelete, path: pathf("/v1/speech-to-text/transcripts/%s", transcriptionID), opts: opts})
+func (s *TranscriptsService) Delete(ctx context.Context, transcriptionID string, opts ...option.RequestOption) (json.RawMessage, error) {
+	return transport.DoRaw(ctx, s.cfg, &transport.Request{Method: http.MethodDelete, Path: transport.Pathf("/v1/speech-to-text/transcripts/%s", transcriptionID), Opts: opts})
 }

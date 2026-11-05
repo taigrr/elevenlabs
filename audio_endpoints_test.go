@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 func endpointCases() []endpointCase {
@@ -43,45 +45,6 @@ const musicMultipartBody = "--b\r\nContent-Type: application/json\r\n\r\n" +
 func audioEndpointCases() []endpointCase {
 	return []endpointCase{
 		{
-			name: "audioIsolation.convert",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return readAll(c.AudioIsolation.Convert(ctx, &AudioIsolationRequest{Audio: testFile("a.wav", "wav"), FileFormat: AudioFileFormatPCMS16LE16, PreviewB64: "p"}))
-			},
-			method: http.MethodPost, path: "/v1/audio-isolation", accept: acceptAny, respType: "audio/mpeg", respBody: "iso",
-			form:  map[string][]string{"audio": {"file:a.wav:wav"}, "file_format": {"pcm_s16le_16"}, "preview_b64": {"p"}},
-			check: checkString("iso"),
-		},
-		{
-			name: "audioIsolation.stream",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return readAll(c.AudioIsolation.Stream(ctx, &AudioIsolationStreamRequest{Audio: testFile("a.wav", "wav")}))
-			},
-			method: http.MethodPost, path: "/v1/audio-isolation/stream", accept: acceptAny, respType: "audio/mpeg", respBody: "iso",
-			form:  map[string][]string{"audio": {"file:a.wav:wav"}},
-			check: checkString("iso"),
-		},
-		{
-			name: "audioIsolation.list",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.AudioIsolation.List(ctx, &AudioIsolationListRequest{PageSize: Ptr(5), Page: Ptr(2), Search: "x"})
-			},
-			method: http.MethodGet, path: "/v1/audio-isolation/history", query: "page=2&page_size=5&search=x",
-			respBody: `{"items":[{"id":"i1","created_at_unix":3,"format":"mp3","supports_video":true}],"has_more":false}`,
-			check: func(t *testing.T, r any) {
-				h := r.(*AudioIsolationHistory)
-				if len(h.Items) != 1 || h.Items[0].ID != "i1" || !h.Items[0].SupportsVideo {
-					t.Errorf("history = %+v", h)
-				}
-			},
-		},
-		{
-			name: "audioIsolation.delete",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return nil, c.AudioIsolation.Delete(ctx, "h/1")
-			},
-			method: http.MethodDelete, path: "/v1/audio-isolation/history/h%2F1", respBody: `{}`,
-		},
-		{
 			name: "forcedAlignment.create",
 			call: func(ctx context.Context, c *Client) (any, error) {
 				return c.ForcedAlignment.Create(ctx, &ForcedAlignmentRequest{File: testFile("a.mp3", "mp3"), Text: "hi"})
@@ -107,163 +70,6 @@ func audioEndpointCases() []endpointCase {
 					t.Errorf("models = %+v", m)
 				}
 			},
-		},
-		{
-			name: "speechToSpeech.convert",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return readAll(c.SpeechToSpeech.Convert(ctx, "v1", &SpeechToSpeechRequest{
-					EnableLogging: Ptr(false), OptimizeStreamingLatency: Ptr(1), OutputFormat: OutputFormatPCM16000,
-					Audio: testFile("a.wav", "wav"), ModelID: "eleven_multilingual_sts_v2", VoiceSettings: &VoiceSettings{Stability: Ptr(0.5)},
-					Seed: Ptr(int64(3)), RemoveBackgroundNoise: Ptr(true), FileFormat: AudioFileFormatOther,
-				}))
-			},
-			method: http.MethodPost, path: "/v1/voice-changer/v1", accept: acceptAny, respType: "audio/mpeg", respBody: "sts",
-			query: "enable_logging=false&optimize_streaming_latency=1&output_format=pcm_16000",
-			form: map[string][]string{"audio": {"file:a.wav:wav"}, "model_id": {"eleven_multilingual_sts_v2"}, "voice_settings": {`{"stability":0.5}`},
-				"seed": {"3"}, "remove_background_noise": {"true"}, "file_format": {"other"}},
-			check: checkString("sts"),
-		},
-		{
-			name: "speechToSpeech.stream",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return readAll(c.SpeechToSpeech.Stream(ctx, "v1", &SpeechToSpeechRequest{Audio: testFile("a.wav", "wav")}))
-			},
-			method: http.MethodPost, path: "/v1/voice-changer/v1/stream", accept: acceptAny, respType: "audio/mpeg", respBody: "sts",
-			form:  map[string][]string{"audio": {"file:a.wav:wav"}},
-			check: checkString("sts"),
-		},
-		{
-			name: "speechToText.transcripts.get",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.SpeechToText.Transcripts.Get(ctx, "t1")
-			},
-			method: http.MethodGet, path: "/v1/speech-to-text/transcripts/t1",
-			respBody: `{"language_code":"en","language_probability":1,"text":"hi","words":[]}`,
-			check: func(t *testing.T, r any) {
-				if tr := r.(*Transcript); tr.Chunk == nil || tr.Chunk.Text != "hi" || tr.Multichannel != nil {
-					t.Errorf("transcript = %+v", tr)
-				}
-			},
-		},
-		{
-			name: "speechToText.transcripts.delete",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.SpeechToText.Transcripts.Delete(ctx, "t1")
-			},
-			method: http.MethodDelete, path: "/v1/speech-to-text/transcripts/t1", respBody: `{"ok":true}`,
-			check: func(t *testing.T, r any) {
-				if string(r.(json.RawMessage)) != `{"ok":true}` {
-					t.Errorf("raw = %s", r)
-				}
-			},
-		},
-		{
-			name: "textToDialogue.convert",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return readAll(c.TextToDialogue.Convert(ctx, &TextToDialogueRequest{
-					OutputFormat: OutputFormatMP3_44100_128, EnableLogging: Ptr(true),
-					Inputs: []TextToDialogueInput{{Text: "hi", VoiceID: "a"}}, ModelID: "eleven_v3", LanguageCode: "en",
-					Settings: &DialogueSettings{Stability: Ptr(0.5)}, PreviousText: "p", FutureText: "f", Seed: Ptr(int64(1)),
-					ApplyTextNormalization: TextNormalizationOn, PreviousRequestIDs: []string{"r"},
-				}))
-			},
-			method: http.MethodPost, path: "/v1/text-to-dialogue", accept: acceptAny, respType: "audio/mpeg", respBody: "dlg",
-			query: "enable_logging=true&output_format=mp3_44100_128",
-			body:  `{"inputs":[{"text":"hi","voice_id":"a"}],"model_id":"eleven_v3","language_code":"en","settings":{"stability":0.5},"previous_text":"p","future_text":"f","seed":1,"apply_text_normalization":"on","previous_request_ids":["r"]}`,
-			check: checkString("dlg"),
-		},
-		{
-			name: "textToDialogue.stream",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return readAll(c.TextToDialogue.Stream(ctx, &TextToDialogueRequest{Inputs: []TextToDialogueInput{{Text: "hi", VoiceID: "a"}}}))
-			},
-			method: http.MethodPost, path: "/v1/text-to-dialogue/stream", accept: acceptAny, respType: "audio/mpeg", respBody: "dlg",
-			body:  `{"inputs":[{"text":"hi","voice_id":"a"}]}`,
-			check: checkString("dlg"),
-		},
-		{
-			name: "textToDialogue.convertWithTimestamps",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.TextToDialogue.ConvertWithTimestamps(ctx, &TextToDialogueRequest{Inputs: []TextToDialogueInput{{Text: "hi", VoiceID: "a"}}})
-			},
-			method: http.MethodPost, path: "/v1/text-to-dialogue/with-timestamps",
-			body:     `{"inputs":[{"text":"hi","voice_id":"a"}]}`,
-			respBody: `{"audio_base64":"AA==","voice_segments":[{"voice_id":"a","start_time_seconds":0,"end_time_seconds":1,"character_start_index":0,"character_end_index":2,"dialogue_input_index":0}]}`,
-			check: func(t *testing.T, r any) {
-				a := r.(*AudioWithTimestampsAndVoiceSegments)
-				if a.AudioBase64 != "AA==" || len(a.VoiceSegments) != 1 || a.VoiceSegments[0].CharacterEndIndex != 2 {
-					t.Errorf("dialogue = %+v", a)
-				}
-			},
-		},
-		{
-			name: "textToDialogue.streamWithTimestamps",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return drainStream(c.TextToDialogue.StreamWithTimestamps(ctx, &TextToDialogueRequest{Inputs: []TextToDialogueInput{{Text: "hi", VoiceID: "a"}}}))
-			},
-			method: http.MethodPost, path: "/v1/text-to-dialogue/stream/with-timestamps",
-			body:     `{"inputs":[{"text":"hi","voice_id":"a"}]}`,
-			respBody: "{\"audio_base64\":\"AA==\",\"voice_segments\":[]}\n{\"audio_base64\":\"AQ==\",\"voice_segments\":[]}\n",
-			check: func(t *testing.T, r any) {
-				if c := r.([]AudioWithTimestampsAndVoiceSegments); len(c) != 2 || c[1].AudioBase64 != "AQ==" {
-					t.Errorf("chunks = %+v", c)
-				}
-			},
-		},
-		{
-			name: "textToVoice.createPreviews",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.TextToVoice.CreatePreviews(ctx, &VoicePreviewsRequest{OutputFormat: OutputFormatMP3_22050_32, VoiceDescription: "calm", AutoGenerateText: Ptr(true), Loudness: Ptr(0.5)})
-			},
-			method: http.MethodPost, path: "/v1/text-to-voice/create-previews", query: "output_format=mp3_22050_32",
-			body:     `{"voice_description":"calm","auto_generate_text":true,"loudness":0.5}`,
-			respBody: `{"previews":[{"audio_base_64":"AA==","generated_voice_id":"g1","media_type":"audio/mpeg","duration_secs":2}],"text":"hello"}`,
-			check: func(t *testing.T, r any) {
-				p := r.(*VoiceDesignPreviews)
-				if len(p.Previews) != 1 || p.Previews[0].GeneratedVoiceID != "g1" || p.Text != "hello" {
-					t.Errorf("previews = %+v", p)
-				}
-			},
-		},
-		{
-			name: "textToVoice.create",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.TextToVoice.Create(ctx, &CreateVoiceFromPreviewRequest{VoiceName: "n", VoiceDescription: "d", GeneratedVoiceID: "g1", Labels: map[string]string{"a": "b"}})
-			},
-			method: http.MethodPost, path: "/v1/text-to-voice",
-			body:     `{"voice_name":"n","voice_description":"d","generated_voice_id":"g1","labels":{"a":"b"}}`,
-			respBody: `{"voice_id":"v9"}`,
-			check: func(t *testing.T, r any) {
-				if v := r.(*Voice); v.VoiceID != "v9" {
-					t.Errorf("voice = %+v", v)
-				}
-			},
-		},
-		{
-			name: "textToVoice.design",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.TextToVoice.Design(ctx, &VoiceDesignRequest{VoiceDescription: "calm", ModelID: VoiceDesignModel("eleven_ttv_v3"), StreamPreviews: Ptr(true), ReferenceAudioBase64: "AA==", PromptStrength: Ptr(0.4)})
-			},
-			method: http.MethodPost, path: "/v1/text-to-voice/design",
-			body:     `{"voice_description":"calm","model_id":"eleven_ttv_v3","stream_previews":true,"reference_audio_base64":"AA==","prompt_strength":0.4}`,
-			respBody: `{"previews":[],"text":"t"}`,
-		},
-		{
-			name: "textToVoice.remix",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.TextToVoice.Remix(ctx, "v1", &VoiceRemixRequest{VoiceDescription: "older", RemixingSessionID: "s"})
-			},
-			method: http.MethodPost, path: "/v1/text-to-voice/v1/remix",
-			body:     `{"voice_description":"older","remixing_session_id":"s"}`,
-			respBody: `{"previews":[],"text":"t"}`,
-		},
-		{
-			name: "textToVoice.preview.stream",
-			call: func(ctx context.Context, c *Client) (any, error) {
-				return readAll(c.TextToVoice.Preview.Stream(ctx, "g1"))
-			},
-			method: http.MethodGet, path: "/v1/text-to-voice/g1/stream", accept: acceptAny, respType: "audio/mpeg", respBody: "prev",
-			check: checkString("prev"),
 		},
 		{
 			name: "tokens.singleUse.create",
@@ -294,7 +100,7 @@ func audioEndpointCases() []endpointCase {
 		{
 			name: "music.compose",
 			call: func(ctx context.Context, c *Client) (any, error) {
-				return readAll(c.Music.Compose(ctx, &MusicComposeRequest{OutputFormat: OutputFormatMP3_44100_128, MusicGenerationParams: MusicGenerationParams{Prompt: "jazz", MusicLengthMs: Ptr(int64(10000)), ForceInstrumental: Ptr(true)}, SignWithC2PA: Ptr(false)}))
+				return readAll(c.Music.Compose(ctx, &MusicComposeRequest{OutputFormat: types.OutputFormatMP3_44100_128, MusicGenerationParams: MusicGenerationParams{Prompt: "jazz", MusicLengthMs: Ptr(int64(10000)), ForceInstrumental: Ptr(true)}, SignWithC2PA: Ptr(false)}))
 			},
 			method: http.MethodPost, path: "/v1/music", accept: acceptAny, respType: "audio/mpeg", respBody: "song",
 			query: "output_format=mp3_44100_128",
@@ -369,7 +175,7 @@ func audioEndpointCases() []endpointCase {
 		{
 			name: "music.separateStems",
 			call: func(ctx context.Context, c *Client) (any, error) {
-				return readAll(c.Music.SeparateStems(ctx, &SeparateStemsRequest{OutputFormat: OutputFormatMP3_44100_128, File: testFile("s.mp3", "mp3"), StemVariationID: StemVariation("two_stems_v1")}))
+				return readAll(c.Music.SeparateStems(ctx, &SeparateStemsRequest{OutputFormat: types.OutputFormatMP3_44100_128, File: testFile("s.mp3", "mp3"), StemVariationID: StemVariation("two_stems_v1")}))
 			},
 			method: http.MethodPost, path: "/v1/music/stem-separation", accept: acceptAny, respType: "application/zip", respBody: "zip",
 			query: "output_format=mp3_44100_128",
@@ -480,35 +286,5 @@ func TestMusicFinetunesListAll(t *testing.T) {
 	}
 	if q := ts.last(t).RawQuery; q != "cursor=c2" {
 		t.Errorf("second query = %q", q)
-	}
-}
-
-func TestAudioIsolationListAll(t *testing.T) {
-	client, ts := newTestServer(t, sequence(
-		respond(http.StatusOK, contentTypeJSON, `{"items":[{"id":"a"}],"has_more":true}`),
-		respond(http.StatusOK, contentTypeJSON, `{"items":[{"id":"b"}],"has_more":false}`),
-	))
-	var ids []string
-	for it, err := range client.AudioIsolation.ListAll(context.Background(), &AudioIsolationListRequest{Search: "q"}) {
-		if err != nil {
-			t.Fatal(err)
-		}
-		ids = append(ids, it.ID)
-	}
-	if strings.Join(ids, ",") != "a,b" {
-		t.Errorf("ids = %v", ids)
-	}
-	if q := ts.last(t).RawQuery; q != "page=2&search=q" {
-		t.Errorf("second query = %q", q)
-	}
-}
-
-func TestTranscriptMultichannel(t *testing.T) {
-	var tr Transcript
-	if err := json.Unmarshal([]byte(`{"transcripts":[],"transcription_id":"t"}`), &tr); err != nil {
-		t.Fatal(err)
-	}
-	if tr.Multichannel == nil || tr.Chunk != nil {
-		t.Errorf("transcript = %+v", tr)
 	}
 }

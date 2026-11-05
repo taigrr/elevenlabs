@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"iter"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // WorkspaceService groups the /v1/workspace endpoints.
@@ -98,12 +100,12 @@ type WorkspaceAnalyticsRequestsService struct{ cfg *config }
 
 // AnalyticsRequestsQuery is the body of WorkspaceAnalyticsRequestsService.Get.
 type AnalyticsRequestsQuery struct {
-	StartTime *int64         `json:"start_time,omitempty"`
-	EndTime   *int64         `json:"end_time,omitempty"`
-	Limit     *int           `json:"limit,omitempty"`
-	Sort      SortDirection  `json:"sort,omitempty"`
-	Filters   []ColumnFilter `json:"filters,omitempty"`
-	Search    string         `json:"search,omitempty"`
+	StartTime *int64              `json:"start_time,omitempty"`
+	EndTime   *int64              `json:"end_time,omitempty"`
+	Limit     *int                `json:"limit,omitempty"`
+	Sort      types.SortDirection `json:"sort,omitempty"`
+	Filters   []ColumnFilter      `json:"filters,omitempty"`
+	Search    string              `json:"search,omitempty"`
 }
 
 // Get lists API requests made in the workspace. req may be nil.

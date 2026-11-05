@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
+	"github.com/taigrr/elevenlabs/v2/voices"
 )
 
 // StudioService groups the /v1/studio endpoints.
@@ -205,16 +208,16 @@ type PronunciationDictionaryVersion struct {
 // ProjectExtended is a Studio project with chapters, voices and assets.
 type ProjectExtended struct {
 	Project
-	QualityPreset                   QualityPreset                    `json:"quality_preset"`
-	Chapters                        []Chapter                        `json:"chapters"`
-	PronunciationDictionaryVersions []PronunciationDictionaryVersion `json:"pronunciation_dictionary_versions"`
-	PronunciationDictionaryLocators []PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators"`
-	ApplyTextNormalization          string                           `json:"apply_text_normalization"`
-	Experimental                    map[string]any                   `json:"experimental,omitempty"`
-	Assets                          []json.RawMessage                `json:"assets"`
-	Voices                          []ProjectVoice                   `json:"voices"`
-	BaseVoices                      []Voice                          `json:"base_voices,omitempty"`
-	PublishingRead                  json.RawMessage                  `json:"publishing_read,omitempty"`
+	QualityPreset                   QualityPreset                          `json:"quality_preset"`
+	Chapters                        []Chapter                              `json:"chapters"`
+	PronunciationDictionaryVersions []PronunciationDictionaryVersion       `json:"pronunciation_dictionary_versions"`
+	PronunciationDictionaryLocators []types.PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators"`
+	ApplyTextNormalization          string                                 `json:"apply_text_normalization"`
+	Experimental                    map[string]any                         `json:"experimental,omitempty"`
+	Assets                          []json.RawMessage                      `json:"assets"`
+	Voices                          []ProjectVoice                         `json:"voices"`
+	BaseVoices                      []voices.Voice                         `json:"base_voices,omitempty"`
+	PublishingRead                  json.RawMessage                        `json:"publishing_read,omitempty"`
 }
 
 // ProjectResponse wraps a project.
@@ -439,7 +442,7 @@ type StudioPronunciationDictionariesService struct{ cfg *config }
 
 // ProjectPronunciationDictionariesRequest is the body of StudioPronunciationDictionariesService.Create.
 type ProjectPronunciationDictionariesRequest struct {
-	PronunciationDictionaryLocators []PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators"`
+	PronunciationDictionaryLocators []types.PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators"`
 	// InvalidateAffectedText marks affected text for reconversion.
 	InvalidateAffectedText *bool `json:"invalidate_affected_text,omitempty"`
 }
@@ -529,7 +532,7 @@ type ChapterSnapshot struct {
 // ChapterSnapshotExtended is a chapter snapshot with character alignments.
 type ChapterSnapshotExtended struct {
 	ChapterSnapshot
-	CharacterAlignments []CharacterAlignment `json:"character_alignments"`
+	CharacterAlignments []types.CharacterAlignment `json:"character_alignments"`
 }
 
 // ChapterSnapshotList is the response of StudioChapterSnapshotsService.List.
@@ -568,8 +571,8 @@ type ProjectSnapshot struct {
 // ProjectSnapshotExtended is a project snapshot with character alignments.
 type ProjectSnapshotExtended struct {
 	ProjectSnapshot
-	CharacterAlignments []CharacterAlignment `json:"character_alignments"`
-	AudioDurationSecs   float64              `json:"audio_duration_secs"`
+	CharacterAlignments []types.CharacterAlignment `json:"character_alignments"`
+	AudioDurationSecs   float64                    `json:"audio_duration_secs"`
 }
 
 // ProjectSnapshotList is the response of StudioProjectSnapshotsService.List.

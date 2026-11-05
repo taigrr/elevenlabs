@@ -11,6 +11,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/taigrr/elevenlabs/v2/speechtotext"
+	"github.com/taigrr/elevenlabs/v2/texttodialogue"
+	"github.com/taigrr/elevenlabs/v2/texttospeech"
 )
 
 // Live tests against api.elevenlabs.io. Run with:
@@ -56,7 +60,7 @@ func liveCtx(t *testing.T) context.Context {
 // livePCM synthesizes a short 16 kHz PCM utterance for the audio-input sockets.
 func livePCM(t *testing.T, c *Client, text string) []byte {
 	t.Helper()
-	rc, err := c.TextToSpeech.Convert(liveCtx(t), liveVoiceA, &TextToSpeechRequest{
+	rc, err := c.TextToSpeech.Convert(liveCtx(t), liveVoiceA, &texttospeech.ConvertRequest{
 		Text: text, ModelID: "eleven_flash_v2_5", OutputFormat: "pcm_16000",
 	})
 	if err != nil {
@@ -101,7 +105,7 @@ func TestLiveREST(t *testing.T) {
 func TestLiveTextToSpeechStreamInput(t *testing.T) {
 	c := liveClient(t)
 	ctx := liveCtx(t)
-	stream, err := c.TextToSpeech.StreamInput(ctx, liveVoiceA, &TextToSpeechStreamInputRequest{
+	stream, err := c.TextToSpeech.StreamInput(ctx, liveVoiceA, &texttospeech.StreamInputRequest{
 		ModelID: "eleven_flash_v2_5", OutputFormat: "pcm_16000", SyncAlignment: Ptr(true),
 	})
 	if err != nil {
@@ -109,7 +113,7 @@ func TestLiveTextToSpeechStreamInput(t *testing.T) {
 	}
 	defer stream.Close()
 	if err := errors.Join(
-		stream.Send(ctx, &InitializeConnection{}),
+		stream.Send(ctx, &texttospeech.InitializeConnection{}),
 		stream.SendText(ctx, "Hello from the Go "),
 		stream.SendText(ctx, "streaming client. "),
 		stream.CloseSend(ctx),
@@ -126,7 +130,7 @@ func TestLiveTextToSpeechStreamInput(t *testing.T) {
 func TestLiveTextToSpeechMultiStreamInput(t *testing.T) {
 	c := liveClient(t)
 	ctx := liveCtx(t)
-	stream, err := c.TextToSpeech.MultiStreamInput(ctx, liveVoiceA, &TextToSpeechStreamInputRequest{
+	stream, err := c.TextToSpeech.MultiStreamInput(ctx, liveVoiceA, &texttospeech.StreamInputRequest{
 		ModelID: "eleven_flash_v2_5", OutputFormat: "pcm_16000",
 	})
 	if err != nil {
@@ -134,7 +138,7 @@ func TestLiveTextToSpeechMultiStreamInput(t *testing.T) {
 	}
 	defer stream.Close()
 	if err := errors.Join(
-		stream.Send(ctx, &InitializeConnectionMulti{ContextID: "ctx1"}),
+		stream.Send(ctx, &texttospeech.InitializeConnectionMulti{ContextID: "ctx1"}),
 		stream.SendText(ctx, "ctx1", "Multi context streaming works. "),
 		stream.FlushContext(ctx, "ctx1"),
 		stream.CloseContext(ctx, "ctx1"),
@@ -165,16 +169,16 @@ func TestLiveTextToSpeechMultiStreamInput(t *testing.T) {
 func TestLiveTextToDialogueStreamInput(t *testing.T) {
 	c := liveClient(t)
 	ctx := liveCtx(t)
-	stream, err := c.TextToDialogue.StreamInput(ctx, &TextToDialogueStreamInputRequest{ModelID: "eleven_v3", OutputFormat: "pcm_16000"})
+	stream, err := c.TextToDialogue.StreamInput(ctx, &texttodialogue.StreamInputRequest{ModelID: "eleven_v3", OutputFormat: "pcm_16000"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer stream.Close()
 	if err := errors.Join(
-		stream.Send(ctx, &DialogueStreamMessage{Voices: []string{liveVoiceA, liveVoiceB}}),
+		stream.Send(ctx, &texttodialogue.StreamMessage{Voices: []string{liveVoiceA, liveVoiceB}}),
 		stream.SendInputs(ctx,
-			DialogueStreamInput{Text: "Did the Go client work?", VoiceID: liveVoiceA},
-			DialogueStreamInput{Text: "It did!", VoiceID: liveVoiceB, NewTurn: Ptr(true)}),
+			texttodialogue.StreamInput{Text: "Did the Go client work?", VoiceID: liveVoiceA},
+			texttodialogue.StreamInput{Text: "It did!", VoiceID: liveVoiceB, NewTurn: Ptr(true)}),
 		stream.Flush(ctx),
 		stream.CloseSend(ctx),
 	); err != nil {
@@ -190,14 +194,14 @@ func TestLiveTextToDialogueStreamInput(t *testing.T) {
 func TestLiveTextToDialogueMultiStreamInput(t *testing.T) {
 	c := liveClient(t)
 	ctx := liveCtx(t)
-	stream, err := c.TextToDialogue.MultiStreamInput(ctx, &TextToDialogueStreamInputRequest{ModelID: "eleven_v3", OutputFormat: "pcm_16000"})
+	stream, err := c.TextToDialogue.MultiStreamInput(ctx, &texttodialogue.StreamInputRequest{ModelID: "eleven_v3", OutputFormat: "pcm_16000"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer stream.Close()
 	if err := errors.Join(
-		stream.Send(ctx, &DialogueMultiStreamMessage{ContextID: "d1", Voices: []string{liveVoiceA, liveVoiceB}}),
-		stream.SendInputs(ctx, "d1", DialogueStreamInput{Text: "Context one speaking.", VoiceID: liveVoiceA}),
+		stream.Send(ctx, &texttodialogue.MultiStreamMessage{ContextID: "d1", Voices: []string{liveVoiceA, liveVoiceB}}),
+		stream.SendInputs(ctx, "d1", texttodialogue.StreamInput{Text: "Context one speaking.", VoiceID: liveVoiceA}),
 		stream.FlushContext(ctx, "d1"),
 		stream.CloseContext(ctx, "d1"),
 	); err != nil {
@@ -225,8 +229,8 @@ func TestLiveSpeechToTextRealtime(t *testing.T) {
 	c := liveClient(t)
 	pcm := livePCM(t, c, "The quick brown fox jumps over the lazy dog.")
 	ctx := liveCtx(t)
-	conn, err := c.SpeechToText.Realtime(ctx, &SpeechToTextRealtimeRequest{
-		ModelID: "scribe_v2_realtime", AudioFormat: RealtimeAudioPCM16000, SampleRate: 16000,
+	conn, err := c.SpeechToText.Realtime(ctx, &speechtotext.RealtimeRequest{
+		ModelID: "scribe_v2_realtime", AudioFormat: speechtotext.RealtimeAudioPCM16000, SampleRate: 16000,
 		IncludeTimestamps: Ptr(true),
 	})
 	if err != nil {
@@ -246,7 +250,7 @@ func TestLiveSpeechToTextRealtime(t *testing.T) {
 			t.Fatalf("recv: %v", err)
 		}
 		t.Logf("scribe %s: %q", msg.MessageType, msg.Text)
-		if msg.MessageType == RealtimeCommittedTranscript || msg.MessageType == RealtimeCommittedTranscriptWithTimestamp {
+		if msg.MessageType == speechtotext.RealtimeCommittedTranscript || msg.MessageType == speechtotext.RealtimeCommittedTranscriptWithTimestamp {
 			if msg.Text == "" {
 				t.Error("empty committed transcript")
 			}
@@ -326,7 +330,7 @@ func TestLiveTranslationRealtime(t *testing.T) {
 	ctx := liveCtx(t)
 	conn, err := c.Translation.Realtime(ctx, &TranslationRealtimeRequest{
 		SourceLanguage: "en", TargetLanguage: "es", VoiceID: liveVoiceA,
-		InputFormat: RealtimeAudioPCM16000, OutputFormat: "pcm_16000",
+		InputFormat: speechtotext.RealtimeAudioPCM16000, OutputFormat: "pcm_16000",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -340,7 +344,7 @@ func TestLiveDubbingRealtime(t *testing.T) {
 	ctx := liveCtx(t)
 	conn, err := c.Dubbing.Realtime(ctx, &DubbingRealtimeRequest{
 		SourceLanguage: "en", TargetLanguage: "es",
-		InputFormat: RealtimeAudioPCM16000, OutputFormat: RealtimeAudioPCM16000,
+		InputFormat: speechtotext.RealtimeAudioPCM16000, OutputFormat: speechtotext.RealtimeAudioPCM16000,
 	})
 	skipIfForbidden(t, err)
 	if err != nil {

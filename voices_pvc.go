@@ -3,6 +3,8 @@ package elevenlabs
 import (
 	"context"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/voices"
 )
 
 // VoicesPVCService groups professional voice cloning endpoints.
@@ -104,8 +106,8 @@ type PVCUpdateSampleRequest struct {
 }
 
 // Create adds audio samples to a professional voice clone.
-func (s *PVCSamplesService) Create(ctx context.Context, voiceID string, req *PVCAddSamplesRequest, opts ...Option) ([]VoiceSample, error) {
-	var out []VoiceSample
+func (s *PVCSamplesService) Create(ctx context.Context, voiceID string, req *PVCAddSamplesRequest, opts ...Option) ([]voices.Sample, error) {
+	var out []voices.Sample
 	err := doJSON(ctx, s.cfg, &request{method: http.MethodPost, path: pathf("/v1/voices/pvc/%s/samples", voiceID), form: orEmpty(req), opts: opts}, &out)
 	if err != nil {
 		return nil, err
@@ -155,8 +157,8 @@ type PVCSamplesSpeakersService struct {
 }
 
 // Get returns the speaker separation status and detected speakers of a sample.
-func (s *PVCSamplesSpeakersService) Get(ctx context.Context, voiceID, sampleID string, opts ...Option) (*SpeakerSeparation, error) {
-	return doValue[SpeakerSeparation](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/pvc/%s/samples/%s/speakers", voiceID, sampleID), opts: opts})
+func (s *PVCSamplesSpeakersService) Get(ctx context.Context, voiceID, sampleID string, opts ...Option) (*voices.SpeakerSeparation, error) {
+	return doValue[voices.SpeakerSeparation](ctx, s.cfg, &request{method: http.MethodGet, path: pathf("/v1/voices/pvc/%s/samples/%s/speakers", voiceID, sampleID), opts: opts})
 }
 
 // Separate starts speaker separation for a sample.

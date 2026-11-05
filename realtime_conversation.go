@@ -9,6 +9,8 @@ import (
 	"io"
 	"slices"
 	"sync"
+
+	"github.com/taigrr/elevenlabs/v2/texttodialogue"
 )
 
 // ConversationEventType identifies an agent conversation server event.
@@ -48,10 +50,10 @@ type ConversationInitiationMetadataEvent struct {
 // ConversationAudioEvent is a chunk of agent audio.
 type ConversationAudioEvent struct {
 	// Audio is the decoded audio chunk.
-	Audio     []byte                 `json:"audio_base_64"`
-	EventID   int                    `json:"event_id"`
-	Alignment *DialogueTextAlignment `json:"alignment,omitempty"`
-	IsFinal   bool                   `json:"is_final,omitempty"`
+	Audio     []byte                        `json:"audio_base_64"`
+	EventID   int                           `json:"event_id"`
+	Alignment *texttodialogue.TextAlignment `json:"alignment,omitempty"`
+	IsFinal   bool                          `json:"is_final,omitempty"`
 }
 
 // AgentResponseEvent is a text response of the agent.

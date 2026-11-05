@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"iter"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // SpeechEngineService groups the /v1/speech-engine endpoints, which manage
@@ -90,11 +92,11 @@ const (
 
 // SpeechEngineListRequest holds the optional parameters of SpeechEngineService.List.
 type SpeechEngineListRequest struct {
-	PageSize      *int               `query:"page_size"`
-	Search        string             `query:"search"`
-	SortDirection SortDirection      `query:"sort_direction"`
-	SortBy        SpeechEngineSortBy `query:"sort_by"`
-	Cursor        string             `query:"cursor"`
+	PageSize      *int                `query:"page_size"`
+	Search        string              `query:"search"`
+	SortDirection types.SortDirection `query:"sort_direction"`
+	SortBy        SpeechEngineSortBy  `query:"sort_by"`
+	Cursor        string              `query:"cursor"`
 }
 
 // SpeechEnginePage is a page of speech engines.

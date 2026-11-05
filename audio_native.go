@@ -3,6 +3,8 @@ package elevenlabs
 import (
 	"context"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // AudioNativeService groups the /v1/audio-native endpoints.
@@ -35,7 +37,7 @@ type AudioNativeCreateRequest struct {
 	// AutoConvert converts the project to audio automatically.
 	AutoConvert *bool `form:"auto_convert"`
 	// ApplyTextNormalization controls text normalization (auto, on, apply_english, off).
-	ApplyTextNormalization TextNormalization `form:"apply_text_normalization"`
+	ApplyTextNormalization types.TextNormalization `form:"apply_text_normalization"`
 	// PronunciationDictionaryLocators are JSON-encoded PronunciationDictionaryLocator
 	// values, one per dictionary (see PronunciationDictionaryLocator.String).
 	PronunciationDictionaryLocators []string `form:"pronunciation_dictionary_locators"`

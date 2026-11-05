@@ -5,6 +5,8 @@ import (
 	"iter"
 	"net/http"
 	"strconv"
+
+	"github.com/taigrr/elevenlabs/v2/voices"
 )
 
 // ResourcePermission is the caller's access role on a shared resource.
@@ -130,38 +132,38 @@ type VoicesGetSharedRequest struct {
 
 // LibraryVoice is a voice in the shared voice library.
 type LibraryVoice struct {
-	PublicOwnerID                string                  `json:"public_owner_id"`
-	VoiceID                      string                  `json:"voice_id"`
-	DateUnix                     int64                   `json:"date_unix"`
-	Name                         string                  `json:"name"`
-	Accent                       string                  `json:"accent"`
-	Gender                       string                  `json:"gender"`
-	Age                          string                  `json:"age"`
-	Descriptive                  string                  `json:"descriptive"`
-	UseCase                      string                  `json:"use_case"`
-	Category                     VoiceCategory           `json:"category"`
-	Language                     *string                 `json:"language,omitempty"`
-	Locale                       *string                 `json:"locale,omitempty"`
-	Description                  *string                 `json:"description,omitempty"`
-	PreviewURL                   *string                 `json:"preview_url,omitempty"`
-	UsageCharacterCount1Y        int64                   `json:"usage_character_count_1y"`
-	UsageCharacterCount7D        int64                   `json:"usage_character_count_7d"`
-	PlayAPIUsageCharacterCount1Y int64                   `json:"play_api_usage_character_count_1y"`
-	ClonedByCount                int64                   `json:"cloned_by_count"`
-	Rate                         *float64                `json:"rate,omitempty"`
-	FiatRate                     *float64                `json:"fiat_rate,omitempty"`
-	FreeUsersAllowed             bool                    `json:"free_users_allowed"`
-	LiveModerationEnabled        bool                    `json:"live_moderation_enabled"`
-	Featured                     bool                    `json:"featured"`
-	VerifiedLanguages            []VerifiedVoiceLanguage `json:"verified_languages,omitempty"`
-	NoticePeriod                 *int64                  `json:"notice_period,omitempty"`
-	InstagramUsername            *string                 `json:"instagram_username,omitempty"`
-	TwitterUsername              *string                 `json:"twitter_username,omitempty"`
-	YoutubeUsername              *string                 `json:"youtube_username,omitempty"`
-	TiktokUsername               *string                 `json:"tiktok_username,omitempty"`
-	ImageURL                     *string                 `json:"image_url,omitempty"`
-	IsAddedByUser                *bool                   `json:"is_added_by_user,omitempty"`
-	IsBookmarked                 *bool                   `json:"is_bookmarked,omitempty"`
+	PublicOwnerID                string                    `json:"public_owner_id"`
+	VoiceID                      string                    `json:"voice_id"`
+	DateUnix                     int64                     `json:"date_unix"`
+	Name                         string                    `json:"name"`
+	Accent                       string                    `json:"accent"`
+	Gender                       string                    `json:"gender"`
+	Age                          string                    `json:"age"`
+	Descriptive                  string                    `json:"descriptive"`
+	UseCase                      string                    `json:"use_case"`
+	Category                     voices.Category           `json:"category"`
+	Language                     *string                   `json:"language,omitempty"`
+	Locale                       *string                   `json:"locale,omitempty"`
+	Description                  *string                   `json:"description,omitempty"`
+	PreviewURL                   *string                   `json:"preview_url,omitempty"`
+	UsageCharacterCount1Y        int64                     `json:"usage_character_count_1y"`
+	UsageCharacterCount7D        int64                     `json:"usage_character_count_7d"`
+	PlayAPIUsageCharacterCount1Y int64                     `json:"play_api_usage_character_count_1y"`
+	ClonedByCount                int64                     `json:"cloned_by_count"`
+	Rate                         *float64                  `json:"rate,omitempty"`
+	FiatRate                     *float64                  `json:"fiat_rate,omitempty"`
+	FreeUsersAllowed             bool                      `json:"free_users_allowed"`
+	LiveModerationEnabled        bool                      `json:"live_moderation_enabled"`
+	Featured                     bool                      `json:"featured"`
+	VerifiedLanguages            []voices.VerifiedLanguage `json:"verified_languages,omitempty"`
+	NoticePeriod                 *int64                    `json:"notice_period,omitempty"`
+	InstagramUsername            *string                   `json:"instagram_username,omitempty"`
+	TwitterUsername              *string                   `json:"twitter_username,omitempty"`
+	YoutubeUsername              *string                   `json:"youtube_username,omitempty"`
+	TiktokUsername               *string                   `json:"tiktok_username,omitempty"`
+	ImageURL                     *string                   `json:"image_url,omitempty"`
+	IsAddedByUser                *bool                     `json:"is_added_by_user,omitempty"`
+	IsBookmarked                 *bool                     `json:"is_bookmarked,omitempty"`
 }
 
 // GetLibraryVoicesResponse is a page of shared library voices.

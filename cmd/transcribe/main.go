@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	"github.com/taigrr/elevenlabs/v2"
+	"github.com/taigrr/elevenlabs/v2/speechtotext"
 )
 
 func main() {
@@ -35,10 +36,10 @@ func run(ctx context.Context) error {
 	}
 	defer f.Close()
 
-	resp, err := client.SpeechToText.Convert(ctx, &elevenlabs.SpeechToTextConvertRequest{
-		ModelID:               elevenlabs.SpeechToTextModelScribeV1,
+	resp, err := client.SpeechToText.Convert(ctx, &speechtotext.ConvertRequest{
+		ModelID:               speechtotext.ModelScribeV1,
 		File:                  &elevenlabs.File{Reader: f, Name: filepath.Base(f.Name())},
-		TimestampsGranularity: elevenlabs.TimestampsGranularityWord,
+		TimestampsGranularity: speechtotext.TimestampsGranularityWord,
 		Diarize:               elevenlabs.Ptr(true),
 	})
 	if err != nil {

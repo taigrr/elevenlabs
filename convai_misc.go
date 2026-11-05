@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"iter"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // ConvAIAnalyticsService groups the /v1/convai/analytics endpoints.
@@ -125,7 +127,7 @@ type ConversationUsersListRequest struct {
 	Search              string                  `query:"search"`
 	PageSize            *int                    `query:"page_size"`
 	SortBy              ConversationUsersSortBy `query:"sort_by"`
-	SortDirection       SortDirection           `query:"sort_direction"`
+	SortDirection       types.SortDirection     `query:"sort_direction"`
 	Cursor              string                  `query:"cursor"`
 }
 

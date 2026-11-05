@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/taigrr/elevenlabs/v2/types"
+	"github.com/taigrr/elevenlabs/v2/voices"
 )
 
 func productionEndpointCases() []endpointCase {
@@ -230,7 +233,7 @@ func productionEndpointCases() []endpointCase {
 		{
 			name: "dubbing.project.language.create",
 			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.Dubbing.Project.Language.Create(ctx, "p", &DubbingLanguageCreateRequest{TargetLanguage: "es", VoiceSettings: &VoiceSettings{Stability: Ptr(0.4)}})
+				return c.Dubbing.Project.Language.Create(ctx, "p", &DubbingLanguageCreateRequest{TargetLanguage: "es", VoiceSettings: &types.VoiceSettings{Stability: Ptr(0.4)}})
 			},
 			method: http.MethodPost, path: "/v1/dubbing/project/p/language",
 			body:     `{"target_language":"es","voice_settings":{"stability":0.4}}`,
@@ -413,7 +416,7 @@ func productionEndpointCases() []endpointCase {
 			method: http.MethodGet, path: "/v1/dubbing/resource/d/speaker/sp/similar-voices",
 			respBody: `{"voices":[{"voice_id":"v","name":"n","category":"premade"}]}`,
 			check: func(t *testing.T, r any) {
-				if v := r.(*SimilarVoicesResponse).Voices[0]; v.Category != VoiceCategoryPremade {
+				if v := r.(*SimilarVoicesResponse).Voices[0]; v.Category != voices.CategoryPremade {
 					t.Errorf("voice = %+v", v)
 				}
 			},
@@ -451,7 +454,7 @@ func productionEndpointCases() []endpointCase {
 			call: func(ctx context.Context, c *Client) (any, error) {
 				f := testFile("b.epub", "epub")
 				return c.Studio.Projects.Create(ctx, &ProjectCreateRequest{Name: "n", FromDocument: &f, Genres: []string{"a", "b"}, AutoConvert: Ptr(true),
-					PronunciationDictionaryLocators: []string{PronunciationDictionaryLocator{PronunciationDictionaryID: "d"}.String()}})
+					PronunciationDictionaryLocators: []string{types.PronunciationDictionaryLocator{PronunciationDictionaryID: "d"}.String()}})
 			},
 			method: http.MethodPost, path: "/v1/studio/projects",
 			form: map[string][]string{"name": {"n"}, "from_document": {"file:b.epub:epub"}, "genres": {"a", "b"}, "auto_convert": {"true"},
@@ -583,7 +586,7 @@ func productionEndpointCases() []endpointCase {
 		{
 			name: "studio.projects.pronunciationDictionaries.create",
 			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.Studio.Projects.PronunciationDictionaries.Create(ctx, "p", &ProjectPronunciationDictionariesRequest{PronunciationDictionaryLocators: []PronunciationDictionaryLocator{{PronunciationDictionaryID: "d", VersionID: "v"}}})
+				return c.Studio.Projects.PronunciationDictionaries.Create(ctx, "p", &ProjectPronunciationDictionariesRequest{PronunciationDictionaryLocators: []types.PronunciationDictionaryLocator{{PronunciationDictionaryID: "d", VersionID: "v"}}})
 			},
 			method: http.MethodPost, path: "/v1/studio/projects/p/pronunciation-dictionaries",
 			body: `{"pronunciation_dictionary_locators":[{"pronunciation_dictionary_id":"d","version_id":"v"}]}`, respBody: `{"status":"ok"}`,

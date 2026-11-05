@@ -1,14 +1,20 @@
-package elevenlabs
+package texttospeech
 
 import (
 	"context"
 	"encoding/json"
 	"io"
+
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/internal/ws"
+	"github.com/taigrr/elevenlabs/v2/option"
+	"github.com/taigrr/elevenlabs/v2/realtime"
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
-// TextToSpeechStreamInputRequest holds the query parameters of the
+// StreamInputRequest holds the query parameters of the
 // text-to-speech WebSocket endpoints (stream-input and multi-stream-input).
-type TextToSpeechStreamInputRequest struct {
+type StreamInputRequest struct {
 	// ModelID defaults to eleven_multilingual_v2 on the server.
 	ModelID string `query:"model_id"`
 	// LanguageCode is an ISO 639-1 code enforcing a language.
@@ -18,7 +24,7 @@ type TextToSpeechStreamInputRequest struct {
 	// EnableSSMLParsing enables SSML parsing of the input text.
 	EnableSSMLParsing *bool `query:"enable_ssml_parsing"`
 	// OutputFormat selects the audio encoding of the returned chunks.
-	OutputFormat OutputFormat `query:"output_format"`
+	OutputFormat types.OutputFormat `query:"output_format"`
 	// InactivityTimeout is the number of seconds (max 180) the connection
 	// stays open without input.
 	InactivityTimeout *int `query:"inactivity_timeout"`
@@ -27,7 +33,7 @@ type TextToSpeechStreamInputRequest struct {
 	// AutoMode reduces latency by disabling chunk scheduling and buffering.
 	AutoMode *bool `query:"auto_mode"`
 	// ApplyTextNormalization controls text normalization.
-	ApplyTextNormalization TextNormalization `query:"apply_text_normalization"`
+	ApplyTextNormalization types.TextNormalization `query:"apply_text_normalization"`
 	// Seed makes generation deterministic (0..4294967295).
 	Seed *uint32 `query:"seed"`
 	// Authorization is a bearer token used instead of the API key.
@@ -37,7 +43,7 @@ type TextToSpeechStreamInputRequest struct {
 	SingleUseToken string `query:"single_use_token"`
 }
 
-func (r *TextToSpeechStreamInputRequest) usesToken() bool {
+func (r *StreamInputRequest) usesToken() bool {
 	return r != nil && (r.SingleUseToken != "" || r.Authorization != "")
 }
 
@@ -64,18 +70,18 @@ type StreamAlignment struct {
 	Chars            []string  `json:"chars,omitempty"`
 }
 
-// TextToSpeechStreamInputMessage is a message sent on a TextToSpeechStream:
+// StreamInputMessage is a message sent on a InputStream:
 // *InitializeConnection, *SendText or *CloseConnection.
-type TextToSpeechStreamInputMessage interface {
+type StreamInputMessage interface {
 	textToSpeechStreamInputMessage()
 }
 
 // InitializeConnection is the first message of a stream-input session. Its
 // text is always a single space.
 type InitializeConnection struct {
-	VoiceSettings                   *RealtimeVoiceSettings           `json:"voice_settings,omitempty"`
-	GenerationConfig                *GenerationConfig                `json:"generation_config,omitempty"`
-	PronunciationDictionaryLocators []PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
+	VoiceSettings                   *RealtimeVoiceSettings                 `json:"voice_settings,omitempty"`
+	GenerationConfig                *GenerationConfig                      `json:"generation_config,omitempty"`
+	PronunciationDictionaryLocators []types.PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
 	// XIAPIKey authenticates in-band when the header cannot be set.
 	XIAPIKey string `json:"xi-api-key,omitempty"`
 	// Authorization is a bearer token used for in-band authentication.
@@ -113,9 +119,9 @@ func (*InitializeConnection) textToSpeechStreamInputMessage() {}
 func (*SendText) textToSpeechStreamInputMessage()             {}
 func (*CloseConnection) textToSpeechStreamInputMessage()      {}
 
-// TextToSpeechStreamOutput is a message received on a TextToSpeechStream:
+// StreamOutput is a message received on a InputStream:
 // either an audio chunk or the final message.
-type TextToSpeechStreamOutput struct {
+type StreamOutput struct {
 	// Audio is the decoded audio chunk; empty in the final message.
 	Audio               []byte           `json:"audio,omitempty"`
 	NormalizedAlignment *StreamAlignment `json:"normalizedAlignment,omitempty"`
@@ -129,61 +135,61 @@ type TextToSpeechStreamOutput struct {
 }
 
 // Err returns a *RealtimeError if the message reports a failure.
-func (o *TextToSpeechStreamOutput) Err() error {
+func (o *StreamOutput) Err() error {
 	if o.ErrorType == "" {
 		return nil
 	}
-	return &RealtimeError{MessageType: o.ErrorType, Message: o.Message, Code: o.Code}
+	return &realtime.Error{MessageType: o.ErrorType, Message: o.Message, Code: o.Code}
 }
 
-// TextToSpeechStream is a text-to-speech stream-input WebSocket session.
+// InputStream is a text-to-speech stream-input WebSocket session.
 // Send and Recv may be called from different goroutines.
-type TextToSpeechStream struct{ s *socket }
+type InputStream struct{ s *ws.Socket }
 
 // StreamInput opens a WebSocket that converts text streamed in chunks to
 // audio (wss://…/v1/text-to-speech/{voice_id}/stream-input). Send an
 // *InitializeConnection first, then *SendText messages, then a
 // *CloseConnection. Call Close when done. req may be nil.
-func (s *TextToSpeechService) StreamInput(ctx context.Context, voiceID string, req *TextToSpeechStreamInputRequest, opts ...Option) (*TextToSpeechStream, error) {
-	sock, err := dial(ctx, s.cfg, dialConfig{
-		path:     pathf("/v1/text-to-speech/%s/stream-input", voiceID),
-		query:    req,
-		opts:     opts,
-		noAPIKey: req.usesToken(),
+func (s *Service) StreamInput(ctx context.Context, voiceID string, req *StreamInputRequest, opts ...option.RequestOption) (*InputStream, error) {
+	sock, err := ws.Dial(ctx, s.cfg, ws.DialConfig{
+		Path:     transport.Pathf("/v1/text-to-speech/%s/stream-input", voiceID),
+		Query:    req,
+		Opts:     opts,
+		NoAPIKey: req.usesToken(),
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &TextToSpeechStream{s: sock}, nil
+	return &InputStream{s: sock}, nil
 }
 
 // Send writes msg to the connection.
-func (c *TextToSpeechStream) Send(ctx context.Context, msg TextToSpeechStreamInputMessage) error {
-	return c.s.writeJSON(ctx, msg)
+func (c *InputStream) Send(ctx context.Context, msg StreamInputMessage) error {
+	return c.s.WriteJSON(ctx, msg)
 }
 
 // SendText is shorthand for Send with a *SendText message.
-func (c *TextToSpeechStream) SendText(ctx context.Context, text string) error {
+func (c *InputStream) SendText(ctx context.Context, text string) error {
 	return c.Send(ctx, &SendText{Text: text})
 }
 
 // Flush forces the server to generate audio for all buffered text.
-func (c *TextToSpeechStream) Flush(ctx context.Context) error {
+func (c *InputStream) Flush(ctx context.Context) error {
 	return c.Send(ctx, &SendText{Text: " ", Flush: true})
 }
 
 // CloseSend signals the end of input by sending a *CloseConnection. Keep
 // calling Recv to drain the remaining audio.
-func (c *TextToSpeechStream) CloseSend(ctx context.Context) error {
+func (c *InputStream) CloseSend(ctx context.Context) error {
 	return c.Send(ctx, &CloseConnection{})
 }
 
 // Recv reads the next message. It returns io.EOF once the server closes the
 // connection normally. Server-reported failures are returned as
 // *RealtimeError. Cancelling ctx closes the connection.
-func (c *TextToSpeechStream) Recv(ctx context.Context) (*TextToSpeechStreamOutput, error) {
-	var out TextToSpeechStreamOutput
-	if err := c.s.readJSON(ctx, &out); err != nil {
+func (c *InputStream) Recv(ctx context.Context) (*StreamOutput, error) {
+	var out StreamOutput
+	if err := c.s.ReadJSON(ctx, &out); err != nil {
 		return nil, err
 	}
 	if err := out.Err(); err != nil {
@@ -194,8 +200,8 @@ func (c *TextToSpeechStream) Recv(ctx context.Context) (*TextToSpeechStreamOutpu
 
 // AudioReader returns a reader over the decoded audio of successive Recv
 // calls. It reports io.EOF after the final message or a normal closure.
-func (c *TextToSpeechStream) AudioReader(ctx context.Context) io.Reader {
-	return &audioReader{Next: func() ([]byte, error) {
+func (c *InputStream) AudioReader(ctx context.Context) io.Reader {
+	return &ws.AudioReader{Next: func() ([]byte, error) {
 		out, err := c.Recv(ctx)
 		if err != nil {
 			return nil, err
@@ -208,25 +214,25 @@ func (c *TextToSpeechStream) AudioReader(ctx context.Context) io.Reader {
 }
 
 // Close performs a normal WebSocket closure.
-func (c *TextToSpeechStream) Close() error { return c.s.close() }
+func (c *InputStream) Close() error { return c.s.Close() }
 
-// TextToSpeechMultiStreamInputMessage is a message sent on a
-// TextToSpeechMultiStream: *InitializeConnectionMulti, *InitializeContext,
+// MultiStreamInputMessage is a message sent on a
+// MultiInputStream: *InitializeConnectionMulti, *InitializeContext,
 // *SendTextMulti, *FlushContext, *CloseContext, *CloseSocket or
 // *KeepContextAlive.
-type TextToSpeechMultiStreamInputMessage interface {
+type MultiStreamInputMessage interface {
 	textToSpeechMultiStreamInputMessage()
 }
 
 // InitializeConnectionMulti initializes the connection and, optionally, its
 // first context. Its text is always a single space.
 type InitializeConnectionMulti struct {
-	VoiceSettings                   *RealtimeVoiceSettings           `json:"voice_settings,omitempty"`
-	GenerationConfig                *GenerationConfig                `json:"generation_config,omitempty"`
-	PronunciationDictionaryLocators []PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
-	XIAPIKey                        string                           `json:"xi_api_key,omitempty"`
-	Authorization                   string                           `json:"authorization,omitempty"`
-	ContextID                       string                           `json:"context_id,omitempty"`
+	VoiceSettings                   *RealtimeVoiceSettings                 `json:"voice_settings,omitempty"`
+	GenerationConfig                *GenerationConfig                      `json:"generation_config,omitempty"`
+	PronunciationDictionaryLocators []types.PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
+	XIAPIKey                        string                                 `json:"xi_api_key,omitempty"`
+	Authorization                   string                                 `json:"authorization,omitempty"`
+	ContextID                       string                                 `json:"context_id,omitempty"`
 }
 
 // MarshalJSON adds the mandatory single-space text.
@@ -241,13 +247,13 @@ func (m InitializeConnectionMulti) MarshalJSON() ([]byte, error) {
 // InitializeContext creates a new context, optionally with initial text
 // (InitialiseContext in the official SDK).
 type InitializeContext struct {
-	Text                            string                           `json:"text"`
-	VoiceSettings                   *RealtimeVoiceSettings           `json:"voice_settings,omitempty"`
-	GenerationConfig                *GenerationConfig                `json:"generation_config,omitempty"`
-	PronunciationDictionaryLocators []PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
-	XIAPIKey                        string                           `json:"xi_api_key,omitempty"`
-	Authorization                   string                           `json:"authorization,omitempty"`
-	ContextID                       string                           `json:"context_id,omitempty"`
+	Text                            string                                 `json:"text"`
+	VoiceSettings                   *RealtimeVoiceSettings                 `json:"voice_settings,omitempty"`
+	GenerationConfig                *GenerationConfig                      `json:"generation_config,omitempty"`
+	PronunciationDictionaryLocators []types.PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
+	XIAPIKey                        string                                 `json:"xi_api_key,omitempty"`
+	Authorization                   string                                 `json:"authorization,omitempty"`
+	ContextID                       string                                 `json:"context_id,omitempty"`
 }
 
 // SendTextMulti sends text to a context.
@@ -314,9 +320,9 @@ func (*CloseContext) textToSpeechMultiStreamInputMessage()              {}
 func (*CloseSocket) textToSpeechMultiStreamInputMessage()               {}
 func (*KeepContextAlive) textToSpeechMultiStreamInputMessage()          {}
 
-// TextToSpeechMultiStreamOutput is a message received on a
-// TextToSpeechMultiStream.
-type TextToSpeechMultiStreamOutput struct {
+// MultiStreamOutput is a message received on a
+// MultiInputStream.
+type MultiStreamOutput struct {
 	Audio               []byte           `json:"audio,omitempty"`
 	NormalizedAlignment *StreamAlignment `json:"normalizedAlignment,omitempty"`
 	Alignment           *StreamAlignment `json:"alignment,omitempty"`
@@ -330,67 +336,67 @@ type TextToSpeechMultiStreamOutput struct {
 }
 
 // Err returns a *RealtimeError if the message reports a failure.
-func (o *TextToSpeechMultiStreamOutput) Err() error {
+func (o *MultiStreamOutput) Err() error {
 	if o.ErrorType == "" {
 		return nil
 	}
-	return &RealtimeError{MessageType: o.ErrorType, Message: o.Message, Code: o.Code}
+	return &realtime.Error{MessageType: o.ErrorType, Message: o.Message, Code: o.Code}
 }
 
-// TextToSpeechMultiStream is a multi-context text-to-speech WebSocket
+// MultiInputStream is a multi-context text-to-speech WebSocket
 // session. Send and Recv may be called from different goroutines.
-type TextToSpeechMultiStream struct{ s *socket }
+type MultiInputStream struct{ s *ws.Socket }
 
 // MultiStreamInput opens a multi-context text-to-speech WebSocket
 // (wss://…/v1/text-to-speech/{voice_id}/multi-stream-input). req may be nil.
-func (s *TextToSpeechService) MultiStreamInput(ctx context.Context, voiceID string, req *TextToSpeechStreamInputRequest, opts ...Option) (*TextToSpeechMultiStream, error) {
-	sock, err := dial(ctx, s.cfg, dialConfig{
-		path:     pathf("/v1/text-to-speech/%s/multi-stream-input", voiceID),
-		query:    req,
-		opts:     opts,
-		noAPIKey: req.usesToken(),
+func (s *Service) MultiStreamInput(ctx context.Context, voiceID string, req *StreamInputRequest, opts ...option.RequestOption) (*MultiInputStream, error) {
+	sock, err := ws.Dial(ctx, s.cfg, ws.DialConfig{
+		Path:     transport.Pathf("/v1/text-to-speech/%s/multi-stream-input", voiceID),
+		Query:    req,
+		Opts:     opts,
+		NoAPIKey: req.usesToken(),
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &TextToSpeechMultiStream{s: sock}, nil
+	return &MultiInputStream{s: sock}, nil
 }
 
 // Send writes msg to the connection.
-func (c *TextToSpeechMultiStream) Send(ctx context.Context, msg TextToSpeechMultiStreamInputMessage) error {
-	return c.s.writeJSON(ctx, msg)
+func (c *MultiInputStream) Send(ctx context.Context, msg MultiStreamInputMessage) error {
+	return c.s.WriteJSON(ctx, msg)
 }
 
 // SendText sends text to the given context.
-func (c *TextToSpeechMultiStream) SendText(ctx context.Context, contextID, text string) error {
+func (c *MultiInputStream) SendText(ctx context.Context, contextID, text string) error {
 	return c.Send(ctx, &SendTextMulti{Text: text, ContextID: contextID})
 }
 
 // FlushContext forces generation of a context's buffered text.
-func (c *TextToSpeechMultiStream) FlushContext(ctx context.Context, contextID string) error {
+func (c *MultiInputStream) FlushContext(ctx context.Context, contextID string) error {
 	return c.Send(ctx, &FlushContext{ContextID: contextID})
 }
 
 // CloseContext closes one context.
-func (c *TextToSpeechMultiStream) CloseContext(ctx context.Context, contextID string) error {
+func (c *MultiInputStream) CloseContext(ctx context.Context, contextID string) error {
 	return c.Send(ctx, &CloseContext{ContextID: contextID})
 }
 
 // KeepContextAlive resets a context's inactivity timeout.
-func (c *TextToSpeechMultiStream) KeepContextAlive(ctx context.Context, contextID string) error {
+func (c *MultiInputStream) KeepContextAlive(ctx context.Context, contextID string) error {
 	return c.Send(ctx, &KeepContextAlive{ContextID: contextID})
 }
 
 // CloseSend asks the server to close all contexts and the socket.
-func (c *TextToSpeechMultiStream) CloseSend(ctx context.Context) error {
+func (c *MultiInputStream) CloseSend(ctx context.Context) error {
 	return c.Send(ctx, &CloseSocket{})
 }
 
 // Recv reads the next message. It returns io.EOF once the server closes the
 // connection normally. Cancelling ctx closes the connection.
-func (c *TextToSpeechMultiStream) Recv(ctx context.Context) (*TextToSpeechMultiStreamOutput, error) {
-	var out TextToSpeechMultiStreamOutput
-	if err := c.s.readJSON(ctx, &out); err != nil {
+func (c *MultiInputStream) Recv(ctx context.Context) (*MultiStreamOutput, error) {
+	var out MultiStreamOutput
+	if err := c.s.ReadJSON(ctx, &out); err != nil {
 		return nil, err
 	}
 	if err := out.Err(); err != nil {
@@ -400,4 +406,4 @@ func (c *TextToSpeechMultiStream) Recv(ctx context.Context) (*TextToSpeechMultiS
 }
 
 // Close performs a normal WebSocket closure.
-func (c *TextToSpeechMultiStream) Close() error { return c.s.close() }
+func (c *MultiInputStream) Close() error { return c.s.Close() }

@@ -24,56 +24,6 @@ func ExampleNewClient() {
 	// Output: https://api.eu.residency.elevenlabs.io
 }
 
-func ExampleTextToSpeechService_Convert() {
-	ctx := context.Background()
-	client := elevenlabs.NewClient()
-
-	audio, err := client.TextToSpeech.Convert(ctx, "JBFqnCBsd6RMkjVDRZzb", &elevenlabs.TextToSpeechRequest{
-		Text:         "The first move is what sets everything in motion.",
-		ModelID:      "eleven_multilingual_v2",
-		OutputFormat: elevenlabs.OutputFormatMP3_44100_128,
-		VoiceSettings: &elevenlabs.VoiceSettings{
-			Stability: elevenlabs.Ptr(0.5),
-		},
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer audio.Close()
-
-	f, err := os.Create("speech.mp3")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-	if _, err := io.Copy(f, audio); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func ExampleSpeechToTextService_Convert() {
-	ctx := context.Background()
-	client := elevenlabs.NewClient()
-
-	f, err := os.Open("meeting.mp3")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-
-	resp, err := client.SpeechToText.Convert(ctx, &elevenlabs.SpeechToTextConvertRequest{
-		ModelID: elevenlabs.SpeechToTextModelScribeV1,
-		File:    &elevenlabs.File{Reader: f, Name: "meeting.mp3"},
-		Diarize: elevenlabs.Ptr(true),
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	if resp.Chunk != nil {
-		fmt.Println(resp.Chunk.Text)
-	}
-}
-
 func ExampleHistoryService_ListAll() {
 	ctx := context.Background()
 	client := elevenlabs.NewClient()

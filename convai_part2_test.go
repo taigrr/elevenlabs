@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"testing"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 const (
@@ -531,7 +533,7 @@ func convaiMiscEndpointCases() []endpointCase {
 		{
 			name: "convai.users.list",
 			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.ConversationalAI.Users.List(ctx, &ConversationUsersListRequest{AgentID: "a", SortBy: ConversationUsersSortByConversationCount, SortDirection: SortDirectionDesc, CallStartAfterUnix: Ptr[int64](5)})
+				return c.ConversationalAI.Users.List(ctx, &ConversationUsersListRequest{AgentID: "a", SortBy: ConversationUsersSortByConversationCount, SortDirection: types.SortDirectionDesc, CallStartAfterUnix: Ptr[int64](5)})
 			},
 			method: http.MethodGet, path: "/v1/convai/users", query: "agent_id=a&call_start_after_unix=5&sort_by=conversation_count&sort_direction=desc",
 			respBody: `{"users":[{"user_id":"u","conversation_count":3,"last_contact_conversation_id":"c"}],"has_more":false}`,

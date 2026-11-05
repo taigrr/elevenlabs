@@ -5,19 +5,13 @@ import (
 	"io"
 	"iter"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
+	"github.com/taigrr/elevenlabs/v2/voices"
 )
 
 // HistoryService groups the /v1/history endpoints.
 type HistoryService struct{ cfg *config }
-
-// SortDirection is a sort order.
-type SortDirection string
-
-// SortDirection values.
-const (
-	SortDirectionAsc  SortDirection = "asc"
-	SortDirectionDesc SortDirection = "desc"
-)
 
 // HistorySource identifies the product that generated a history item.
 type HistorySource string
@@ -53,7 +47,7 @@ type HistoryListRequest struct {
 	// DateAfterUnix returns items created at or after this unix time.
 	DateAfterUnix *int64 `query:"date_after_unix"`
 	// SortDirection orders the results.
-	SortDirection SortDirection `query:"sort_direction"`
+	SortDirection types.SortDirection `query:"sort_direction"`
 	// Search filters by text.
 	Search string `query:"search"`
 	// Source filters by product (TTS, STS or Flows).
@@ -114,17 +108,10 @@ func (s *HistoryService) Download(ctx context.Context, req *DownloadHistoryReque
 	return doStream(ctx, s.cfg, &request{method: http.MethodPost, path: "/v1/history/download", body: orEmpty(req), accept: acceptAny, opts: opts})
 }
 
-// CharacterAlignment holds per-character timing information.
-type CharacterAlignment struct {
-	Characters                 []string  `json:"characters"`
-	CharacterStartTimesSeconds []float64 `json:"character_start_times_seconds"`
-	CharacterEndTimesSeconds   []float64 `json:"character_end_times_seconds"`
-}
-
 // HistoryAlignments holds the raw and normalized alignment of a history item.
 type HistoryAlignments struct {
-	Alignment           CharacterAlignment `json:"alignment"`
-	NormalizedAlignment CharacterAlignment `json:"normalized_alignment"`
+	Alignment           types.CharacterAlignment `json:"alignment"`
+	NormalizedAlignment types.CharacterAlignment `json:"normalized_alignment"`
 }
 
 // DialogueInput is one line of a text-to-dialogue history item.
@@ -141,7 +128,7 @@ type SpeechHistoryItem struct {
 	VoiceID                  *string            `json:"voice_id,omitempty"`
 	ModelID                  *string            `json:"model_id,omitempty"`
 	VoiceName                *string            `json:"voice_name,omitempty"`
-	VoiceCategory            *VoiceCategory     `json:"voice_category,omitempty"`
+	VoiceCategory            *voices.Category   `json:"voice_category,omitempty"`
 	Text                     *string            `json:"text,omitempty"`
 	DateUnix                 int64              `json:"date_unix"`
 	CharacterCountChangeFrom int64              `json:"character_count_change_from"`

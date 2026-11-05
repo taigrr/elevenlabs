@@ -7,6 +7,8 @@ import (
 	"io"
 	"iter"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // TelephonyProvider identifies a phone number's telephony provider.
@@ -203,17 +205,17 @@ const (
 
 // PhoneNumberListV2Request holds the optional parameters of PhoneNumbersService.ListV2.
 type PhoneNumberListV2Request struct {
-	PageSize         *int              `query:"page_size"`
-	Search           string            `query:"search"`
-	Label            string            `query:"label"`
-	PhoneNumber      string            `query:"phone_number"`
-	Provider         TelephonyProvider `query:"provider"`
-	SupportsOutbound *bool             `query:"supports_outbound"`
-	AgentID          string            `query:"agent_id"`
-	BranchID         string            `query:"branch_id"`
-	SortBy           PhoneNumberSortBy `query:"sort_by"`
-	SortDirection    SortDirection     `query:"sort_direction"`
-	Cursor           string            `query:"cursor"`
+	PageSize         *int                `query:"page_size"`
+	Search           string              `query:"search"`
+	Label            string              `query:"label"`
+	PhoneNumber      string              `query:"phone_number"`
+	Provider         TelephonyProvider   `query:"provider"`
+	SupportsOutbound *bool               `query:"supports_outbound"`
+	AgentID          string              `query:"agent_id"`
+	BranchID         string              `query:"branch_id"`
+	SortBy           PhoneNumberSortBy   `query:"sort_by"`
+	SortDirection    types.SortDirection `query:"sort_direction"`
+	Cursor           string              `query:"cursor"`
 }
 
 // PhoneNumbersPage is a page of phone numbers.

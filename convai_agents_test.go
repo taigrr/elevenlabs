@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 func convaiAgentEndpointCases() []endpointCase {
@@ -64,7 +66,7 @@ func convaiAgentEndpointCases() []endpointCase {
 		{
 			name: "convai.agents.list",
 			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.ConversationalAI.Agents.List(ctx, &AgentsListRequest{PageSize: Ptr(2), Tags: []string{"a", "b"}, SortBy: AgentSortByName, SortDirection: SortDirectionAsc})
+				return c.ConversationalAI.Agents.List(ctx, &AgentsListRequest{PageSize: Ptr(2), Tags: []string{"a", "b"}, SortBy: AgentSortByName, SortDirection: types.SortDirectionAsc})
 			},
 			method: http.MethodGet, path: "/v1/convai/agents", query: "page_size=2&sort_by=name&sort_direction=asc&tags=a&tags=b",
 			respBody: `{"agents":[{"agent_id":"a","name":"n","voice_id":"v","tags":[],"created_at_unix_secs":1,"updated_at_unix_secs":2,"access_info":{"is_creator":true,"creator_name":"c","creator_email":"e","role":"admin"}}],"has_more":false}`,

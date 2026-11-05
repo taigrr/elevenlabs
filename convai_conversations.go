@@ -6,6 +6,8 @@ import (
 	"io"
 	"iter"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // ConversationsService groups the /v1/convai/conversations endpoints.
@@ -140,15 +142,15 @@ type ConversationFilter struct {
 // ConversationListRequest holds the optional parameters of ConversationsService.List.
 type ConversationListRequest struct {
 	ConversationFilter
-	Search                string        `query:"search"`
-	DataCollectionIDs     []string      `query:"data_collection_ids"`
-	EvaluationCriteriaIDs []string      `query:"evaluation_criteria_ids"`
-	ParentConversationID  string        `query:"parent_conversation_id"`
-	TagIDs                []string      `query:"tag_ids"`
-	WorkflowNodeEnteredID string        `query:"workflow_node_entered_id"`
-	GuardrailTypes        []string      `query:"guardrail_types"`
-	CustomGuardrailNames  []string      `query:"custom_guardrail_names"`
-	SortDirection         SortDirection `query:"sort_direction"`
+	Search                string              `query:"search"`
+	DataCollectionIDs     []string            `query:"data_collection_ids"`
+	EvaluationCriteriaIDs []string            `query:"evaluation_criteria_ids"`
+	ParentConversationID  string              `query:"parent_conversation_id"`
+	TagIDs                []string            `query:"tag_ids"`
+	WorkflowNodeEnteredID string              `query:"workflow_node_entered_id"`
+	GuardrailTypes        []string            `query:"guardrail_types"`
+	CustomGuardrailNames  []string            `query:"custom_guardrail_names"`
+	SortDirection         types.SortDirection `query:"sort_direction"`
 }
 
 // ConversationSummary is a conversation in list responses.
@@ -532,12 +534,12 @@ type ConversationTopicsService struct{ cfg *config }
 type TopicsRequest struct {
 	PageSize *int `query:"page_size"`
 	// SortBy is "conversations", "sentiment", "success_rate" or "frustration".
-	SortBy                    string        `query:"sort_by"`
-	SortDirection             SortDirection `query:"sort_direction"`
-	FromUnixSecs              *int64        `query:"from_unix_secs"`
-	ToUnixSecs                *int64        `query:"to_unix_secs"`
-	IncludeEvaluationCriteria *bool         `query:"include_evaluation_criteria"`
-	Cursor                    string        `query:"cursor"`
+	SortBy                    string              `query:"sort_by"`
+	SortDirection             types.SortDirection `query:"sort_direction"`
+	FromUnixSecs              *int64              `query:"from_unix_secs"`
+	ToUnixSecs                *int64              `query:"to_unix_secs"`
+	IncludeEvaluationCriteria *bool               `query:"include_evaluation_criteria"`
+	Cursor                    string              `query:"cursor"`
 }
 
 // AgentTopics lists the topics discovered in an agent's conversations.

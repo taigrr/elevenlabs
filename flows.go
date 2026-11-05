@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // FlowsService groups the /v1/flows endpoints: asynchronous image, video and
@@ -201,12 +203,12 @@ type TextToSpeechGenerationRequest struct {
 	// Text to speak. Required.
 	Text string `json:"text"`
 	// Voice is the voice ID. Required.
-	Voice                           string                           `json:"voice"`
-	Webhook                         *WebhookTarget                   `json:"webhook,omitempty"`
-	OutputFormat                    OutputFormat                     `json:"output_format,omitempty"`
-	PronunciationDictionaryLocators []PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
-	LanguageCode                    string                           `json:"language_code,omitempty"`
-	VoiceSettings                   *FlowsVoiceSettings              `json:"voice_settings,omitempty"`
+	Voice                           string                                 `json:"voice"`
+	Webhook                         *WebhookTarget                         `json:"webhook,omitempty"`
+	OutputFormat                    types.OutputFormat                     `json:"output_format,omitempty"`
+	PronunciationDictionaryLocators []types.PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
+	LanguageCode                    string                                 `json:"language_code,omitempty"`
+	VoiceSettings                   *FlowsVoiceSettings                    `json:"voice_settings,omitempty"`
 }
 
 // FlowsWaitOptions controls CreateAndWait polling. A nil *FlowsWaitOptions

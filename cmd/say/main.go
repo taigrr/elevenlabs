@@ -16,6 +16,8 @@ import (
 	"github.com/gopxl/beep/v2/speaker"
 
 	"github.com/taigrr/elevenlabs/v2"
+	"github.com/taigrr/elevenlabs/v2/texttospeech"
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 func main() {
@@ -53,9 +55,9 @@ func run(ctx context.Context) error {
 		text = string(b)
 	}
 
-	audio, err := client.TextToSpeech.Stream(ctx, voices.Voices[0].VoiceID, &elevenlabs.TextToSpeechRequest{
+	audio, err := client.TextToSpeech.Stream(ctx, voices.Voices[0].VoiceID, &texttospeech.ConvertRequest{
 		Text: text,
-		VoiceSettings: &elevenlabs.VoiceSettings{
+		VoiceSettings: &types.VoiceSettings{
 			Stability:       elevenlabs.Ptr(0.75),
 			SimilarityBoost: elevenlabs.Ptr(0.75),
 		},

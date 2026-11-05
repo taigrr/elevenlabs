@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"testing"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 func platformEndpointCases() []endpointCase {
@@ -185,7 +187,7 @@ func platformEndpointCases() []endpointCase {
 		{
 			name: "speechEngine.list",
 			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.SpeechEngine.List(ctx, &SpeechEngineListRequest{PageSize: Ptr(3), SortBy: SpeechEngineSortByName, SortDirection: SortDirectionAsc, Cursor: "c"})
+				return c.SpeechEngine.List(ctx, &SpeechEngineListRequest{PageSize: Ptr(3), SortBy: SpeechEngineSortByName, SortDirection: types.SortDirectionAsc, Cursor: "c"})
 			},
 			method: http.MethodGet, path: "/v1/speech-engine", query: "cursor=c&page_size=3&sort_by=name&sort_direction=asc",
 			respBody: `{"speech_engines":[{"speech_engine_id":"s","name":"n","voice_id":"v","created_at_unix_secs":1,"updated_at_unix_secs":2,"tags":[],"access_info":{"is_creator":true,"creator_name":"c","creator_email":"e","role":"admin"}}],"has_more":false}`,
@@ -244,7 +246,7 @@ func platformEndpointCases() []endpointCase {
 		{
 			name: "workspace.analytics.requests.get",
 			call: func(ctx context.Context, c *Client) (any, error) {
-				return c.Workspace.Analytics.Requests.Get(ctx, &AnalyticsRequestsQuery{Limit: Ptr(10), Sort: SortDirectionDesc, Filters: []ColumnFilter{{Column: "model", Operation: ColumnFilterIn, Values: []any{"m", 1}}}})
+				return c.Workspace.Analytics.Requests.Get(ctx, &AnalyticsRequestsQuery{Limit: Ptr(10), Sort: types.SortDirectionDesc, Filters: []ColumnFilter{{Column: "model", Operation: ColumnFilterIn, Values: []any{"m", 1}}}})
 			},
 			method: http.MethodPost, path: "/v1/workspace/analytics/requests",
 			body:     `{"limit":10,"sort":"desc","filters":[{"column":"model","operation":"in","values":["m",1]}]}`,

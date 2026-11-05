@@ -209,3 +209,12 @@ type WriterFunc func(p []byte) (int, error)
 
 // Write implements io.Writer.
 func (f WriterFunc) Write(p []byte) (int, error) { return f(p) }
+
+// NonNilBytes returns b, or an empty slice when b is nil, so it encodes as
+// "" rather than null.
+func NonNilBytes(b []byte) []byte {
+	if b == nil {
+		return []byte{}
+	}
+	return b
+}

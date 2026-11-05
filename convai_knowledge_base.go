@@ -8,6 +8,8 @@ import (
 	"iter"
 	"net/http"
 	"strings"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // KnowledgeBaseService groups the /v1/convai/knowledge-base endpoints.
@@ -212,7 +214,7 @@ type KnowledgeBaseListRequest struct {
 	ParentFolderID         string                      `query:"parent_folder_id"`
 	AncestorFolderID       string                      `query:"ancestor_folder_id"`
 	FoldersFirst           *bool                       `query:"folders_first"`
-	SortDirection          SortDirection               `query:"sort_direction"`
+	SortDirection          types.SortDirection         `query:"sort_direction"`
 	SortBy                 KnowledgeBaseSortBy         `query:"sort_by"`
 	Cursor                 string                      `query:"cursor"`
 }

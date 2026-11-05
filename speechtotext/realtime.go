@@ -1,4 +1,4 @@
-package elevenlabs
+package speechtotext
 
 import (
 	"bytes"
@@ -9,6 +9,10 @@ import (
 	"io"
 	"os/exec"
 	"strconv"
+
+	"github.com/taigrr/elevenlabs/v2/internal/ws"
+	"github.com/taigrr/elevenlabs/v2/option"
+	"github.com/taigrr/elevenlabs/v2/realtime"
 )
 
 // RealtimeAudioFormat is the PCM or μ-law encoding of realtime audio input
@@ -50,9 +54,9 @@ const (
 // chunks when none is configured.
 const DefaultRealtimeSampleRate = 16000
 
-// SpeechToTextRealtimeRequest configures a realtime (Scribe) transcription
+// RealtimeRequest configures a realtime (Scribe) transcription
 // session. ModelID is required.
-type SpeechToTextRealtimeRequest struct {
+type RealtimeRequest struct {
 	ModelID        string              `query:"model_id"`
 	CommitStrategy CommitStrategy      `query:"commit_strategy"`
 	AudioFormat    RealtimeAudioFormat `query:"audio_format"`
@@ -88,19 +92,19 @@ type SpeechToTextRealtimeRequest struct {
 	SampleRate int `query:"-"`
 }
 
-func (r *SpeechToTextRealtimeRequest) validate() error {
+func (r *RealtimeRequest) validate() error {
 	if r.ModelID == "" {
-		return fmt.Errorf("%w: model id is required", ErrInvalidParameter)
+		return fmt.Errorf("%w: model id is required", realtime.ErrInvalidParameter)
 	}
 	checkF := func(name string, v *float64, lo, hi float64) error {
 		if v != nil && (*v < lo || *v > hi) {
-			return fmt.Errorf("%w: %s must be between %v and %v", ErrInvalidParameter, name, lo, hi)
+			return fmt.Errorf("%w: %s must be between %v and %v", realtime.ErrInvalidParameter, name, lo, hi)
 		}
 		return nil
 	}
 	checkI := func(name string, v *int, lo, hi int) error {
 		if v != nil && (*v < lo || *v > hi) {
-			return fmt.Errorf("%w: %s must be between %d and %d", ErrInvalidParameter, name, lo, hi)
+			return fmt.Errorf("%w: %s must be between %d and %d", realtime.ErrInvalidParameter, name, lo, hi)
 		}
 		return nil
 	}
@@ -133,14 +137,7 @@ func (c RealtimeAudioChunk) MarshalJSON() ([]byte, error) {
 		Commit       bool   `json:"commit"`
 		SampleRate   int    `json:"sample_rate"`
 		PreviousText string `json:"previous_text,omitempty"`
-	}{"input_audio_chunk", nonNilBytes(c.Audio), c.Commit, c.SampleRate, c.PreviousText})
-}
-
-func nonNilBytes(b []byte) []byte {
-	if b == nil {
-		return []byte{}
-	}
-	return b
+	}{"input_audio_chunk", ws.NonNilBytes(c.Audio), c.Commit, c.SampleRate, c.PreviousText})
 }
 
 // RealtimeTranscriptMessageType identifies a realtime transcription message.
@@ -263,14 +260,14 @@ func (m *RealtimeTranscriptMessage) Err() error {
 	if !m.IsError() {
 		return nil
 	}
-	return &RealtimeError{MessageType: string(m.MessageType), Message: m.Error}
+	return &realtime.Error{MessageType: string(m.MessageType), Message: m.Error}
 }
 
-// SpeechToTextRealtime is a realtime transcription WebSocket session, the
+// RealtimeSession is a realtime transcription WebSocket session, the
 // equivalent of the official SDK's RealtimeConnection. Send and Recv may be
 // called from different goroutines.
-type SpeechToTextRealtime struct {
-	s              *socket
+type RealtimeSession struct {
+	s              *ws.Socket
 	sampleRate     int
 	commitStrategy CommitStrategy
 }
@@ -279,18 +276,18 @@ type SpeechToTextRealtime struct {
 // (wss://…/v1/speech-to-text/realtime), the equivalent of the official SDK's
 // ScribeRealtime.connect. Stream audio with SendAudio or AudioWriter, call
 // Commit for manual commits, and read results with Recv.
-func (s *SpeechToTextService) Realtime(ctx context.Context, req *SpeechToTextRealtimeRequest, opts ...Option) (*SpeechToTextRealtime, error) {
+func (s *Service) Realtime(ctx context.Context, req *RealtimeRequest, opts ...option.RequestOption) (*RealtimeSession, error) {
 	if req == nil {
-		req = &SpeechToTextRealtimeRequest{}
+		req = &RealtimeRequest{}
 	}
 	if err := req.validate(); err != nil {
 		return nil, err
 	}
-	sock, err := dial(ctx, s.cfg, dialConfig{
-		path:     "/v1/speech-to-text/realtime",
-		query:    req,
-		opts:     opts,
-		noAPIKey: req.Token != "",
+	sock, err := ws.Dial(ctx, s.cfg, ws.DialConfig{
+		Path:     "/v1/speech-to-text/realtime",
+		Query:    req,
+		Opts:     opts,
+		NoAPIKey: req.Token != "",
 	})
 	if err != nil {
 		return nil, err
@@ -299,33 +296,33 @@ func (s *SpeechToTextService) Realtime(ctx context.Context, req *SpeechToTextRea
 	if rate <= 0 {
 		rate = DefaultRealtimeSampleRate
 	}
-	return &SpeechToTextRealtime{s: sock, sampleRate: rate, commitStrategy: req.CommitStrategy}, nil
+	return &RealtimeSession{s: sock, sampleRate: rate, commitStrategy: req.CommitStrategy}, nil
 }
 
 // Send writes an input_audio_chunk message. A zero SampleRate uses the
 // session's default.
-func (c *SpeechToTextRealtime) Send(ctx context.Context, chunk *RealtimeAudioChunk) error {
+func (c *RealtimeSession) Send(ctx context.Context, chunk *RealtimeAudioChunk) error {
 	msg := *chunk
 	if msg.SampleRate <= 0 {
 		msg.SampleRate = c.sampleRate
 	}
-	return c.s.writeJSON(ctx, msg)
+	return c.s.WriteJSON(ctx, msg)
 }
 
 // SendAudio sends one chunk of audio without committing.
-func (c *SpeechToTextRealtime) SendAudio(ctx context.Context, audio []byte) error {
+func (c *RealtimeSession) SendAudio(ctx context.Context, audio []byte) error {
 	return c.Send(ctx, &RealtimeAudioChunk{Audio: audio})
 }
 
 // Commit commits the current segment by sending an empty chunk with
 // commit=true.
-func (c *SpeechToTextRealtime) Commit(ctx context.Context) error {
+func (c *RealtimeSession) Commit(ctx context.Context) error {
 	return c.Send(ctx, &RealtimeAudioChunk{Commit: true})
 }
 
 // AudioWriter returns an io.Writer that sends every Write as an audio chunk.
-func (c *SpeechToTextRealtime) AudioWriter(ctx context.Context) io.Writer {
-	return writerFunc(func(p []byte) (int, error) {
+func (c *RealtimeSession) AudioWriter(ctx context.Context) io.Writer {
+	return ws.WriterFunc(func(p []byte) (int, error) {
 		if err := c.SendAudio(ctx, bytes.Clone(p)); err != nil {
 			return 0, err
 		}
@@ -340,7 +337,7 @@ const realtimeChunkSize = 3200
 // SendFrom streams r to the session in chunks until EOF. When the session
 // uses the manual (default) commit strategy the segment is committed at
 // EOF. It does not close the connection.
-func (c *SpeechToTextRealtime) SendFrom(ctx context.Context, r io.Reader) error {
+func (c *RealtimeSession) SendFrom(ctx context.Context, r io.Reader) error {
 	buf := make([]byte, realtimeChunkSize)
 	for {
 		n, err := io.ReadFull(r, buf)
@@ -369,7 +366,7 @@ var ErrFFmpegNotFound = errors.New("elevenlabs: ffmpeg is required for url strea
 // PCM and streams it with SendFrom, mirroring the official SDK's url
 // option. The session should have been opened with SampleRate 16000 and
 // AudioFormat pcm_16000. It returns once the whole input has been sent.
-func (c *SpeechToTextRealtime) StreamURL(ctx context.Context, url string) error {
+func (c *RealtimeSession) StreamURL(ctx context.Context, url string) error {
 	path, err := exec.LookPath("ffmpeg")
 	if err != nil {
 		return ErrFFmpegNotFound
@@ -403,13 +400,13 @@ func (c *SpeechToTextRealtime) StreamURL(ctx context.Context, url string) error 
 // together with a *RealtimeError, so callers can inspect both. It returns
 // io.EOF when the server closes the connection normally. Cancelling ctx
 // closes the connection.
-func (c *SpeechToTextRealtime) Recv(ctx context.Context) (*RealtimeTranscriptMessage, error) {
+func (c *RealtimeSession) Recv(ctx context.Context) (*RealtimeTranscriptMessage, error) {
 	var msg RealtimeTranscriptMessage
-	if err := c.s.readJSON(ctx, &msg); err != nil {
+	if err := c.s.ReadJSON(ctx, &msg); err != nil {
 		return nil, err
 	}
 	return &msg, msg.Err()
 }
 
 // Close performs a normal WebSocket closure.
-func (c *SpeechToTextRealtime) Close() error { return c.s.close() }
+func (c *RealtimeSession) Close() error { return c.s.Close() }

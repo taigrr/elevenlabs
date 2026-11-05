@@ -9,6 +9,9 @@ import (
 	"iter"
 	"net/http"
 	"time"
+
+	"github.com/taigrr/elevenlabs/v2/types"
+	"github.com/taigrr/elevenlabs/v2/voices"
 )
 
 // DubbingService groups the /v1/dubbing endpoints.
@@ -449,7 +452,7 @@ type DubbingLanguage struct {
 	TargetLanguage string                  `json:"target_language"`
 	Status         DubbingLanguageStatus   `json:"status"`
 	ModelID        *string                 `json:"model_id,omitempty"`
-	VoiceSettings  *VoiceSettings          `json:"voice_settings,omitempty"`
+	VoiceSettings  *types.VoiceSettings    `json:"voice_settings,omitempty"`
 	Outputs        *DubbingLanguageOutputs `json:"outputs,omitempty"`
 	Revision       int                     `json:"revision"`
 	OutputRevision *int                    `json:"output_revision,omitempty"`
@@ -502,8 +505,8 @@ func (s *DubbingProjectLanguageService) ListAll(ctx context.Context, projectID s
 // DubbingLanguageCreateRequest is the body of DubbingProjectLanguageService.Create.
 type DubbingLanguageCreateRequest struct {
 	// TargetLanguage is the language code to dub into. Required.
-	TargetLanguage string         `json:"target_language"`
-	VoiceSettings  *VoiceSettings `json:"voice_settings,omitempty"`
+	TargetLanguage string               `json:"target_language"`
+	VoiceSettings  *types.VoiceSettings `json:"voice_settings,omitempty"`
 	// Translations pre-fills translations keyed by source segment ID.
 	Translations map[string]*string `json:"translations,omitempty"`
 }
@@ -905,11 +908,11 @@ func (s *DubbingResourceSpeakerService) Create(ctx context.Context, dubbingID st
 
 // SimilarVoice is a library voice similar to a speaker.
 type SimilarVoice struct {
-	VoiceID     string        `json:"voice_id"`
-	Name        string        `json:"name"`
-	Category    VoiceCategory `json:"category"`
-	Description *string       `json:"description,omitempty"`
-	PreviewURL  *string       `json:"preview_url,omitempty"`
+	VoiceID     string          `json:"voice_id"`
+	Name        string          `json:"name"`
+	Category    voices.Category `json:"category"`
+	Description *string         `json:"description,omitempty"`
+	PreviewURL  *string         `json:"preview_url,omitempty"`
 }
 
 // SimilarVoicesResponse is the response of DubbingResourceSpeakerService.FindSimilarVoices.

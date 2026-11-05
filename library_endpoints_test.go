@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/taigrr/elevenlabs/v2/types"
+	"github.com/taigrr/elevenlabs/v2/voices"
 )
 
 func voidCall(err error) (any, error) { return nil, err }
@@ -46,7 +49,7 @@ func libraryEndpointCases() []endpointCase {
 			respBody: `{"voices":[{"public_owner_id":"p","voice_id":"v","category":"professional","usage_character_count_1y":7}],"has_more":false}`,
 			check: func(t *testing.T, r any) {
 				v := r.(*GetLibraryVoicesResponse).Voices[0]
-				if v.PublicOwnerID != "p" || v.Category != VoiceCategoryProfessional || v.UsageCharacterCount1Y != 7 {
+				if v.PublicOwnerID != "p" || v.Category != voices.CategoryProfessional || v.UsageCharacterCount1Y != 7 {
 					t.Errorf("voice = %+v", v)
 				}
 			},
@@ -151,7 +154,7 @@ func libraryEndpointCases() []endpointCase {
 			form:     map[string][]string{"files": {"file:a.wav:A", "file:b.wav:B"}, "remove_background_noise": {"true"}},
 			respBody: `[{"sample_id":"s1"},{"sample_id":"s2"}]`,
 			check: func(t *testing.T, r any) {
-				if s := r.([]VoiceSample); len(s) != 2 || *s[1].SampleID != "s2" {
+				if s := r.([]voices.Sample); len(s) != 2 || *s[1].SampleID != "s2" {
 					t.Errorf("samples = %+v", s)
 				}
 			},
@@ -190,8 +193,8 @@ func libraryEndpointCases() []endpointCase {
 			method: http.MethodGet, path: "/v1/voices/pvc/v/samples/s/speakers",
 			respBody: `{"voice_id":"v","sample_id":"s","status":"completed","speakers":{"a":{"speaker_id":"a","duration_secs":2,"utterances":[{"start":0,"end":1}]}}}`,
 			check: func(t *testing.T, r any) {
-				s := r.(*SpeakerSeparation)
-				if s.Status != SpeakerSeparationStatusCompleted || s.Speakers["a"].Utterances[0].End != 1 {
+				s := r.(*voices.SpeakerSeparation)
+				if s.Status != voices.SpeakerSeparationStatusCompleted || s.Speakers["a"].Utterances[0].End != 1 {
 					t.Errorf("separation = %+v", s)
 				}
 			},
@@ -346,8 +349,8 @@ func libraryEndpointCases() []endpointCase {
 			call: func(ctx context.Context, c *Client) (any, error) {
 				f := testFile("a.html", "<p>x</p>")
 				return c.AudioNative.Create(ctx, &AudioNativeCreateRequest{
-					Name: "n", VoiceID: "v", File: &f, AutoConvert: Ptr(true), ApplyTextNormalization: TextNormalizationApplyEnglish,
-					PronunciationDictionaryLocators: []string{PronunciationDictionaryLocator{PronunciationDictionaryID: "pd", VersionID: "v1"}.String(), `{"pronunciation_dictionary_id":"pd2"}`},
+					Name: "n", VoiceID: "v", File: &f, AutoConvert: Ptr(true), ApplyTextNormalization: types.TextNormalizationApplyEnglish,
+					PronunciationDictionaryLocators: []string{types.PronunciationDictionaryLocator{PronunciationDictionaryID: "pd", VersionID: "v1"}.String(), `{"pronunciation_dictionary_id":"pd2"}`},
 				})
 			},
 			method: http.MethodPost, path: "/v1/audio-native",

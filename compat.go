@@ -147,3 +147,5 @@ func dial(ctx context.Context, cfg *config, dc dialConfig) (*socket, error) {
 type audioReader = ws.AudioReader
 
 type writerFunc = ws.WriterFunc
+
+func nonNilBytes(b []byte) []byte { return ws.NonNilBytes(b) }

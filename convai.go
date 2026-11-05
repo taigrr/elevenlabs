@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // ConversationalAIService groups the /v1/convai endpoints of the
@@ -172,16 +174,16 @@ type AgentTTSConfig struct {
 	SupportedVoices json.RawMessage `json:"supported_voices,omitempty"`
 	ExpressiveMode  *bool           `json:"expressive_mode,omitempty"`
 	// AgentOutputAudioFormat is e.g. "pcm_16000" or "ulaw_8000".
-	AgentOutputAudioFormat          string                           `json:"agent_output_audio_format,omitempty"`
-	OptimizeStreamingLatency        *int                             `json:"optimize_streaming_latency,omitempty"`
-	Stability                       *float64                         `json:"stability,omitempty"`
-	Speed                           *float64                         `json:"speed,omitempty"`
-	SimilarityBoost                 *float64                         `json:"similarity_boost,omitempty"`
-	TextNormalisationType           string                           `json:"text_normalisation_type,omitempty"`
-	PronunciationDictionaryLocators []PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
-	EnablePhonemeTags               *bool                            `json:"enable_phoneme_tags,omitempty"`
-	SuggestedAudioTags              json.RawMessage                  `json:"suggested_audio_tags,omitempty"`
-	AudioEffects                    json.RawMessage                  `json:"audio_effects,omitempty"`
+	AgentOutputAudioFormat          string                                 `json:"agent_output_audio_format,omitempty"`
+	OptimizeStreamingLatency        *int                                   `json:"optimize_streaming_latency,omitempty"`
+	Stability                       *float64                               `json:"stability,omitempty"`
+	Speed                           *float64                               `json:"speed,omitempty"`
+	SimilarityBoost                 *float64                               `json:"similarity_boost,omitempty"`
+	TextNormalisationType           string                                 `json:"text_normalisation_type,omitempty"`
+	PronunciationDictionaryLocators []types.PronunciationDictionaryLocator `json:"pronunciation_dictionary_locators,omitempty"`
+	EnablePhonemeTags               *bool                                  `json:"enable_phoneme_tags,omitempty"`
+	SuggestedAudioTags              json.RawMessage                        `json:"suggested_audio_tags,omitempty"`
+	AudioEffects                    json.RawMessage                        `json:"audio_effects,omitempty"`
 }
 
 // ConversationConfig holds conversation-level settings.

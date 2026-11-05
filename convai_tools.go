@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"iter"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // ToolsService groups the /v1/convai/tools endpoints.
@@ -88,12 +90,12 @@ type ToolsPage struct {
 
 // ToolListRequest holds the optional parameters of ToolsService.List.
 type ToolListRequest struct {
-	Search                 string        `query:"search"`
-	PageSize               *int          `query:"page_size"`
-	ShowOnlyOwnedDocuments *bool         `query:"show_only_owned_documents"`
-	CreatedByUserID        string        `query:"created_by_user_id"`
-	Types                  []ToolType    `query:"types"`
-	SortDirection          SortDirection `query:"sort_direction"`
+	Search                 string              `query:"search"`
+	PageSize               *int                `query:"page_size"`
+	ShowOnlyOwnedDocuments *bool               `query:"show_only_owned_documents"`
+	CreatedByUserID        string              `query:"created_by_user_id"`
+	Types                  []ToolType          `query:"types"`
+	SortDirection          types.SortDirection `query:"sort_direction"`
 	// SortBy is "name" or "created_at".
 	SortBy        string `query:"sort_by"`
 	UsedByAgentID string `query:"used_by_agent_id"`

@@ -5,6 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+
+	"github.com/taigrr/elevenlabs/v2/speechtotext"
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // RealtimeTranslateMessageType identifies a realtime dubbing or translation
@@ -131,11 +134,11 @@ func (t translateStream) audioReader(ctx context.Context) io.Reader {
 // DubbingRealtimeRequest holds the query parameters of the realtime dubbing
 // socket. Additional parameters can be passed with WithQueryParam.
 type DubbingRealtimeRequest struct {
-	SourceLanguage  string              `query:"source_language"`
-	TargetLanguage  string              `query:"target_language"`
-	InputFormat     RealtimeAudioFormat `query:"input_format"`
-	OutputFormat    RealtimeAudioFormat `query:"output_format"`
-	ClientSessionID string              `query:"client_session_id"`
+	SourceLanguage  string                           `query:"source_language"`
+	TargetLanguage  string                           `query:"target_language"`
+	InputFormat     speechtotext.RealtimeAudioFormat `query:"input_format"`
+	OutputFormat    speechtotext.RealtimeAudioFormat `query:"output_format"`
+	ClientSessionID string                           `query:"client_session_id"`
 }
 
 // DubbingRealtime is a realtime dubbing WebSocket session. Send audio with
@@ -204,14 +207,14 @@ type TranslationRealtimeRequest struct {
 	SourceLanguage string `query:"source_language"`
 	VoiceID        string `query:"voice_id"`
 	// InputFormat is the PCM or μ-law encoding of the input audio.
-	InputFormat RealtimeAudioFormat `query:"input_format"`
+	InputFormat speechtotext.RealtimeAudioFormat `query:"input_format"`
 	// OutputFormat is the encoding of the translated audio, e.g. pcm_16000
 	// or mp3_44100_128.
-	OutputFormat           OutputFormat         `query:"output_format"`
-	TTSModelID             TranslationTTSModel  `query:"tts_model_id"`
-	ApplyTextNormalization TextNormalization    `query:"apply_text_normalization"`
-	Eagerness              TranslationEagerness `query:"eagerness"`
-	ClientSessionID        string               `query:"client_session_id"`
+	OutputFormat           types.OutputFormat      `query:"output_format"`
+	TTSModelID             TranslationTTSModel     `query:"tts_model_id"`
+	ApplyTextNormalization types.TextNormalization `query:"apply_text_normalization"`
+	Eagerness              TranslationEagerness    `query:"eagerness"`
+	ClientSessionID        string                  `query:"client_session_id"`
 	// EnableZRM enables zero retention mode.
 	EnableZRM *bool `query:"enable_zrm"`
 	// Authorization is a bearer token used instead of the API key.

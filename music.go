@@ -6,6 +6,8 @@ import (
 	"io"
 	"iter"
 	"net/http"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 // MusicModel identifies a music model.
@@ -182,7 +184,7 @@ type MusicGenerationParams struct {
 // MusicComposeRequest is the request of MusicService.Compose.
 type MusicComposeRequest struct {
 	// OutputFormat selects the audio format.
-	OutputFormat OutputFormat `json:"-" query:"output_format"`
+	OutputFormat types.OutputFormat `json:"-" query:"output_format"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `json:"-" query:"enable_logging"`
 
@@ -196,7 +198,7 @@ type MusicComposeRequest struct {
 // MusicComposeDetailedRequest is the request of MusicService.ComposeDetailed.
 type MusicComposeDetailedRequest struct {
 	// OutputFormat selects the audio format.
-	OutputFormat OutputFormat `json:"-" query:"output_format"`
+	OutputFormat types.OutputFormat `json:"-" query:"output_format"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `json:"-" query:"enable_logging"`
 
@@ -214,7 +216,7 @@ type MusicComposeDetailedRequest struct {
 // MusicStreamRequest is the request of MusicService.Stream.
 type MusicStreamRequest struct {
 	// OutputFormat selects the audio format.
-	OutputFormat OutputFormat `json:"-" query:"output_format"`
+	OutputFormat types.OutputFormat `json:"-" query:"output_format"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `json:"-" query:"enable_logging"`
 
@@ -224,7 +226,7 @@ type MusicStreamRequest struct {
 // MusicComposeDetailedStreamRequest is the request of MusicService.ComposeDetailedStream.
 type MusicComposeDetailedStreamRequest struct {
 	// OutputFormat selects the audio format.
-	OutputFormat OutputFormat `json:"-" query:"output_format"`
+	OutputFormat types.OutputFormat `json:"-" query:"output_format"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `json:"-" query:"enable_logging"`
 
@@ -238,7 +240,7 @@ type MusicComposeDetailedStreamRequest struct {
 // VideoToMusicRequest is the request of MusicService.VideoToMusic.
 type VideoToMusicRequest struct {
 	// OutputFormat selects the audio format.
-	OutputFormat OutputFormat `form:"-" query:"output_format"`
+	OutputFormat types.OutputFormat `form:"-" query:"output_format"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `form:"-" query:"enable_logging"`
 
@@ -309,7 +311,7 @@ const (
 // SeparateStemsRequest is the request of MusicService.SeparateStems.
 type SeparateStemsRequest struct {
 	// OutputFormat selects the audio format.
-	OutputFormat OutputFormat `form:"-" query:"output_format"`
+	OutputFormat types.OutputFormat `form:"-" query:"output_format"`
 	// EnableLogging set to false enables zero retention mode (enterprise only).
 	EnableLogging *bool `form:"-" query:"enable_logging"`
 
@@ -489,7 +491,7 @@ type MusicFinetunesListRequest struct {
 	// Sort orders the results.
 	Sort FinetuneSort `query:"sort"`
 	// SortDirection orders the results.
-	SortDirection SortDirection `query:"sort_direction"`
+	SortDirection types.SortDirection `query:"sort_direction"`
 }
 
 // MusicFinetuneCreateRequest is the request of MusicFinetunesService.Create.
