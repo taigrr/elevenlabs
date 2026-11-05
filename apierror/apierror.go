@@ -1,17 +1,16 @@
-package elevenlabs
+package apierror
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
 // Sentinel errors. Every *APIError unwraps to the sentinel matching its
-// status code, so callers can write errors.Is(err, elevenlabs.ErrNotFound).
+// status code, so callers can write errors.Is(err, apierror.ErrNotFound).
 var (
 	ErrBadRequest          = errors.New("elevenlabs: bad request")
 	ErrUnauthorized        = errors.New("elevenlabs: unauthorized")
@@ -29,8 +28,8 @@ var (
 	ErrTimeout = errors.New("elevenlabs: timeout exceeded")
 )
 
-// maxErrorBody bounds how much of an error response body is retained.
-const maxErrorBody = 1 << 20
+// MaxBody bounds how much of an error response body is retained.
+const MaxBody = 1 << 20
 
 // APIError is returned for any non-2xx response. Use errors.As to inspect it.
 type APIError struct {
@@ -85,7 +84,9 @@ func (v ValidationError) String() string {
 	return strings.Join(v.Loc, ".") + ": " + v.Msg
 }
 
-func newAPIError(resp *http.Response, body []byte) *APIError {
+// New builds an *APIError from a non-2xx response and its (already read) body,
+// parsing the detail envelope used by the ElevenLabs API.
+func New(resp *http.Response, body []byte) *APIError {
 	apiErr := &APIError{StatusCode: resp.StatusCode, Header: resp.Header, Body: body}
 	var envelope struct {
 		Detail json.RawMessage `json:"detail"`
@@ -141,8 +142,12 @@ func (e *APIError) Error() string {
 }
 
 // Unwrap returns the sentinel error matching the status code.
-func (e *APIError) Unwrap() error {
-	switch code := e.StatusCode; {
+func (e *APIError) Unwrap() error { return ForStatus(e.StatusCode) }
+
+// ForStatus returns the sentinel error matching an HTTP status code. Codes
+// without a dedicated sentinel map to ErrUnexpectedStatus.
+func ForStatus(code int) error {
+	switch {
 	case code == http.StatusBadRequest:
 		return ErrBadRequest
 	case code == http.StatusUnauthorized:
@@ -164,8 +169,4 @@ func (e *APIError) Unwrap() error {
 	default:
 		return ErrUnexpectedStatus
 	}
-}
-
-func timeoutError(method, path string, err error) error {
-	return fmt.Errorf("%w: %s %s: %w", ErrTimeout, method, path, err)
 }

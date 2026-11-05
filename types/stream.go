@@ -1,9 +1,8 @@
-package elevenlabs
+package types
 
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -26,7 +25,10 @@ type Stream[T any] struct {
 	done    bool
 }
 
-func newStream[T any](body io.ReadCloser) *Stream[T] {
+// NewStream wraps a newline-delimited JSON body. It is an advanced helper:
+// services return ready-made streams, but NewStream is useful for decoding
+// a saved or proxied response body. The stream takes ownership of body.
+func NewStream[T any](body io.ReadCloser) *Stream[T] {
 	return &Stream[T]{body: body, reader: bufio.NewReader(body)}
 }
 
@@ -78,39 +80,6 @@ func (s *Stream[T]) All() iter.Seq2[T, error] {
 		if s.err != nil {
 			var zero T
 			yield(zero, s.err)
-		}
-	}
-}
-
-// page is one page of a cursor-paginated listing.
-type page[T any] struct {
-	items   []T
-	next    string
-	hasMore bool
-}
-
-// paginate iterates over every item of a cursor-paginated endpoint, calling
-// fetch with the cursor of each successive page (empty for the first page
-// unless start is set). Iteration stops at the first error, which is yielded.
-func paginate[T any](ctx context.Context, start string, fetch func(ctx context.Context, cursor string) (page[T], error)) iter.Seq2[T, error] {
-	return func(yield func(T, error) bool) {
-		cursor := start
-		for {
-			p, err := fetch(ctx, cursor)
-			if err != nil {
-				var zero T
-				yield(zero, err)
-				return
-			}
-			for _, item := range p.items {
-				if !yield(item, nil) {
-					return
-				}
-			}
-			if !p.hasMore || p.next == "" || p.next == cursor {
-				return
-			}
-			cursor = p.next
 		}
 	}
 }

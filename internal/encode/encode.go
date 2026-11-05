@@ -1,4 +1,4 @@
-package elevenlabs
+package encode
 
 import (
 	"encoding/json"
@@ -11,38 +11,25 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
-// File is an upload for multipart endpoints. Reader is streamed to the
-// server without being buffered in memory. If Reader also implements
-// io.Seeker the request can be retried; otherwise retries are disabled for
-// that request.
-type File struct {
-	// Reader supplies the file contents.
-	Reader io.Reader
-	// Name is the filename reported to the server.
-	Name string
-	// ContentType is the part's MIME type; it defaults to application/octet-stream.
-	ContentType string
-}
-
-// NewFile is shorthand for File{Reader: r, Name: name}.
-func NewFile(r io.Reader, name string) File {
-	return File{Reader: r, Name: name}
-}
-
 var (
-	fileType = reflect.TypeFor[File]()
+	fileType = reflect.TypeFor[types.File]()
 	timeType = reflect.TypeFor[time.Time]()
 )
 
+// Query adds the `query`-tagged fields of v (a struct or pointer to one) to
+// values.
+//
 // Encoding rules shared by the query and form encoders, driven by struct
 // tags (`query:"name"` / `form:"name"`):
 //   - nil pointers, nil slices/maps and empty strings are omitted;
 //   - time.Time values are encoded as RFC 3339 in UTC;
 //   - slices of scalars are repeated (key=a&key=b);
 //   - in forms, maps, structs and slices of structs are JSON-encoded.
-func encodeQuery(values url.Values, v any) error {
+func Query(values url.Values, v any) error {
 	return walkTagged(v, "query", func(name string, field reflect.Value) error {
 		return appendValues(name, field, func(key, val string) { values.Add(key, val) }, false)
 	})
@@ -163,9 +150,9 @@ func isScalarKind(k reflect.Kind) bool {
 	return false
 }
 
-// collectFiles returns every File referenced by a form struct, in order.
-func collectFiles(v any) []*File {
-	var files []*File
+// CollectFiles returns every types.File referenced by a form struct, in order.
+func CollectFiles(v any) []*types.File {
+	var files []*types.File
 	_ = walkTagged(v, "form", func(_ string, field reflect.Value) error {
 		files = append(files, filesOf(field)...)
 		return nil
@@ -173,28 +160,28 @@ func collectFiles(v any) []*File {
 	return files
 }
 
-func filesOf(field reflect.Value) []*File {
+func filesOf(field reflect.Value) []*types.File {
 	switch {
 	case field.Type() == fileType:
 		if field.CanAddr() {
-			return []*File{field.Addr().Interface().(*File)}
+			return []*types.File{field.Addr().Interface().(*types.File)}
 		}
 	case field.Kind() == reflect.Pointer && field.Type().Elem() == fileType:
 		if !field.IsNil() {
-			return []*File{field.Interface().(*File)}
+			return []*types.File{field.Interface().(*types.File)}
 		}
 	case field.Kind() == reflect.Slice && field.Type().Elem() == fileType:
-		files := make([]*File, field.Len())
+		files := make([]*types.File, field.Len())
 		for i := range field.Len() {
-			files[i] = field.Index(i).Addr().Interface().(*File)
+			files[i] = field.Index(i).Addr().Interface().(*types.File)
 		}
 		return files
 	}
 	return nil
 }
 
-// writeForm writes the multipart representation of v to mw.
-func writeForm(mw *multipart.Writer, v any) error {
+// WriteForm writes the multipart representation of v to mw.
+func WriteForm(mw *multipart.Writer, v any) error {
 	return walkTagged(v, "form", func(name string, field reflect.Value) error {
 		if files := filesOf(field); files != nil || isFileField(field.Type()) {
 			for _, f := range files {
@@ -225,7 +212,7 @@ func isFileField(t reflect.Type) bool {
 
 var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 
-func writeFilePart(mw *multipart.Writer, field string, f *File) error {
+func writeFilePart(mw *multipart.Writer, field string, f *types.File) error {
 	if f.Reader == nil {
 		return fmt.Errorf("elevenlabs: file field %q has a nil reader", field)
 	}

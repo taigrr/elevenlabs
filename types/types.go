@@ -1,4 +1,4 @@
-package elevenlabs
+package types
 
 import (
 	"bytes"
@@ -73,3 +73,7 @@ func (l *LimitOrUnlimited) UnmarshalJSON(b []byte) error {
 	*l = LimitOrUnlimited{}
 	return json.Unmarshal(b, &l.Limit)
 }
+
+// Ptr returns a pointer to v. It is a convenience for populating optional
+// request fields, e.g. Seed: types.Ptr(42).
+func Ptr[T any](v T) *T { return &v }
