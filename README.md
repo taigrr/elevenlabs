@@ -17,7 +17,7 @@ derived, [can be found here](https://api.elevenlabs.io/docs).
 
 This Go client provides an idiomatic interface to the elevenlabs.io API.
 It is modeled on the official TypeScript SDK: endpoints are grouped into services such as `client.TextToSpeech`, `client.Voices` and `client.History`, and every call takes a `context.Context`.
-See [MIGRATION.md](MIGRATION.md) for upgrading from the previous `client` package.
+See [MIGRATION.md](MIGRATION.md) for upgrading from v1.
 
 As a prerequisite, you must already have an account with elevenlabs.io.
 After creating your account, you can get your API key [from here](https://help.elevenlabs.io/hc/en-us/articles/14599447207697-How-to-authorize-yourself-using-your-xi-api-key-).
@@ -29,6 +29,27 @@ To test out an example `say` program, run:
 `go install github.com/taigrr/elevenlabs/v2/cmd/say@latest`
 
 Set the `XI_API_KEY` environment variable, and pipe it some text to give it a whirl!
+
+## Package Layout
+
+The root package `elevenlabs` holds the `Client`, its options and the error
+types. Each API area lives in its own package, and its service is wired onto
+the client:
+
+| Package | Client field |
+| --- | --- |
+| `texttospeech`, `texttodialogue`, `speechtotext`, `speechtospeech` | `TextToSpeech`, `TextToDialogue`, `SpeechToText`, `SpeechToSpeech` |
+| `soundeffects`, `audioisolation`, `audioeffects`, `forcedalignment`, `music` | `TextToSoundEffects`, `AudioIsolation`, `AudioEffects`, `ForcedAlignment`, `Music` |
+| `voices`, `texttovoice`, `samples`, `pronunciation`, `history` | `Voices`, `TextToVoice`, `Samples`, `PronunciationDictionaries`, `History` |
+| `dubbing`, `translation`, `studio`, `productions`, `audionative`, `assets`, `flows` | `Dubbing`, `Translation`, `Studio`, `Productions`, `AudioNative`, `Assets`, `Flows` |
+| `models`, `usage`, `user`, `tokens`, `workspace`, `serviceaccounts`, `webhooks` | `Models`, `Usage`, `User`, `Tokens`, `Workspace`, `ServiceAccounts`, `Webhooks` |
+| `convai` (+ `convai/agents`, `conversations`, `knowledgebase`, `tools`, `agenttests`, `telephony`, `mcp`, `triage`), `envvars`, `environments`, `speechengine` | `ConvAI`, `EnvironmentVariables`, `Environments`, `SpeechEngine` |
+
+Shared building blocks live in small public packages: `option` (client and
+per-request options, re-exported from the root), `apierror` (`APIError` and
+sentinel errors, re-exported from the root), `types` (cross-service models such
+as `VoiceSettings`, `OutputFormat` and `File`) and `realtime` (WebSocket error
+types).
 
 ## Example Code
 
@@ -65,6 +86,8 @@ import (
         "github.com/gopxl/beep/v2/speaker"
 
         "github.com/taigrr/elevenlabs/v2"
+        "github.com/taigrr/elevenlabs/v2/texttospeech"
+        "github.com/taigrr/elevenlabs/v2/types"
 )
 
 func main() {
@@ -77,10 +100,10 @@ func main() {
         }
         text, _ := io.ReadAll(os.Stdin)
 
-        audio, err := client.TextToSpeech.Stream(ctx, voices.Voices[0].VoiceID, &elevenlabs.TextToSpeechRequest{
+        audio, err := client.TextToSpeech.Stream(ctx, voices.Voices[0].VoiceID, &texttospeech.ConvertRequest{
                 Text:    string(text),
                 ModelID: "eleven_multilingual_v2",
-                VoiceSettings: &elevenlabs.VoiceSettings{
+                VoiceSettings: &types.VoiceSettings{
                         Stability:       elevenlabs.Ptr(0.75),
                         SimilarityBoost: elevenlabs.Ptr(0.75),
                 },
@@ -105,7 +128,7 @@ func main() {
 ### Sound Generation Example
 
 ```go
-audio, err := client.TextToSoundEffects.Convert(ctx, &elevenlabs.CreateSoundEffectRequest{
+audio, err := client.TextToSoundEffects.Convert(ctx, &soundeffects.ConvertRequest{
         Text:            "heavy rain on a tin roof",
         DurationSeconds: elevenlabs.Ptr(5.0),
         PromptInfluence: elevenlabs.Ptr(0.5),
@@ -134,10 +157,10 @@ if err != nil {
 }
 defer f.Close()
 
-resp, err := client.SpeechToText.Convert(ctx, &elevenlabs.SpeechToTextConvertRequest{
-        ModelID:               elevenlabs.SpeechToTextModelScribeV1,
-        File:                  &elevenlabs.File{Reader: f, Name: "meeting.mp3"},
-        TimestampsGranularity: elevenlabs.TimestampsGranularityWord,
+resp, err := client.SpeechToText.Convert(ctx, &speechtotext.ConvertRequest{
+        ModelID:               speechtotext.ModelScribeV1,
+        File:                  &types.File{Reader: f, Name: "meeting.mp3"},
+        TimestampsGranularity: speechtotext.TimestampsGranularityWord,
         Diarize:               elevenlabs.Ptr(true),
 })
 if err != nil {
@@ -151,8 +174,8 @@ fmt.Println(resp.Chunk.Text)
 `ComposeDetailed` decodes the metadata part and streams the audio part.
 
 ```go
-song, err := client.Music.ComposeDetailed(ctx, &elevenlabs.MusicComposeDetailedRequest{
-        MusicGenerationParams: elevenlabs.MusicGenerationParams{Prompt: "upbeat synthwave", MusicLengthMs: elevenlabs.Ptr(int64(30000))},
+song, err := client.Music.ComposeDetailed(ctx, &music.ComposeDetailedRequest{
+        GenerationParams: music.GenerationParams{Prompt: "upbeat synthwave", MusicLengthMs: elevenlabs.Ptr(int64(30000))},
 })
 if err != nil {
         log.Fatal(err)
@@ -167,17 +190,17 @@ io.Copy(out, song)
 ### Pronunciation Dictionary Example
 
 ```go
-dict, err := client.PronunciationDictionaries.CreateFromRules(ctx, &elevenlabs.PronunciationDictionaryCreateFromRulesRequest{
+dict, err := client.PronunciationDictionaries.CreateFromRules(ctx, &pronunciation.CreateFromRulesRequest{
         Name: "My Dictionary",
-        Rules: []elevenlabs.PronunciationRule{
-                elevenlabs.AliasRule("Thailand", "tie-land"),
-                elevenlabs.PhonemeRule("tomato", "təˈmeɪtoʊ", "ipa"),
+        Rules: []pronunciation.Rule{
+                pronunciation.AliasRule("Thailand", "tie-land"),
+                pronunciation.PhonemeRule("tomato", "təˈmeɪtoʊ", "ipa"),
         },
 })
 if err != nil {
         log.Fatal(err)
 }
-_, err = client.PronunciationDictionaries.Rules.Add(ctx, dict.ID, []elevenlabs.PronunciationRule{elevenlabs.AliasRule("SQL", "sequel")})
+_, err = client.PronunciationDictionaries.Rules.Add(ctx, dict.ID, []pronunciation.Rule{pronunciation.AliasRule("SQL", "sequel")})
 ```
 
 ### Dubbing Example
@@ -185,8 +208,8 @@ _, err = client.PronunciationDictionaries.Rules.Add(ctx, dict.ID, []elevenlabs.P
 ```go
 f, _ := os.Open("talk.mp4")
 defer f.Close()
-dub, err := client.Dubbing.Create(ctx, &elevenlabs.DubbingCreateRequest{
-        File:       &elevenlabs.File{Reader: f, Name: "talk.mp4", ContentType: "video/mp4"},
+dub, err := client.Dubbing.Create(ctx, &dubbing.CreateRequest{
+        File:       &types.File{Reader: f, Name: "talk.mp4", ContentType: "video/mp4"},
         TargetLang: "es",
 })
 if err != nil {
@@ -199,10 +222,10 @@ audio, err := client.Dubbing.Audio.Get(ctx, dub.DubbingID, "es")
 ### Flows Example
 
 ```go
-generation, err := client.Flows.Image.CreateAndWait(ctx, &elevenlabs.ImageGenerationRequest{
+generation, err := client.Flows.Image.CreateAndWait(ctx, &flows.ImageGenerationRequest{
         ModelID: "bytedance-seedream-5-lite",
         Prompt:  "A corgi on a surfboard",
-}, &elevenlabs.FlowsWaitOptions{WaitTimeout: 5 * time.Minute})
+}, &flows.WaitOptions{WaitTimeout: 5 * time.Minute})
 if err != nil {
         log.Fatal(err)
 }
@@ -212,14 +235,14 @@ fmt.Println(generation.Status, generation.ContentURL)
 ### Conversational AI Example
 
 ```go
-agent, err := client.ConversationalAI.Agents.Create(ctx, &elevenlabs.AgentCreateRequest{
+agent, err := client.ConvAI.Agents.Create(ctx, &agents.CreateRequest{
         Name: "Support",
-        ConversationConfig: elevenlabs.ConversationalConfig{
-                Agent: &elevenlabs.AgentConfig{
+        ConversationConfig: agents.ConversationalConfig{
+                Agent: &agents.AgentConfig{
                         FirstMessage: "Hi, how can I help?",
-                        Prompt:       &elevenlabs.AgentPrompt{Prompt: "You are a helpful agent.", LLM: elevenlabs.LLMGPT4oMini},
+                        Prompt:       &agents.AgentPrompt{Prompt: "You are a helpful agent.", LLM: agents.LLMGPT4oMini},
                 },
-                TTS: &elevenlabs.AgentTTSConfig{VoiceID: "21m00Tcm4TlvDq8ikWAM"},
+                TTS: &agents.AgentTTSConfig{VoiceID: "21m00Tcm4TlvDq8ikWAM"},
         },
 })
 if err != nil {
@@ -228,21 +251,21 @@ if err != nil {
 
 f, _ := os.Open("faq.pdf")
 defer f.Close()
-doc, err := client.ConversationalAI.KnowledgeBase.Documents.CreateFromFile(ctx, &elevenlabs.DocumentFromFileRequest{
-        File: elevenlabs.NewFile(f, "faq.pdf"),
+doc, err := client.ConvAI.KnowledgeBase.Documents.CreateFromFile(ctx, &knowledgebase.DocumentFromFileRequest{
+        File: types.NewFile(f, "faq.pdf"),
 })
 if err != nil {
         log.Fatal(err)
 }
 fmt.Println("document", doc.ID)
 
-for conv, err := range client.ConversationalAI.Conversations.ListAll(ctx, &elevenlabs.ConversationListRequest{
-        ConversationFilter: elevenlabs.ConversationFilter{AgentID: agent.AgentID},
+for conv, err := range client.ConvAI.Conversations.ListAll(ctx, &conversations.ListRequest{
+        Filter: conversations.Filter{AgentID: agent.AgentID},
 }) {
         if err != nil {
                 log.Fatal(err)
         }
-        audio, err := client.ConversationalAI.Conversations.Audio.Get(ctx, conv.ConversationID)
+        audio, err := client.ConvAI.Conversations.Audio.Get(ctx, conv.ConversationID)
         // ... copy audio somewhere, then audio.Close()
 }
 ```
@@ -250,8 +273,8 @@ for conv, err := range client.ConversationalAI.Conversations.ListAll(ctx, &eleve
 Telephony, batch calls and MCP servers hang off the same service:
 
 ```go
-call, err := client.ConversationalAI.Twilio.OutboundCall(ctx, &elevenlabs.TwilioOutboundCallRequest{
-        OutboundCallRequest: elevenlabs.OutboundCallRequest{
+call, err := client.ConvAI.Twilio.OutboundCall(ctx, &telephony.TwilioOutboundCallRequest{
+        OutboundCallRequest: telephony.OutboundCallRequest{
                 AgentID:            agent.AgentID,
                 AgentPhoneNumberID: "phnum_123",
                 ToNumber:           "+15551234567",
@@ -262,25 +285,25 @@ if err != nil {
 }
 fmt.Println(call.Success, call.Message)
 
-batch, err := client.ConversationalAI.BatchCalls.Create(ctx, &elevenlabs.CreateBatchCallRequest{
+batch, err := client.ConvAI.BatchCalls.Create(ctx, &telephony.CreateBatchCallRequest{
         CallName:           "reminders",
         AgentID:            agent.AgentID,
         AgentPhoneNumberID: "phnum_123",
-        Recipients:         []elevenlabs.BatchCallRecipient{{PhoneNumber: "+15551234567"}},
+        Recipients:         []telephony.BatchCallRecipient{{PhoneNumber: "+15551234567"}},
 })
 if err != nil {
         log.Fatal(err)
 }
 fmt.Println(batch.ID, batch.Status)
 
-server, err := client.ConversationalAI.MCPServers.Create(ctx, &elevenlabs.MCPServerConfig{
+server, err := client.ConvAI.MCPServers.Create(ctx, &mcp.ServerConfig{
         Name: "docs",
         URL:  "https://mcp.example.com/sse",
 })
 if err != nil {
         log.Fatal(err)
 }
-_, err = client.ConversationalAI.MCPServers.ApprovalPolicy.Update(ctx, server.ID, elevenlabs.MCPApprovalAutoApproveAll)
+_, err = client.ConvAI.MCPServers.ApprovalPolicy.Update(ctx, server.ID, mcp.ApprovalAutoApproveAll)
 ```
 
 Large agent configuration sections (platform settings, workflows, tool
@@ -291,7 +314,7 @@ schemas) are exposed as `json.RawMessage` so they round-trip unchanged.
 Text-to-speech from text that arrives in pieces (for example from an LLM):
 
 ```go
-stream, err := client.TextToSpeech.StreamInput(ctx, "JBFqnCBsd6RMkjVDRZzb", &elevenlabs.TextToSpeechStreamInputRequest{
+stream, err := client.TextToSpeech.StreamInput(ctx, "JBFqnCBsd6RMkjVDRZzb", &texttospeech.StreamInputRequest{
         ModelID: "eleven_flash_v2_5",
 })
 if err != nil {
@@ -300,7 +323,7 @@ if err != nil {
 defer stream.Close()
 
 go func() {
-        _ = stream.Send(ctx, &elevenlabs.InitializeConnection{})
+        _ = stream.Send(ctx, &texttospeech.InitializeConnection{})
         for _, chunk := range []string{"Hello ", "world. "} {
                 _ = stream.SendText(ctx, chunk)
         }
@@ -313,9 +336,9 @@ Realtime transcription (Scribe), agent conversations, dialogue, dubbing and
 translation follow the same Send/Recv pattern:
 
 ```go
-conn, err := client.SpeechToText.Realtime(ctx, &elevenlabs.SpeechToTextRealtimeRequest{
+conn, err := client.SpeechToText.Realtime(ctx, &speechtotext.RealtimeRequest{
         ModelID:     "scribe_v2_realtime",
-        AudioFormat: elevenlabs.RealtimeAudioPCM16000,
+        AudioFormat: speechtotext.RealtimeAudioPCM16000,
 })
 if err != nil {
         log.Fatal(err)
@@ -325,14 +348,14 @@ go conn.SendFrom(ctx, pcm) // or io.Copy(conn.AudioWriter(ctx), pcm); conn.Commi
 for {
         msg, err := conn.Recv(ctx)
         if err != nil {
-                break // io.EOF, *elevenlabs.CloseError or *elevenlabs.RealtimeError
+                break // io.EOF, *realtime.CloseError or *realtime.Error
         }
-        if msg.MessageType == elevenlabs.RealtimeCommittedTranscript {
+        if msg.MessageType == speechtotext.RealtimeCommittedTranscript {
                 fmt.Println(msg.Text)
         }
 }
 
-conv, err := client.ConversationalAI.Connect(ctx, &elevenlabs.ConversationRequest{AgentID: "agent_123"})
+conv, err := client.ConvAI.Connect(ctx, &convai.ConnectRequest{AgentID: "agent_123"})
 if err != nil {
         log.Fatal(err)
 }
@@ -346,7 +369,7 @@ ev, err := conv.Recv(ctx) // pings are answered automatically
 ```go
 http.HandleFunc("/webhooks/elevenlabs", func(w http.ResponseWriter, r *http.Request) {
         payload, _ := io.ReadAll(r.Body)
-        event, err := elevenlabs.ConstructWebhookEvent(payload, r.Header.Get(elevenlabs.WebhookSignatureHeader), secret)
+        event, err := webhooks.ConstructEvent(payload, r.Header.Get(webhooks.SignatureHeader), secret)
         if err != nil {
                 http.Error(w, "invalid signature", http.StatusUnauthorized)
                 return
@@ -362,8 +385,8 @@ transcripts; you reply with LLM output. `Handler` verifies the signed
 `X-Elevenlabs-Speech-Engine-Authorization` JWT with your API key.
 
 ```go
-http.Handle("/api/speech-engine/ws", client.SpeechEngine.Handler(elevenlabs.SpeechEngineCallbacks{
-        OnTranscript: func(ctx context.Context, s *elevenlabs.SpeechEngineSession, t []elevenlabs.SpeechEngineTranscriptMessage) error {
+http.Handle("/api/speech-engine/ws", client.SpeechEngine.Handler(speechengine.Callbacks{
+        OnTranscript: func(ctx context.Context, s *speechengine.Session, t []speechengine.TranscriptMessage) error {
                 // ctx is cancelled when the user interrupts with a new transcript.
                 return s.SendResponse(ctx, "You said: "+t[len(t)-1].Content)
         },
@@ -373,7 +396,7 @@ http.Handle("/api/speech-engine/ws", client.SpeechEngine.Handler(elevenlabs.Spee
 ### Pagination
 
 ```go
-for item, err := range client.History.ListAll(ctx, &elevenlabs.HistoryListRequest{PageSize: elevenlabs.Ptr(100)}) {
+for item, err := range client.History.ListAll(ctx, &history.ListRequest{PageSize: elevenlabs.Ptr(100)}) {
         if err != nil {
                 log.Fatal(err)
         }

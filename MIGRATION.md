@@ -16,8 +16,15 @@ go get github.com/taigrr/elevenlabs/v2@latest
 
 | Old | New |
 | --- | --- |
-| `github.com/taigrr/elevenlabs/client` | `github.com/taigrr/elevenlabs/v2` (package `elevenlabs`) |
-| `github.com/taigrr/elevenlabs/client/types` | merged into `github.com/taigrr/elevenlabs/v2` |
+| `github.com/taigrr/elevenlabs/client` | `github.com/taigrr/elevenlabs/v2` (package `elevenlabs`: `Client`, options, errors) plus one package per API area |
+| `github.com/taigrr/elevenlabs/client/types` | split: shared models in `github.com/taigrr/elevenlabs/v2/types`, service models in their service package |
+| (none) | `github.com/taigrr/elevenlabs/v2/option` (options; re-exported from root) |
+| (none) | `github.com/taigrr/elevenlabs/v2/apierror` (`APIError`, sentinels; re-exported from root) |
+| (none) | `github.com/taigrr/elevenlabs/v2/realtime` (WebSocket error types) |
+| TTS / STT / sound / voices / history / user calls | `github.com/taigrr/elevenlabs/v2/{texttospeech,speechtotext,soundeffects,voices,samples,history,user}` |
+| (none) | every other service: see the table in "Package layout" below and the README |
+
+In the tables below, unqualified new names belong to the package of the service they are used with.
 
 ## Client construction
 
@@ -35,50 +42,50 @@ Requests are now retried by default (2 retries for 408/409/429/5xx) and time out
 
 | Old | New |
 | --- | --- |
-| `c.GetUserInfo(ctx)` | `client.User.Get(ctx)` returning `*User` |
-| `c.GetSubscriptionInfo(ctx)` (read from `/v1/user`) | `client.User.Subscription.Get(ctx)` (calls `/v1/user/subscription`) returning `*Subscription` |
-| `c.GetVoices(ctx)` | `client.Voices.GetAll(ctx, nil)` returning `*GetVoicesResponse` (use `.Voices`) |
+| `c.GetUserInfo(ctx)` | `client.User.Get(ctx)` returning `*user.User` |
+| `c.GetSubscriptionInfo(ctx)` (read from `/v1/user`) | `client.User.Subscription.Get(ctx)` (calls `/v1/user/subscription`) returning `*user.Subscription` |
+| `c.GetVoices(ctx)` | `client.Voices.GetAll(ctx, nil)` returning `*voices.GetAllResponse` (use `.Voices`) |
 | `c.GetVoiceIDs(ctx)` | removed; iterate `client.Voices.GetAll` or `client.Voices.SearchAll` |
-| `c.GetVoice(ctx, id)` | `client.Voices.Get(ctx, id, nil)` returning `*Voice` |
-| `c.DeleteVoice(ctx, id)` | `client.Voices.Delete(ctx, id)` returning `*StatusResponse` |
-| `c.CreateVoice(ctx, name, desc, labels, files)` | `client.Voices.IVC.Create(ctx, &IVCCreateRequest{...})` returning `*AddVoiceIVCResponse` |
-| `c.EditVoice(ctx, id, name, desc, labels, files)` | `client.Voices.Update(ctx, id, &VoicesUpdateRequest{...})` |
-| `c.GetVoiceSettings(ctx, id)` | `client.Voices.Settings.Get(ctx, id)` returning `*VoiceSettings` |
-| `c.EditVoiceSettings(ctx, id, opts)` | `client.Voices.Settings.Update(ctx, id, &VoiceSettings{...})` |
+| `c.GetVoice(ctx, id)` | `client.Voices.Get(ctx, id, nil)` returning `*voices.Voice` |
+| `c.DeleteVoice(ctx, id)` | `client.Voices.Delete(ctx, id)` returning `*types.StatusResponse` |
+| `c.CreateVoice(ctx, name, desc, labels, files)` | `client.Voices.IVC.Create(ctx, &voices.IVCCreateRequest{...})` returning `*voices.AddVoiceIVCResponse` |
+| `c.EditVoice(ctx, id, name, desc, labels, files)` | `client.Voices.Update(ctx, id, &voices.UpdateRequest{...})` |
+| `c.GetVoiceSettings(ctx, id)` | `client.Voices.Settings.Get(ctx, id)` returning `*types.VoiceSettings` |
+| `c.EditVoiceSettings(ctx, id, opts)` | `client.Voices.Settings.Update(ctx, id, &types.VoiceSettings{...})` |
 | `c.DownloadVoiceSample(ctx, voiceID, sampleID)` | `client.Voices.Samples.Audio.Get(ctx, voiceID, sampleID)` |
-| `c.DeleteVoiceSample(ctx, voiceID, sampleID)` (returned `bool`) | `client.Samples.Delete(ctx, voiceID, sampleID)` returning `*StatusResponse` |
-| `c.GetHistoryItemList(ctx)` | `client.History.List(ctx, &HistoryListRequest{...})` or `client.History.ListAll(...)` iterator |
-| `c.GetHistoryIDs(ctx, voiceIDs...)` | removed; use `client.History.ListAll(ctx, &HistoryListRequest{VoiceID: id})` |
-| `c.HistoryDelete(ctx, id)` (returned `bool`) | `client.History.Delete(ctx, id)` returning `*StatusResponse` |
+| `c.DeleteVoiceSample(ctx, voiceID, sampleID)` (returned `bool`) | `client.Samples.Delete(ctx, voiceID, sampleID)` returning `*types.StatusResponse` |
+| `c.GetHistoryItemList(ctx)` | `client.History.List(ctx, &history.ListRequest{...})` or `client.History.ListAll(...)` iterator |
+| `c.GetHistoryIDs(ctx, voiceIDs...)` | removed; use `client.History.ListAll(ctx, &history.ListRequest{VoiceID: id})` |
+| `c.HistoryDelete(ctx, id)` (returned `bool`) | `client.History.Delete(ctx, id)` returning `*types.StatusResponse` |
 | `c.HistoryDownloadAudio(ctx, id)` | `client.History.GetAudio(ctx, id)` |
-| `c.HistoryDownloadZip(ctx, id1, id2, ids...)` | `client.History.Download(ctx, &DownloadHistoryRequest{HistoryItemIDs: ids})` |
-| `c.TTS(ctx, text, voiceID, modelID, opts, params...)` | `client.TextToSpeech.Convert(ctx, voiceID, &TextToSpeechRequest{Text: text, ModelID: modelID, ...})` |
-| `c.TTSStream(ctx, text, voiceID, opts, params...)` | `client.TextToSpeech.Stream(ctx, voiceID, &TextToSpeechRequest{...})` |
-| `client.WithPreviousText` / `client.WithNextText` | `TextToSpeechRequest.PreviousText` / `.NextText` fields |
-| `c.SoundGeneration(ctx, text, duration, influence)` | `client.TextToSoundEffects.Convert(ctx, &CreateSoundEffectRequest{...})` |
-| `c.ConvertSpeechToText(ctx, path, req)` | `client.SpeechToText.Convert(ctx, &SpeechToTextConvertRequest{File: &File{Reader: f, Name: name}, ...})` |
+| `c.HistoryDownloadZip(ctx, id1, id2, ids...)` | `client.History.Download(ctx, &history.DownloadRequest{HistoryItemIDs: ids})` |
+| `c.TTS(ctx, text, voiceID, modelID, opts, params...)` | `client.TextToSpeech.Convert(ctx, voiceID, &texttospeech.ConvertRequest{Text: text, ModelID: modelID, ...})` |
+| `c.TTSStream(ctx, text, voiceID, opts, params...)` | `client.TextToSpeech.Stream(ctx, voiceID, &texttospeech.ConvertRequest{...})` |
+| `client.WithPreviousText` / `client.WithNextText` | `texttospeech.ConvertRequest.PreviousText` / `.NextText` fields |
+| `c.SoundGeneration(ctx, text, duration, influence)` | `client.TextToSoundEffects.Convert(ctx, &soundeffects.ConvertRequest{...})` |
+| `c.ConvertSpeechToText(ctx, path, req)` | `client.SpeechToText.Convert(ctx, &speechtotext.ConvertRequest{File: &types.File{Reader: f, Name: name}, ...})` |
 | `c.ConvertSpeechToTextFromReader(ctx, r, name, req)` | same as above |
 
 ## Types
 
 | Old | New |
 | --- | --- |
-| `types.SynthesisOptions` (values, silently clamped) | `VoiceSettings` (optional pointer fields, sent as given) |
-| `types.TTS`, `types.TTSParam` | `TextToSpeechRequest` |
-| `types.SoundGeneration` | `CreateSoundEffectRequest` (prompt influence no longer defaults to 0.3 client-side) |
-| `types.SpeechToTextRequest` | `SpeechToTextConvertRequest`; `ModelID` is now a `string` (constants `SpeechToTextModelScribeV1`, ...) and bool fields are `*bool` |
-| `types.SpeechToTextResponse` | `SpeechToTextConvertResponse` union with `Chunk`, `Multichannel` and `Webhook` variants |
-| `types.TranscriptionWord` / `types.TranscriptionCharacter` | `SpeechToTextWord` / `SpeechToTextCharacter` (start/end are `*float64`) |
-| `types.UserResponseModel` | `User` (the `xi_api_key` field no longer exists upstream; see `XiAPIKeyPreview`) |
-| `types.Subscription` / `types.ExtendedSubscriptionResponseModel` | `SubscriptionResponse` / `Subscription` |
-| `types.VoiceResponseModel`, `types.GetVoicesResponseModel` | `Voice`, `GetVoicesResponse` |
-| `types.HistoryItemList`, `types.GetHistoryResponse` | `SpeechHistoryItem`, `GetSpeechHistoryResponse` |
-| `types.Sample`, `types.FineTuningResponseModel`, `types.SharingOptions` | `VoiceSample`, `FineTuning`, `VoiceSharing` |
-| `types.TimestampsGranularity*` | `TimestampsGranularity*` (same values) |
+| `types.SynthesisOptions` (values, silently clamped) | `types.VoiceSettings` (optional pointer fields, sent as given) |
+| `types.TTS`, `types.TTSParam` | `texttospeech.ConvertRequest` |
+| `types.SoundGeneration` | `soundeffects.ConvertRequest` (prompt influence no longer defaults to 0.3 client-side) |
+| `types.SpeechToTextRequest` | `speechtotext.ConvertRequest`; `ModelID` is now a `string` (constants `speechtotext.ModelScribeV1`, ...) and bool fields are `*bool` |
+| `types.SpeechToTextResponse` | `speechtotext.ConvertResponse` union with `Chunk`, `Multichannel` and `Webhook` variants |
+| `types.TranscriptionWord` / `types.TranscriptionCharacter` | `speechtotext.Word` / `speechtotext.Character` (start/end are `*float64`) |
+| `types.UserResponseModel` | `user.User` (the `xi_api_key` field no longer exists upstream; see `XiAPIKeyPreview`) |
+| `types.Subscription` / `types.ExtendedSubscriptionResponseModel` | `user.SubscriptionResponse` / `user.Subscription` |
+| `types.VoiceResponseModel`, `types.GetVoicesResponseModel` | `voices.Voice`, `voices.GetAllResponse` |
+| `types.HistoryItemList`, `types.GetHistoryResponse` | `history.Item`, `history.ListResponse` |
+| `types.Sample`, `types.FineTuningResponseModel`, `types.SharingOptions` | `voices.Sample`, `voices.FineTuning`, `voices.Sharing` |
+| `types.TimestampsGranularity*` | `speechtotext.TimestampsGranularity*` (same values) |
 
 ## Uploads
 
-Uploads take `elevenlabs.File{Reader, Name, ContentType}` instead of `[]*os.File` or file paths and are streamed instead of buffered in memory.
+Uploads take `types.File{Reader, Name, ContentType}` (or `types.NewFile`) instead of `[]*os.File` or file paths and are streamed instead of buffered in memory.
 Uploads are retried only when every reader implements `io.Seeker` (for example `*os.File` or `*bytes.Reader`).
 The multipart field for voice samples is now `files` (matching the official SDK) instead of `files[]`, and labels are sent as a JSON object instead of a comma-separated string.
 
@@ -88,7 +95,7 @@ The multipart field for voice samples is now `files` (matching the official SDK)
 | --- | --- |
 | `client.ErrUnauthorized` | `elevenlabs.ErrUnauthorized` (matched with `errors.Is`) |
 | `client.ErrUnspecified` | removed; every non-2xx response is an `*APIError` unwrapping to a status sentinel (`ErrUnexpectedStatus` when there is none) |
-| `types.ValidationError` joined into the error | `APIError.ValidationErrors` (`[]ValidationError`) |
+| `types.ValidationError` joined into the error | `APIError.ValidationErrors` (`[]elevenlabs.ValidationError`, alias of `apierror.ValidationError`) |
 | `types.ParamError` joined into the error | `APIError.Status` / `APIError.Message` |
 
 ## Package layout (pre-release root names)
