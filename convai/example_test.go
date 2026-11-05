@@ -1,4 +1,4 @@
-package elevenlabs_test
+package convai_test
 
 import (
 	"context"
@@ -6,17 +6,18 @@ import (
 	"log"
 
 	"github.com/taigrr/elevenlabs/v2"
+	"github.com/taigrr/elevenlabs/v2/convai"
 )
 
-func ExampleConversationalAIService_Connect() {
+func ExampleService_Connect() {
 	ctx := context.Background()
 	client := elevenlabs.NewClient()
 
-	tools := &elevenlabs.ClientTools{}
+	tools := &convai.ClientTools{}
 	_ = tools.Register("get_time", func(context.Context, map[string]any) (any, error) {
 		return "12:00", nil
 	})
-	conv, err := client.ConversationalAI.Connect(ctx, &elevenlabs.ConversationRequest{
+	conv, err := client.ConvAI.Connect(ctx, &convai.ConnectRequest{
 		AgentID:     "agent_123",
 		ClientTools: tools,
 	})
@@ -31,7 +32,7 @@ func ExampleConversationalAIService_Connect() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if ev.Type == elevenlabs.ConversationEventAgentResponse {
+		if ev.Type == convai.ConversationEventAgentResponse {
 			fmt.Println(ev.AgentResponse.AgentResponse)
 			return
 		}

@@ -61,13 +61,15 @@
 //
 // # Conversational AI
 //
-// client.ConversationalAI groups the agents platform: Agents (with Branches,
+// client.ConvAI groups the agents platform: Agents (with Branches,
 // Deployments, Drafts, MergeProposals, Procedures, Widget, ...),
 // Conversations (audio, feedback, files, messages, tags), KnowledgeBase
 // (documents, chunks, crawl jobs, RAG indexes), Tools, Tests, Settings,
-// Secrets and Dashboard. Frequently used configuration fields are typed;
+// Secrets, Dashboard, telephony (PhoneNumbers, Twilio, SIPTrunk, Exotel,
+// WhatsApp, BatchCalls), MCPServers and TriageTickets; see package convai
+// and its subpackages. Frequently used configuration fields are typed;
 // deeply nested or polymorphic sections are json.RawMessage. Batch
-// endpoints return map[string]BatchResult[T] keyed by the requested ID.
+// endpoints return map[string]agents.BatchResult[T] keyed by the requested ID.
 //
 // # Realtime (WebSocket)
 //
@@ -75,7 +77,7 @@
 // typed messages: TextToSpeech.StreamInput and MultiStreamInput,
 // TextToDialogue.StreamInput and MultiStreamInput, SpeechToText.Realtime
 // (Scribe), Dubbing.Realtime, Translation.Realtime and
-// ConversationalAI.Connect (agent conversations, with ClientTools).
+// ConvAI.Connect (agent conversations, with ClientTools).
 // Audio flows through io.Writer (AudioWriter) and io.Reader (AudioReader)
 // adapters where natural. Send and Recv may run on different goroutines;
 // cancelling the context passed to Recv closes the connection. Recv returns

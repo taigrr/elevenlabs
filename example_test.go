@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 
 	"github.com/taigrr/elevenlabs/v2"
 )
@@ -41,55 +39,4 @@ func ExampleAPIError() {
 	// Output:
 	// true
 	// 404 voice_not_found
-}
-
-func ExampleAgentsService_Create() {
-	ctx := context.Background()
-	client := elevenlabs.NewClient()
-
-	agent, err := client.ConversationalAI.Agents.Create(ctx, &elevenlabs.AgentCreateRequest{
-		Name: "Support",
-		ConversationConfig: elevenlabs.ConversationalConfig{
-			Agent: &elevenlabs.AgentConfig{
-				FirstMessage: "Hi, how can I help?",
-				Prompt:       &elevenlabs.AgentPrompt{Prompt: "You are a helpful support agent.", LLM: elevenlabs.LLMGPT4oMini},
-			},
-		},
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(agent.AgentID)
-}
-
-func ExampleConversationAudioService_Get() {
-	ctx := context.Background()
-	client := elevenlabs.NewClient()
-
-	audio, err := client.ConversationalAI.Conversations.Audio.Get(ctx, "conversation-id")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer audio.Close()
-
-	out, err := os.Create("conversation.mp3")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer out.Close()
-	if _, err := io.Copy(out, audio); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func ExampleBatchCallsService_ListAll() {
-	ctx := context.Background()
-	client := elevenlabs.NewClient()
-
-	for batch, err := range client.ConversationalAI.BatchCalls.ListAll(ctx, &elevenlabs.BatchCallListRequest{AgentID: "agent-id"}) {
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(batch.Name, batch.Status, batch.TotalCallsFinished)
-	}
 }

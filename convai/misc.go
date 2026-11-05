@@ -1,4 +1,4 @@
-package elevenlabs
+package convai
 
 import (
 	"context"
@@ -6,19 +6,24 @@ import (
 	"iter"
 	"net/http"
 
+	"github.com/taigrr/elevenlabs/v2/convai/agents"
+	"github.com/taigrr/elevenlabs/v2/internal/requestconfig"
+	"github.com/taigrr/elevenlabs/v2/internal/stream"
+	"github.com/taigrr/elevenlabs/v2/internal/transport"
+	"github.com/taigrr/elevenlabs/v2/option"
 	"github.com/taigrr/elevenlabs/v2/types"
 )
 
-// ConvAIAnalyticsService groups the /v1/convai/analytics endpoints.
-type ConvAIAnalyticsService struct {
+// AnalyticsService groups the /v1/convai/analytics endpoints.
+type AnalyticsService struct {
 	// LiveCount reports the number of ongoing conversations.
-	LiveCount *ConvAILiveCountService
+	LiveCount *LiveCountService
 }
 
-// ConvAILiveCountService groups the live count endpoint.
-type ConvAILiveCountService struct{ cfg *config }
+// LiveCountService groups the live count endpoint.
+type LiveCountService struct{ cfg *requestconfig.Config }
 
-// LiveCountRequest holds the optional filters of ConvAILiveCountService.Get.
+// LiveCountRequest holds the optional filters of LiveCountService.Get.
 type LiveCountRequest struct {
 	AgentID string `query:"agent_id"`
 	// AgentIDs restricts the count to the union of the given agents and
@@ -27,8 +32,8 @@ type LiveCountRequest struct {
 }
 
 // Get returns the number of active conversations. req may be nil.
-func (s *ConvAILiveCountService) Get(ctx context.Context, req *LiveCountRequest, opts ...Option) (int, error) {
-	out, err := getValue[struct {
+func (s *LiveCountService) Get(ctx context.Context, req *LiveCountRequest, opts ...option.RequestOption) (int, error) {
+	out, err := transport.GetValue[struct {
 		Count int `json:"count"`
 	}](ctx, s.cfg, "/v1/convai/analytics/live-count", req, opts)
 	if err != nil {
@@ -37,22 +42,22 @@ func (s *ConvAILiveCountService) Get(ctx context.Context, req *LiveCountRequest,
 	return out.Count, nil
 }
 
-// ConvAILLMService groups the /v1/convai/llm endpoints.
-type ConvAILLMService struct{ cfg *config }
+// LLMService groups the /v1/convai/llm endpoints.
+type LLMService struct{ cfg *requestconfig.Config }
 
 // LLMInfo describes an LLM available to agents.
 type LLMInfo struct {
-	LLM                         LLM              `json:"llm"`
-	IsCheckpoint                bool             `json:"is_checkpoint"`
-	MaxTokensLimit              int              `json:"max_tokens_limit"`
-	MaxContextLimit             int              `json:"max_context_limit"`
-	SupportsImageInput          bool             `json:"supports_image_input"`
-	SupportsDocumentInput       bool             `json:"supports_document_input"`
-	SupportsParallelToolCalls   bool             `json:"supports_parallel_tool_calls"`
-	AvailableReasoningEfforts   []string         `json:"available_reasoning_efforts,omitempty"`
-	AvailableServiceTiers       []LLMServiceTier `json:"available_service_tiers"`
-	DeprecationInfo             json.RawMessage  `json:"deprecation_info,omitempty"`
-	RegionalProcessingSurcharge json.RawMessage  `json:"regional_processing_surcharge,omitempty"`
+	LLM                         agents.LLM              `json:"llm"`
+	IsCheckpoint                bool                    `json:"is_checkpoint"`
+	MaxTokensLimit              int                     `json:"max_tokens_limit"`
+	MaxContextLimit             int                     `json:"max_context_limit"`
+	SupportsImageInput          bool                    `json:"supports_image_input"`
+	SupportsDocumentInput       bool                    `json:"supports_document_input"`
+	SupportsParallelToolCalls   bool                    `json:"supports_parallel_tool_calls"`
+	AvailableReasoningEfforts   []string                `json:"available_reasoning_efforts,omitempty"`
+	AvailableServiceTiers       []agents.LLMServiceTier `json:"available_service_tiers"`
+	DeprecationInfo             json.RawMessage         `json:"deprecation_info,omitempty"`
+	RegionalProcessingSurcharge json.RawMessage         `json:"regional_processing_surcharge,omitempty"`
 }
 
 // LLMList lists the available LLMs.
@@ -62,21 +67,21 @@ type LLMList struct {
 }
 
 // List returns the LLMs that can be used with agents.
-func (s *ConvAILLMService) List(ctx context.Context, opts ...Option) (*LLMList, error) {
-	return getValue[LLMList](ctx, s.cfg, "/v1/convai/llm/list", nil, opts)
+func (s *LLMService) List(ctx context.Context, opts ...option.RequestOption) (*LLMList, error) {
+	return transport.GetValue[LLMList](ctx, s.cfg, "/v1/convai/llm/list", nil, opts)
 }
 
-// ConvAILLMUsageService groups the /v1/convai/llm-usage endpoints.
-type ConvAILLMUsageService struct{ cfg *config }
+// LLMUsageService groups the /v1/convai/llm-usage endpoints.
+type LLMUsageService struct{ cfg *requestconfig.Config }
 
 // Calculate estimates per-LLM costs for an agent configuration without
 // an existing agent. PromptLength, NumberOfPages and RAGEnabled are required.
-func (s *ConvAILLMUsageService) Calculate(ctx context.Context, req *LLMUsageRequest, opts ...Option) (*LLMUsageResponse, error) {
-	return sendValue[LLMUsageResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/llm-usage/calculate", nil, orEmpty(req), opts)
+func (s *LLMUsageService) Calculate(ctx context.Context, req *agents.LLMUsageRequest, opts ...option.RequestOption) (*agents.LLMUsageResponse, error) {
+	return transport.SendValue[agents.LLMUsageResponse](ctx, s.cfg, http.MethodPost, "/v1/convai/llm-usage/calculate", nil, transport.OrEmpty(req), opts)
 }
 
-// ConvAIRealtimeService groups the /v1/convai/realtime endpoints.
-type ConvAIRealtimeService struct{ cfg *config }
+// RealtimeService groups the /v1/convai/realtime endpoints.
+type RealtimeService struct{ cfg *requestconfig.Config }
 
 // ClientSecretExpiry sets when a realtime client secret expires.
 type ClientSecretExpiry struct {
@@ -101,14 +106,14 @@ type ClientSecret struct {
 
 // CreateClientSecret creates an ephemeral client secret for the
 // OpenAI-compatible realtime API. req may be nil.
-func (s *ConvAIRealtimeService) CreateClientSecret(ctx context.Context, req *CreateClientSecretRequest, opts ...Option) (*ClientSecret, error) {
-	return sendValue[ClientSecret](ctx, s.cfg, http.MethodPost, "/v1/convai/realtime/client_secrets", nil, orEmpty(req), opts)
+func (s *RealtimeService) CreateClientSecret(ctx context.Context, req *CreateClientSecretRequest, opts ...option.RequestOption) (*ClientSecret, error) {
+	return transport.SendValue[ClientSecret](ctx, s.cfg, http.MethodPost, "/v1/convai/realtime/client_secrets", nil, transport.OrEmpty(req), opts)
 }
 
-// ConvAIUsersService groups the /v1/convai/users endpoints.
-type ConvAIUsersService struct{ cfg *config }
+// UsersService groups the /v1/convai/users endpoints.
+type UsersService struct{ cfg *requestconfig.Config }
 
-// ConversationUsersSortBy is the sort field of ConvAIUsersService.List.
+// ConversationUsersSortBy is the sort field of UsersService.List.
 type ConversationUsersSortBy string
 
 // ConversationUsersSortBy values.
@@ -118,7 +123,7 @@ const (
 	ConversationUsersSortByAverageSentimentScore ConversationUsersSortBy = "average_sentiment_score"
 )
 
-// ConversationUsersListRequest holds the optional parameters of ConvAIUsersService.List.
+// ConversationUsersListRequest holds the optional parameters of UsersService.List.
 type ConversationUsersListRequest struct {
 	AgentID             string                  `query:"agent_id"`
 	BranchID            string                  `query:"branch_id"`
@@ -152,20 +157,20 @@ type ConversationUsersPage struct {
 }
 
 // List returns one page of end users who talked to your agents. req may be nil.
-func (s *ConvAIUsersService) List(ctx context.Context, req *ConversationUsersListRequest, opts ...Option) (*ConversationUsersPage, error) {
-	return getValue[ConversationUsersPage](ctx, s.cfg, "/v1/convai/users", req, opts)
+func (s *UsersService) List(ctx context.Context, req *ConversationUsersListRequest, opts ...option.RequestOption) (*ConversationUsersPage, error) {
+	return transport.GetValue[ConversationUsersPage](ctx, s.cfg, "/v1/convai/users", req, opts)
 }
 
 // ListAll iterates over every conversation user.
-func (s *ConvAIUsersService) ListAll(ctx context.Context, req *ConversationUsersListRequest, opts ...Option) iter.Seq2[ConversationUser, error] {
-	params := *orEmpty(req)
-	return paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (page[ConversationUser], error) {
+func (s *UsersService) ListAll(ctx context.Context, req *ConversationUsersListRequest, opts ...option.RequestOption) iter.Seq2[ConversationUser, error] {
+	params := *transport.OrEmpty(req)
+	return stream.Paginate(ctx, params.Cursor, func(ctx context.Context, cursor string) (stream.Page[ConversationUser], error) {
 		params.Cursor = cursor
 		p, err := s.List(ctx, &params, opts...)
 		if err != nil {
-			return page[ConversationUser]{}, err
+			return stream.Page[ConversationUser]{}, err
 		}
-		next := deref(p.NextCursor)
-		return page[ConversationUser]{items: p.Users, next: next, hasMore: p.HasMore && next != ""}, nil
+		next := transport.Deref(p.NextCursor)
+		return stream.Page[ConversationUser]{Items: p.Users, Next: next, HasMore: p.HasMore && next != ""}, nil
 	})
 }

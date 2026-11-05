@@ -10,6 +10,7 @@ import (
 
 	"github.com/taigrr/elevenlabs/v2"
 	"github.com/taigrr/elevenlabs/v2/speechtotext"
+	"github.com/taigrr/elevenlabs/v2/types"
 )
 
 func ExampleService_Convert() {
@@ -24,7 +25,7 @@ func ExampleService_Convert() {
 
 	resp, err := client.SpeechToText.Convert(ctx, &speechtotext.ConvertRequest{
 		ModelID: speechtotext.ModelScribeV1,
-		File:    &elevenlabs.File{Reader: f, Name: "meeting.mp3"},
+		File:    &types.File{Reader: f, Name: "meeting.mp3"},
 		Diarize: elevenlabs.Ptr(true),
 	})
 	if err != nil {

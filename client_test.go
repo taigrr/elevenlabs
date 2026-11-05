@@ -43,12 +43,12 @@ func TestClientDefaultsAndOptions(t *testing.T) {
 }
 
 func TestClientOptionsReachServices(t *testing.T) {
-	client, ts := newTestServer(t, respond(200, contentTypeJSON, `{}`), WithHeader("X-Client", "c"))
+	client, ts := newTestServer(t, respond(200, "application/json", `{}`), WithHeader("X-Client", "c"))
 	if _, err := client.User.Get(context.Background(), WithHeader("X-Call", "r")); err != nil {
 		t.Fatal(err)
 	}
-	h := ts.last(t).Header
-	if h.Get("X-Client") != "c" || h.Get("X-Call") != "r" || h.Get(headerAPIKey) != "test-key" || h.Get(headerUserAgent) != DefaultUserAgent {
+	h := ts.Last(t).Header
+	if h.Get("X-Client") != "c" || h.Get("X-Call") != "r" || h.Get("xi-api-key") != "test-key" || h.Get("User-Agent") != DefaultUserAgent {
 		t.Errorf("headers = %v", h)
 	}
 }

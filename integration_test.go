@@ -12,7 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/taigrr/elevenlabs/v2/convai"
+	"github.com/taigrr/elevenlabs/v2/convai/agents"
 	"github.com/taigrr/elevenlabs/v2/dubbing"
+	"github.com/taigrr/elevenlabs/v2/realtime"
 	"github.com/taigrr/elevenlabs/v2/speechtotext"
 	"github.com/taigrr/elevenlabs/v2/texttodialogue"
 	"github.com/taigrr/elevenlabs/v2/texttospeech"
@@ -299,7 +302,7 @@ func runLiveTranslate(t *testing.T, ctx context.Context, conn liveTranslateConn,
 		if errors.Is(err, io.EOF) {
 			break
 		}
-		var rtErr *RealtimeError
+		var rtErr *realtime.Error
 		if errors.As(err, &rtErr) && rtErr.MessageType == "auth_error" && strings.Contains(rtErr.Message, "permission") {
 			t.Skipf("api key lacks permission: %v", err)
 		}
@@ -360,12 +363,12 @@ func TestLiveConversation(t *testing.T) {
 	ctx := liveCtx(t)
 	agentID := os.Getenv("ELEVENLABS_AGENT_ID")
 	if agentID == "" {
-		created, err := c.ConversationalAI.Agents.Create(ctx, &AgentCreateRequest{
+		created, err := c.ConvAI.Agents.Create(ctx, &agents.CreateRequest{
 			Name: "go-sdk-integration-test",
-			ConversationConfig: ConversationalConfig{
-				Agent: &AgentConfig{
+			ConversationConfig: agents.ConversationalConfig{
+				Agent: &agents.AgentConfig{
 					FirstMessage: "Hello from the integration test.",
-					Prompt:       &AgentPrompt{Prompt: "Reply with one short sentence."},
+					Prompt:       &agents.AgentPrompt{Prompt: "Reply with one short sentence."},
 				},
 			},
 		})
@@ -375,13 +378,13 @@ func TestLiveConversation(t *testing.T) {
 		}
 		agentID = created.AgentID
 		t.Cleanup(func() {
-			if err := c.ConversationalAI.Agents.Delete(context.Background(), agentID, nil); err != nil {
+			if err := c.ConvAI.Agents.Delete(context.Background(), agentID, nil); err != nil {
 				t.Errorf("delete agent: %v", err)
 			}
 		})
 	}
 	for _, auth := range []bool{false, true} {
-		conv, err := c.ConversationalAI.Connect(ctx, &ConversationRequest{AgentID: agentID, RequiresAuth: auth})
+		conv, err := c.ConvAI.Connect(ctx, &convai.ConnectRequest{AgentID: agentID, RequiresAuth: auth})
 		if err != nil {
 			t.Fatalf("connect (auth=%v): %v", auth, err)
 		}
@@ -392,12 +395,12 @@ func TestLiveConversation(t *testing.T) {
 				t.Fatalf("recv (auth=%v): %v", auth, err)
 			}
 			switch ev.Type {
-			case ConversationEventInitiationMetadata:
+			case convai.ConversationEventInitiationMetadata:
 				gotMeta = true
 				if err := conv.SendUserMessage(ctx, "Say hi."); err != nil {
 					t.Fatal(err)
 				}
-			case ConversationEventAgentResponse:
+			case convai.ConversationEventAgentResponse:
 				t.Logf("agent (auth=%v): %s", auth, ev.AgentResponse.AgentResponse)
 				gotResponse = true
 			}

@@ -1,4 +1,4 @@
-package elevenlabs
+package convai
 
 import (
 	"bytes"
@@ -10,6 +10,10 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/taigrr/elevenlabs/v2/convai/conversations"
+	"github.com/taigrr/elevenlabs/v2/internal/ws"
+	"github.com/taigrr/elevenlabs/v2/option"
+	"github.com/taigrr/elevenlabs/v2/realtime"
 	"github.com/taigrr/elevenlabs/v2/texttodialogue"
 )
 
@@ -129,12 +133,12 @@ type ConversationEvent struct {
 	Raw                            json.RawMessage                      `json:"-"`
 }
 
-// Err returns a *RealtimeError for client_error events and nil otherwise.
+// Err returns a *realtime.Error for client_error events and nil otherwise.
 func (e *ConversationEvent) Err() error {
 	if e.Type != ConversationEventClientError || e.Error == nil {
 		return nil
 	}
-	return &RealtimeError{MessageType: e.Error.ErrorName, Message: e.Error.Message, Code: e.Error.Code}
+	return &realtime.Error{MessageType: e.Error.ErrorName, Message: e.Error.Message, Code: e.Error.Code}
 }
 
 // ConversationInitiationData is sent as conversation_initiation_client_data
@@ -173,7 +177,7 @@ type ClientTools struct {
 // Register adds a handler for name.
 func (t *ClientTools) Register(name string, handler ClientToolHandler) error {
 	if handler == nil {
-		return fmt.Errorf("%w: handler must not be nil", ErrInvalidParameter)
+		return fmt.Errorf("%w: handler must not be nil", realtime.ErrInvalidParameter)
 	}
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -243,12 +247,12 @@ type ClientToolResult struct {
 	ErrorType string `json:"error_type,omitempty"`
 }
 
-// ConversationRequest configures an agent conversation.
-type ConversationRequest struct {
+// ConnectRequest configures an agent conversation.
+type ConnectRequest struct {
 	// AgentID is required.
 	AgentID string
 	// RequiresAuth fetches a signed URL with
-	// ConversationalAI.Conversations.GetSignedURL before connecting, for
+	// ConvAI.Conversations.GetSignedURL before connecting, for
 	// private agents.
 	RequiresAuth bool
 	// BranchID, VersionID and Environment are forwarded to GetSignedURL or
@@ -275,13 +279,13 @@ type conversationQuery struct {
 	Environment string `query:"environment"`
 }
 
-// ConversationSession is a realtime agent conversation over WebSocket, the
+// Session is a realtime agent conversation over WebSocket, the
 // equivalent of the official SDK's Conversation without a built-in audio
 // device: send microphone audio with SendUserAudio or AudioWriter and play
 // the Audio of received events.
-type ConversationSession struct {
-	s   *socket
-	req ConversationRequest
+type Session struct {
+	s   *ws.Socket
+	req ConnectRequest
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -293,32 +297,32 @@ type ConversationSession struct {
 }
 
 // Connect starts an agent conversation (wss://…/v1/convai/conversation).
-func (s *ConversationalAIService) Connect(ctx context.Context, req *ConversationRequest, opts ...Option) (*ConversationSession, error) {
+func (s *Service) Connect(ctx context.Context, req *ConnectRequest, opts ...option.RequestOption) (*Session, error) {
 	if req == nil || req.AgentID == "" {
-		return nil, fmt.Errorf("%w: agent id is required", ErrInvalidParameter)
+		return nil, fmt.Errorf("%w: agent id is required", realtime.ErrInvalidParameter)
 	}
-	dc := dialConfig{
-		path: "/v1/convai/conversation",
-		query: &conversationQuery{
+	dc := ws.DialConfig{
+		Path: "/v1/convai/conversation",
+		Query: &conversationQuery{
 			AgentID: req.AgentID, BranchID: req.BranchID, VersionID: req.VersionID, Environment: req.Environment,
 		},
-		opts: opts,
+		Opts: opts,
 	}
 	if req.RequiresAuth {
-		signed, err := s.Conversations.GetSignedURL(ctx, &SessionRequest{
+		signed, err := s.Conversations.GetSignedURL(ctx, &conversations.SessionRequest{
 			AgentID: req.AgentID, BranchID: req.BranchID, VersionID: req.VersionID, Environment: req.Environment,
 		}, opts...)
 		if err != nil {
 			return nil, fmt.Errorf("elevenlabs: get signed url: %w", err)
 		}
-		dc = dialConfig{rawURL: signed.SignedURL, opts: opts, noAPIKey: true}
+		dc = ws.DialConfig{RawURL: signed.SignedURL, Opts: opts, NoAPIKey: true}
 	}
-	sock, err := dial(ctx, s.cfg, dc)
+	sock, err := ws.Dial(ctx, s.cfg, dc)
 	if err != nil {
 		return nil, err
 	}
 	toolCtx, cancel := context.WithCancel(context.WithoutCancel(ctx))
-	c := &ConversationSession{s: sock, req: *req, ctx: toolCtx, cancel: cancel, lastInterrupt: -1}
+	c := &Session{s: sock, req: *req, ctx: toolCtx, cancel: cancel, lastInterrupt: -1}
 	init := req.InitiationData
 	if init == nil {
 		init = &ConversationInitiationData{}
@@ -331,7 +335,7 @@ func (s *ConversationalAIService) Connect(ctx context.Context, req *Conversation
 }
 
 // send merges {"type": typ} into the JSON encoding of payload.
-func (c *ConversationSession) send(ctx context.Context, typ string, payload any) error {
+func (c *Session) send(ctx context.Context, typ string, payload any) error {
 	fields := map[string]any{}
 	if payload != nil {
 		b, err := json.Marshal(payload)
@@ -343,23 +347,23 @@ func (c *ConversationSession) send(ctx context.Context, typ string, payload any)
 		}
 	}
 	fields["type"] = typ
-	return c.s.writeJSON(ctx, fields)
+	return c.s.WriteJSON(ctx, fields)
 }
 
 // Send writes an arbitrary client event, e.g. one not covered by the
 // helper methods. v must encode to a JSON object.
-func (c *ConversationSession) Send(ctx context.Context, v any) error { return c.s.writeJSON(ctx, v) }
+func (c *Session) Send(ctx context.Context, v any) error { return c.s.WriteJSON(ctx, v) }
 
 // SendUserAudio sends a chunk of user audio in the agent's input format.
-func (c *ConversationSession) SendUserAudio(ctx context.Context, audio []byte) error {
-	return c.s.writeJSON(ctx, struct {
+func (c *Session) SendUserAudio(ctx context.Context, audio []byte) error {
+	return c.s.WriteJSON(ctx, struct {
 		UserAudioChunk []byte `json:"user_audio_chunk"`
-	}{nonNilBytes(audio)})
+	}{ws.NonNilBytes(audio)})
 }
 
 // AudioWriter returns an io.Writer that sends every Write as user audio.
-func (c *ConversationSession) AudioWriter(ctx context.Context) io.Writer {
-	return writerFunc(func(p []byte) (int, error) {
+func (c *Session) AudioWriter(ctx context.Context) io.Writer {
+	return ws.WriterFunc(func(p []byte) (int, error) {
 		if err := c.SendUserAudio(ctx, bytes.Clone(p)); err != nil {
 			return 0, err
 		}
@@ -368,18 +372,18 @@ func (c *ConversationSession) AudioWriter(ctx context.Context) io.Writer {
 }
 
 // SendUserMessage sends a text message from the user.
-func (c *ConversationSession) SendUserMessage(ctx context.Context, text string) error {
+func (c *Session) SendUserMessage(ctx context.Context, text string) error {
 	return c.send(ctx, "user_message", map[string]any{"text": text})
 }
 
 // SendUserActivity signals user activity, preventing the agent from
 // interrupting.
-func (c *ConversationSession) SendUserActivity(ctx context.Context) error {
+func (c *Session) SendUserActivity(ctx context.Context) error {
 	return c.send(ctx, "user_activity", nil)
 }
 
 // SendContextualUpdate sends context that does not trigger a response.
-func (c *ConversationSession) SendContextualUpdate(ctx context.Context, text string) error {
+func (c *Session) SendContextualUpdate(ctx context.Context, text string) error {
 	return c.send(ctx, "contextual_update", map[string]any{"text": text})
 }
 
@@ -394,8 +398,8 @@ func (f MultimodalFile) MarshalJSON() ([]byte, error) {
 }
 
 // SendMultimodalMessage sends text together with uploaded files (see
-// ConversationalAI.Conversations.UploadFile).
-func (c *ConversationSession) SendMultimodalMessage(ctx context.Context, text string, files ...MultimodalFile) error {
+// ConvAI.Conversations.UploadFile).
+func (c *Session) SendMultimodalMessage(ctx context.Context, text string, files ...MultimodalFile) error {
 	payload := map[string]any{}
 	if text != "" {
 		payload["text"] = map[string]any{"type": "user_message", "text": text}
@@ -407,18 +411,18 @@ func (c *ConversationSession) SendMultimodalMessage(ctx context.Context, text st
 }
 
 // SendClientToolResult answers a client tool call.
-func (c *ConversationSession) SendClientToolResult(ctx context.Context, result *ClientToolResult) error {
+func (c *Session) SendClientToolResult(ctx context.Context, result *ClientToolResult) error {
 	return c.send(ctx, "client_tool_result", result)
 }
 
 // SendPong answers a ping event.
-func (c *ConversationSession) SendPong(ctx context.Context, eventID int) error {
+func (c *Session) SendPong(ctx context.Context, eventID int) error {
 	return c.send(ctx, "pong", map[string]any{"event_id": eventID})
 }
 
 // SendFeedback rates the agent response with the given event ID. An empty
 // score clears earlier feedback.
-func (c *ConversationSession) SendFeedback(ctx context.Context, eventID int, score FeedbackScore) error {
+func (c *Session) SendFeedback(ctx context.Context, eventID int, score conversations.FeedbackScore) error {
 	payload := map[string]any{"event_id": eventID, "score": nil}
 	if score != "" {
 		payload["score"] = score
@@ -427,7 +431,7 @@ func (c *ConversationSession) SendFeedback(ctx context.Context, eventID int, sco
 }
 
 // ConversationID returns the ID from the initiation metadata, once received.
-func (c *ConversationSession) ConversationID() string {
+func (c *Session) ConversationID() string {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.conversationID
@@ -436,18 +440,18 @@ func (c *ConversationSession) ConversationID() string {
 // Recv reads the next server event. Pings are answered automatically,
 // registered client tools are executed in the background, and audio
 // preceding the latest interruption is skipped, unless disabled in the
-// ConversationRequest. client_error events are returned together with a
-// *RealtimeError. It returns io.EOF when the server ends the conversation
+// ConnectRequest. client_error events are returned together with a
+// *realtime.Error. It returns io.EOF when the server ends the conversation
 // normally. Cancelling ctx closes the connection.
-func (c *ConversationSession) Recv(ctx context.Context) (*ConversationEvent, error) {
+func (c *Session) Recv(ctx context.Context) (*ConversationEvent, error) {
 	for {
-		raw, err := c.s.readRaw(ctx)
+		raw, err := c.s.ReadRaw(ctx)
 		if err != nil {
 			return nil, err
 		}
 		var ev ConversationEvent
 		if err := json.Unmarshal(raw, &ev); err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrUnexpectedMessage, err)
+			return nil, fmt.Errorf("%w: %w", realtime.ErrUnexpectedMessage, err)
 		}
 		ev.Raw = raw
 		skip, err := c.handle(ctx, &ev)
@@ -460,7 +464,7 @@ func (c *ConversationSession) Recv(ctx context.Context) (*ConversationEvent, err
 	}
 }
 
-func (c *ConversationSession) handle(ctx context.Context, ev *ConversationEvent) (skip bool, err error) {
+func (c *Session) handle(ctx context.Context, ev *ConversationEvent) (skip bool, err error) {
 	switch ev.Type {
 	case ConversationEventInitiationMetadata:
 		if ev.ConversationInitiationMetadata != nil {
@@ -497,7 +501,7 @@ func (c *ConversationSession) handle(ctx context.Context, ev *ConversationEvent)
 	return false, nil
 }
 
-func (c *ConversationSession) runTool(call ClientToolCallEvent) {
+func (c *Session) runTool(call ClientToolCallEvent) {
 	c.tools.Add(1)
 	go func() {
 		defer c.tools.Done()
@@ -523,9 +527,9 @@ func (c *ConversationSession) runTool(call ClientToolCallEvent) {
 
 // Close ends the conversation, cancels running client tools and waits for
 // them to return.
-func (c *ConversationSession) Close() error {
+func (c *Session) Close() error {
 	c.cancel()
-	err := c.s.close()
+	err := c.s.Close()
 	c.tools.Wait()
 	return err
 }

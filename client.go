@@ -5,6 +5,7 @@ import (
 	"github.com/taigrr/elevenlabs/v2/audioeffects"
 	"github.com/taigrr/elevenlabs/v2/audioisolation"
 	"github.com/taigrr/elevenlabs/v2/audionative"
+	"github.com/taigrr/elevenlabs/v2/convai"
 	"github.com/taigrr/elevenlabs/v2/dubbing"
 	"github.com/taigrr/elevenlabs/v2/environments"
 	"github.com/taigrr/elevenlabs/v2/envvars"
@@ -41,7 +42,7 @@ import (
 //
 // A Client is safe for concurrent use.
 type Client struct {
-	cfg *config
+	cfg *requestconfig.Config
 
 	Assets *assets.Service
 	// AudioEffects lists the presets usable in audio_effects.
@@ -87,9 +88,10 @@ type Client struct {
 	Dubbing *dubbing.Service
 	// Studio manages Studio projects, chapters, snapshots and podcasts.
 	Studio *studio.Service
-	// ConversationalAI manages agents, conversations, knowledge bases, tools,
-	// tests, secrets and workspace settings.
-	ConversationalAI *ConversationalAIService
+	// ConvAI manages agents, conversations, knowledge bases, tools, tests,
+	// telephony, MCP servers, secrets and workspace settings, and opens
+	// realtime conversations with agents.
+	ConvAI *convai.Service
 }
 
 // NewClient returns a Client configured by opts. Without WithAPIKey the key
@@ -98,7 +100,7 @@ func NewClient(opts ...Option) *Client {
 	return newClient(requestconfig.Build(opts...))
 }
 
-func newClient(cfg *config) *Client {
+func newClient(cfg *requestconfig.Config) *Client {
 	return &Client{
 		cfg:                       cfg,
 		Assets:                    assets.NewService(fromConfig(cfg)),
@@ -132,7 +134,7 @@ func newClient(cfg *config) *Client {
 		Studio:                    studio.NewService(fromConfig(cfg)),
 		Dubbing:                   dubbing.NewService(fromConfig(cfg)),
 		Productions:               productions.NewService(fromConfig(cfg)),
-		ConversationalAI:          newConversationalAIService(cfg),
+		ConvAI:                    convai.NewService(fromConfig(cfg)),
 	}
 }
 
@@ -140,6 +142,6 @@ func newClient(cfg *config) *Client {
 func (c *Client) BaseURL() string { return c.cfg.BaseURL }
 
 // fromConfig makes a service share the client's configuration.
-func fromConfig(cfg *config) Option {
+func fromConfig(cfg *requestconfig.Config) Option {
 	return func(c *requestconfig.Config) { *c = *cfg.Clone() }
 }
