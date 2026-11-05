@@ -265,6 +265,28 @@ func DoValue[T any](ctx context.Context, cfg *requestconfig.Config, req *Request
 	return out, nil
 }
 
+// GetValue sends a GET request with an optional query and decodes the
+// response into a freshly allocated T.
+func GetValue[T any](ctx context.Context, cfg *requestconfig.Config, path string, query any, opts []option.RequestOption) (*T, error) {
+	return DoValue[T](ctx, cfg, &Request{Method: http.MethodGet, Path: path, Query: query, Opts: opts})
+}
+
+// SendValue sends a JSON request and decodes the response into a freshly
+// allocated T.
+func SendValue[T any](ctx context.Context, cfg *requestconfig.Config, method, path string, query, body any, opts []option.RequestOption) (*T, error) {
+	return DoValue[T](ctx, cfg, &Request{Method: method, Path: path, Query: query, Body: body, Opts: opts})
+}
+
+// SendRaw sends a JSON request and returns the undecoded response body.
+func SendRaw(ctx context.Context, cfg *requestconfig.Config, method, path string, query, body any, opts []option.RequestOption) (json.RawMessage, error) {
+	return DoRaw(ctx, cfg, &Request{Method: method, Path: path, Query: query, Body: body, Opts: opts})
+}
+
+// NoContent sends a JSON request and discards the response body.
+func NoContent(ctx context.Context, cfg *requestconfig.Config, method, path string, query, body any, opts []option.RequestOption) error {
+	return DoJSON(ctx, cfg, &Request{Method: method, Path: path, Query: query, Body: body, Opts: opts}, nil)
+}
+
 // DoValueHeader is DoValue that also returns the response headers.
 func DoValueHeader[T any](ctx context.Context, cfg *requestconfig.Config, req *Request) (*T, http.Header, error) {
 	resp, cancel, err := Send(ctx, cfg, req)
