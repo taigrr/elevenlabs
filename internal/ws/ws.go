@@ -193,6 +193,9 @@ type AudioReader struct {
 
 // Read implements io.Reader.
 func (r *AudioReader) Read(p []byte) (int, error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
 	for len(r.buf) == 0 {
 		if r.err != nil {
 			return 0, r.err
